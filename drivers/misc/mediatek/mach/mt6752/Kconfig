@@ -1,0 +1,6 @@
+
+config CPU_OC
+	bool "CPU_OVERCLOCK"
+	default n
+	help
+	  Overclock MT6752 to 2 GHz
