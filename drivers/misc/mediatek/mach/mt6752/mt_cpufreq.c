@@ -130,18 +130,18 @@ extern unsigned int mt_get_cpu_freq(void);
 #define DEFAULT_VOLT_VLTE       (100000)
 
 /* for DVFS OPP table */
-#define CPU_DVFS_FREQ0   (1994000) /* KHz */
-#define CPU_DVFS_FREQ1   (1794000) /* KHz */
-#define CPU_DVFS_FREQ2   (1690000) /* KHz */
-#define CPU_DVFS_FREQ3   (1612000) /* KHz */
-#define CPU_DVFS_FREQ4   (1560000) /* KHz */
-#define CPU_DVFS_FREQ4_2 (1495000) /* KHz */
-#define CPU_DVFS_FREQ5   (1417000) /* KHz */
-#define CPU_DVFS_FREQ6   (1287000) /* KHz */
-#define CPU_DVFS_FREQ7   (1170000) /* KHz */
-#define CPU_DVFS_FREQ8   (936000)  /* KHz */
-#define CPU_DVFS_FREQ9   (702000)  /* KHz */
-#define CPU_DVFS_FREQ10  (468000)  /* KHz */
+#define CPU_DVFS_FREQ0   (2002000) /* KHz 154 * 13 */
+#define CPU_DVFS_FREQ1   (1794000) /* KHz 138 * 13 */
+#define CPU_DVFS_FREQ2   (1690000) /* KHz 130 * 13 */
+#define CPU_DVFS_FREQ3   (1612000) /* KHz 124 * 13 */
+#define CPU_DVFS_FREQ4   (1560000) /* KHz 120 * 13 */
+#define CPU_DVFS_FREQ4_2 (1495000) /* KHz 115 * 13 */
+#define CPU_DVFS_FREQ5   (1417000) /* KHz 109 * 13 */
+#define CPU_DVFS_FREQ6   (1287000) /* KHz 99 * 13 */
+#define CPU_DVFS_FREQ7   (1170000) /* KHz 90 * 13 */
+#define CPU_DVFS_FREQ8   (936000)  /* KHz 72 * 13 */
+#define CPU_DVFS_FREQ9   (702000)  /* KHz 54 * 13 */
+#define CPU_DVFS_FREQ10  (468000)  /* KHz 36 * 13 */
 #define CPUFREQ_LAST_FREQ_LEVEL    (CPU_DVFS_FREQ10)
 
 #ifdef CONFIG_CPU_DVFS_POWER_THROTTLING
@@ -1081,7 +1081,7 @@ static struct opp_tbl_info opp_tbls[] = {
 /* for freq change (PLL/MUX) */
 #define PLL_FREQ_STEP		(13000)		/* KHz */
 
-// #define PLL_MAX_FREQ		(1989000)	/* KHz */ // TODO: check max freq
+#define PLL_MAX_FREQ		(2002000)	/* KHz */
 #define PLL_MIN_FREQ		(130000)	/* KHz */
 #define PLL_DIV1_FREQ		(1001000)	/* KHz */
 #define PLL_DIV2_FREQ		(520000)	/* KHz */
