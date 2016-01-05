@@ -13,4 +13,11 @@ config GPU_OC
 	help
 	  Overclock Mali-T760 to 819 MHz
 
+config MORE_FREQ
+	bool "MORE_FREQUENCIES"
+	depends on CPU_OC
+	default n
+	help
+	  More frequencies for choice
+
 endmenu
