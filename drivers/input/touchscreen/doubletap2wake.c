@@ -81,22 +81,6 @@ void doubletap2wake_setdev(struct input_dev * input_device) {
 	doubletap2wake_pwrdev = input_device;
 }
 
-/* Read cmdline for dt2w */
-static int __init read_dt2w_cmdline(char *dt2w)
-{
-	if (strcmp(dt2w, "1") == 0) {
-		pr_info("[cmdline_dt2w]: DoubleTap2Wake enabled. | dt2w='%s'\n", dt2w);
-		dt2w_switch = 1;
-	} else if (strcmp(dt2w, "0") == 0) {
-		pr_info("[cmdline_dt2w]: DoubleTap2Wake disabled. | dt2w='%s'\n", dt2w);
-		dt2w_switch = 0;
-	} else {
-		pr_info("[cmdline_dt2w]: No valid input found. Going with default: | dt2w='%u'\n", dt2w_switch);
-	}
-	return 1;
-}
-__setup("dt2w=", read_dt2w_cmdline);
-
 /* reset on finger release */
 static void doubletap2wake_reset(void) {
 	exec_count = true;
@@ -153,7 +137,7 @@ static void detect_doubletap2wake(int x, int y, bool st)
 		touch_cnt = false;
 		if (touch_nr == 0) {
 			new_touch(x, y);
-		} else if (touch_nr == 1) {
+		} else if (touch_nr >= 1) {
 			if ((calc_feather(x, x_pre) < DT2W_FEATHER) &&
 			    (calc_feather(y, y_pre) < DT2W_FEATHER) &&
 			    ((ktime_to_ms(ktime_get())-tap_time_pre) < DT2W_TIME))
@@ -166,7 +150,7 @@ static void detect_doubletap2wake(int x, int y, bool st)
 			doubletap2wake_reset();
 			new_touch(x, y);
 		}
-		if ((touch_nr > 1)) {
+		if ((touch_nr == dt2w_switch)) {
 			exec_count = false;
 			doubletap2wake_pwrtrigger();
 			doubletap2wake_reset();
@@ -350,14 +334,11 @@ static ssize_t dt2w_doubletap2wake_show(struct device *dev,
 static ssize_t dt2w_doubletap2wake_dump(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	if (buf[1] == '\n') {
-		if (buf[0] == '0') {
-			dt2w_switch = 0;
-		} else if (buf[0] == '1') {
-			dt2w_switch = 1;
-		}
-	}
-
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		dt2w_switch = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
 	return count;
 }
 
