@@ -168,6 +168,7 @@ static void detect_doubletap2wake(int x, int y, bool st)
 			doubletap2wake_pwrtrigger();
 			doubletap2wake_reset();
 		}
+	// unlock
 	} else if ((single_touch) && (dt2w_scr_suspended == false) && (dt2s_tap > 0) && (exec_count) && (touch_cnt)) {
 		touch_cnt = false;
 		if (touch_nr == 0) {
