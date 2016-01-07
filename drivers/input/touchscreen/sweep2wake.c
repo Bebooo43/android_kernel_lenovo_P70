@@ -43,6 +43,10 @@
 #endif
 #endif
 
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
+
 /* uncomment since no touchscreen defines android touch, do that here */
 //#define ANDROID_TOUCH_DECLARED
 
@@ -182,6 +186,12 @@ static void detect_sweep2wake(int x, int y, bool st)
 
 static void s2w_input_callback(struct work_struct *unused) {
 
+	#ifdef CONFIG_POCKETMOD
+	if (device_is_pocketed()){
+		return;
+	}
+	else
+	#endif
 	detect_sweep2wake(touch_x, touch_y, true);
 
 	return;

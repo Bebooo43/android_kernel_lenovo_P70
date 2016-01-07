@@ -47,6 +47,10 @@
 #endif
 #endif
 
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
+
 /* if Sweep2Wake is compiled it will already have taken care of this */
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 #define ANDROID_TOUCH_DECLARED
@@ -196,6 +200,12 @@ static void detect_doubletap2wake(int x, int y, bool st)
 
 static void dt2w_input_callback(struct work_struct *unused) {
 
+	#ifdef CONFIG_POCKETMOD
+	if (device_is_pocketed()){
+		return;
+	}
+	else
+	#endif
 	if ((touch_y < dt2w_down) &&
 	    (touch_y > dt2w_up) &&
 	    (touch_x < dt2w_right) &&

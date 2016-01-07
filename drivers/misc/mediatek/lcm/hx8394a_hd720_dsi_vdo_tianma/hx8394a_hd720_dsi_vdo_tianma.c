@@ -30,6 +30,9 @@
 #include <linux/platform_device.h>
 #include <cust_i2c.h>
 
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
 
 /***************************************************************************** 
  * Define
@@ -726,6 +729,11 @@ static void lcm_suspend(void)
 	mt_set_gpio_out(GPIO_65132_ENP, GPIO_OUT_ZERO);
 	MDELAY(10);
 	//SET_GPIO_OUT(GPIO_LCM_PWR_EN,0);//Disable LCM Power
+	//needed for pocket mode
+	#ifdef CONFIG_POCKETMOD
+	is_screen_on = 0;
+	#endif
+
 }
 
 
@@ -735,6 +743,11 @@ static void lcm_resume(void)
 	lcm_debug("%s %d\n", __func__,__LINE__);
 //	SET_GPIO_OUT(GPIO_LCM_PWR_EN,1);  //Enable LCM Power
 	lcm_init();
+	// needed for pocket mode
+	#ifdef CONFIG_POCKETMOD
+	is_screen_on = 1;
+	#endif
+
 	//push_table(lcm_sleep_out_setting, sizeof(lcm_sleep_out_setting) / sizeof(struct LCM_setting_table), 1);
 }
 

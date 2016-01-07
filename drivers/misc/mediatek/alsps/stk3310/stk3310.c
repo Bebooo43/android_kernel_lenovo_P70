@@ -75,6 +75,11 @@
 #include <cust_alsps.h>
 #include <alsps.h>
 #include "stk3310.h"
+
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
+
 #define DRIVER_VERSION          "3.5.0"
 //#define STK_PS_POLLING_LOG
 #define STK_TUNE0
@@ -5182,6 +5187,38 @@ static int __init stk3x1x_init(void)
 #endif	
 	return 0;
 }
+
+#ifdef CONFIG_POCKETMOD
+int stk3x1x_pocket_detection_check(void)
+{
+	int ps_val;
+	int als_val;
+
+	struct stk3x1x_priv *obj = stk3x1x_obj;
+	
+	if(obj == NULL)
+	{
+		APS_DBG("[stk3x1x] stk3x1x_obj is NULL!");
+		return 0;
+	}
+	else
+	{
+		stk3x1x_enable_ps(obj->client, 1, validate_reg);
+
+		msleep(50);
+
+		ps_val = stk3x1x_get_ps_value(obj, obj->ps);
+		als_val = stk3x1x_get_als_value(obj, obj->ps);
+
+		APS_DBG("[stk3x1x] %s als_val = %d, ps_val = %d\n", __func__, als_val, ps_val);
+
+		stk3x1x_enable_ps(obj->client, 0, validate_reg);
+
+		return (ps_val);
+	}
+}
+#endif
+
 /*----------------------------------------------------------------------------*/
 static void __exit stk3x1x_exit(void)
 {
