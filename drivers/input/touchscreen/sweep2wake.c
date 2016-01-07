@@ -4,6 +4,7 @@
  *
  * Copyright (c) 2013, Dennis Rassmann <showp1984@gmail.com>
  * Copyright (c) 2015, Vineeth Raj <contact.twn@openmailbox.org>
+ * Copyright (c) 2016, Vasilii Kovalev <vgdn1942@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,17 +47,23 @@
 //#define ANDROID_TOUCH_DECLARED
 
 /* Tuneables */
-#define S2W_DEFAULT             2 // 0 - off; 1 - s2w & s2s; 2 - s2s only
-#define S2W_PWRKEY_DUR          60
-#define S2W_Y_MAX               1280 // bottom border
-#define S2W_Y_MIN               0 // upper border
-#define S2W_X_MAX               720 // right border
-#define S2W_X_MIN               0 // left border
-#define S2W_X_B1                240 // left border trigger
-#define S2W_X_B2                600 // right border trigger
+#define S2W_DEFAULT			2 // 0 - off; 1 - s2w & s2s; 2 - s2s only
+#define S2W_PWRKEY_DUR			60
+#define S2W_DOWN_DEFAULT		1280 // bottom border
+#define S2W_UP_DEFAULT			0 // upper border
+#define S2W_RIGHT_DEFAULT		720 // right border
+#define S2W_LEFT_DEFAULT		0 // left border
+#define S2W_LEFT_BORDER_DEFAULT		240 // left border trigger
+#define S2W_RIGHT_BORDER_DEFAULT	600 // right border trigger
 
 /* Resources */
 int s2w_switch = S2W_DEFAULT;
+int s2w_down = S2W_DOWN_DEFAULT;
+int s2w_up = S2W_UP_DEFAULT;
+int s2w_right = S2W_RIGHT_DEFAULT;
+int s2w_left = S2W_LEFT_DEFAULT;
+int s2w_left_border = S2W_LEFT_BORDER_DEFAULT;
+int s2w_right_border = S2W_RIGHT_BORDER_DEFAULT;
 static int touch_x = 0, touch_y = 0;
 static bool touch_x_called = false, touch_y_called = false;
 static bool exec_count = true;
@@ -76,25 +83,6 @@ static struct work_struct s2w_input_work;
 void sweep2wake_setdev(struct input_dev * input_device) {
 	sweep2wake_pwrdev = input_device;
 }
-
-/* Read cmdline for s2w */
-static int __init read_s2w_cmdline(char *s2w)
-{
-	if (strcmp(s2w, "2") == 0) {
-		pr_info("[cmdline_s2w]: Sweep2Sleep only enabled. | s2w='%s'\n", s2w);
-		s2w_switch = 2;
-	} else if (strcmp(s2w, "1") == 0) {
-		pr_info("[cmdline_s2w]: Sweep2Wake and Sweep2Sleep enabled. | s2w='%s'\n", s2w);
-		s2w_switch = 1;
-	} else if (strcmp(s2w, "0") == 0) {
-		pr_info("[cmdline_s2w]: Sweep2Wake disabled. | s2w='%s'\n", s2w);
-		s2w_switch = 0;
-	} else {
-		pr_info("[cmdline_s2w]: No valid input found. Going with default: | s2w='%u'\n", s2w_switch);
-	}
-	return 1;
-}
-__setup("s2w=", read_s2w_cmdline);
 
 /* PowerKey work func */
 static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work) {
@@ -132,26 +120,26 @@ static void detect_sweep2wake(int x, int y, bool st)
 	bool single_touch = st;
 	//left->right unlock
 	if ((single_touch) && (s2w_scr_suspended == true) && (s2w_switch == 1)) {
-		prevx = S2W_X_MIN;
-		nextx = S2W_X_B1;
+		prevx = s2w_left;
+		nextx = s2w_left_border;
 		if ((barrier[0] == true) ||
 		   ((x > prevx) &&
 		    (x < nextx) &&
-		    (y > S2W_Y_MIN) &&
-		    (y < S2W_Y_MAX))) {
+		    (y > s2w_up) &&
+		    (y < s2w_down))) {
 			prevx = nextx;
-			nextx = S2W_X_B2;
+			nextx = s2w_right_border;
 			barrier[0] = true;
 			if ((barrier[1] == true) ||
 			   ((x > prevx) &&
 			    (x < nextx) &&
-			    (y > S2W_Y_MIN) &&
-			    (y < S2W_Y_MAX))) {
+			    (y > s2w_up) &&
+			    (y < s2w_down))) {
 				prevx = nextx;
 				barrier[1] = true;
 				if ((x > prevx) &&
-				    (y > S2W_Y_MIN) &&
-				    (y < S2W_Y_MAX)) {
+				    (y > s2w_up) &&
+				    (y < s2w_down)) {
 					if (exec_count) {
 						sweep2wake_pwrtrigger();
 						exec_count = false;
@@ -162,26 +150,26 @@ static void detect_sweep2wake(int x, int y, bool st)
 	//right->left lock
 	} else if ((single_touch) && (s2w_scr_suspended == false) && (s2w_switch > 0)) {
 		scr_on_touch = true;
-		prevx = S2W_X_MAX;
-		nextx = S2W_X_B2;
+		prevx = s2w_right;
+		nextx = s2w_right_border;
 		if ((barrier[0] == true) ||
 		   ((x < prevx) &&
 		    (x > nextx) &&
-		    (y > S2W_Y_MIN) &&
-		    (y < S2W_Y_MAX))) {
+		    (y > s2w_up) &&
+		    (y < s2w_down))) {
 			prevx = nextx;
-			nextx = S2W_X_B1;
+			nextx = s2w_left_border;
 			barrier[0] = true;
 			if ((barrier[1] == true) ||
 			   ((x < prevx) &&
 			    (x > nextx) &&
-			    (y > S2W_Y_MIN) &&
-			    (y < S2W_Y_MAX))) {
+			    (y > s2w_up) &&
+			    (y < s2w_down))) {
 				prevx = nextx;
 				barrier[1] = true;
 				if ((x < prevx) &&
-				    (y > S2W_Y_MIN) &&
-				    (y < S2W_Y_MAX)) {
+				    (y > s2w_up) &&
+				    (y < s2w_down)) {
 					if (exec_count) {
 						sweep2wake_pwrtrigger();
 						exec_count = false;
@@ -365,21 +353,166 @@ static ssize_t s2w_sweep2wake_show(struct device *dev,
 static ssize_t s2w_sweep2wake_dump(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	if (buf[1] == '\n') {
-		if (buf[0] == '0') {
-			s2w_switch = 0;
-		} else if (buf[0] == '1') {
-			s2w_switch = 1;
-		} else if (buf[0] == '2') {
-			s2w_switch = 2;
-		}
-	}
-
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		s2w_switch = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
 	return count;
 }
 
 static DEVICE_ATTR(sweep2wake, (S_IWUSR|S_IRUGO),
 	s2w_sweep2wake_show, s2w_sweep2wake_dump);
+
+// sweep2wake_down
+static ssize_t s2w_sweep2wake_down_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2w_down);
+
+	return count;
+}
+
+static ssize_t s2w_sweep2wake_down_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		s2w_down = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake_down, (S_IWUSR|S_IRUGO),
+	s2w_sweep2wake_down_show, s2w_sweep2wake_down_dump);
+
+// sweep2wake_up
+static ssize_t s2w_sweep2wake_up_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2w_up);
+
+	return count;
+}
+
+static ssize_t s2w_sweep2wake_up_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		s2w_up = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake_up, (S_IWUSR|S_IRUGO),
+	s2w_sweep2wake_up_show, s2w_sweep2wake_up_dump);
+
+// sweep2wake_right
+static ssize_t s2w_sweep2wake_right_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2w_right);
+
+	return count;
+}
+
+static ssize_t s2w_sweep2wake_right_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		s2w_right = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake_right, (S_IWUSR|S_IRUGO),
+	s2w_sweep2wake_right_show, s2w_sweep2wake_right_dump);
+
+// sweep2wake_left
+static ssize_t s2w_sweep2wake_left_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2w_left);
+
+	return count;
+}
+
+static ssize_t s2w_sweep2wake_left_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		s2w_left = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake_left, (S_IWUSR|S_IRUGO),
+	s2w_sweep2wake_left_show, s2w_sweep2wake_left_dump);
+
+// sweep2wake_left_border
+static ssize_t s2w_sweep2wake_left_border_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2w_left_border);
+
+	return count;
+}
+
+static ssize_t s2w_sweep2wake_left_border_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		s2w_left_border = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake_left_border, (S_IWUSR|S_IRUGO),
+	s2w_sweep2wake_left_border_show, s2w_sweep2wake_left_border_dump);
+
+// sweep2wake_right_border
+static ssize_t s2w_sweep2wake_right_border_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2w_right_border);
+
+	return count;
+}
+
+static ssize_t s2w_sweep2wake_right_border_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		s2w_right_border = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake_right_border, (S_IWUSR|S_IRUGO),
+	s2w_sweep2wake_right_border_show, s2w_sweep2wake_right_border_dump);
 
 /*
  * INIT / EXIT stuff below here
@@ -424,6 +557,30 @@ static int __init sweep2wake_init(void)
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake.attr);
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for sweep2wake\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_down.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for sweep2wake_down\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_up.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for sweep2wake_up\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_right.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for sweep2wake_right\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_left.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for sweep2wake_left\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_left_border.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for sweep2wake_left_border\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_right_border.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for sweep2wake_right_border\n", __func__);
 	}
 
 	return 0;
