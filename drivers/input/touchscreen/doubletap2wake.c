@@ -54,6 +54,7 @@
 
 /* Tuneables */
 #define DT2W_TAP_DEFAULT	0
+#define DT2S_TAP_DEFAULT	0
 
 #define DT2W_PWRKEY_DUR		60
 #define DT2W_ACCURACY_DEFAULT	50
@@ -66,6 +67,7 @@
 
 /* Resources */
 int dt2w_tap = DT2W_TAP_DEFAULT;
+int dt2s_tap = DT2S_TAP_DEFAULT;
 int dt2w_accuracy = DT2W_ACCURACY_DEFAULT;
 int dt2w_time = DT2W_TIME_DEFAULT;
 int dt2w_down = DT2W_DOWN_DEFAULT;
@@ -143,8 +145,8 @@ static void new_touch(int x, int y) {
 static void detect_doubletap2wake(int x, int y, bool st)
 {
 	bool single_touch = st;
-
-	if ((single_touch) && (dt2w_tap > 0) && (exec_count) && (touch_cnt)) {
+	// lock
+	if ((single_touch) && (dt2w_scr_suspended == true) && (dt2w_tap > 0) && (exec_count) && (touch_cnt)) {
 		touch_cnt = false;
 		if (touch_nr == 0) {
 			new_touch(x, y);
@@ -166,6 +168,28 @@ static void detect_doubletap2wake(int x, int y, bool st)
 			doubletap2wake_pwrtrigger();
 			doubletap2wake_reset();
 		}
+	} else if ((single_touch) && (dt2w_scr_suspended == false) && (dt2s_tap > 0) && (exec_count) && (touch_cnt)) {
+		touch_cnt = false;
+		if (touch_nr == 0) {
+			new_touch(x, y);
+		} else if (touch_nr >= 1) {
+			if ((calc_feather(x, x_pre) < dt2w_accuracy) &&
+			    (calc_feather(y, y_pre) < dt2w_accuracy) &&
+			    ((ktime_to_ms(ktime_get())-tap_time_pre) < dt2w_time))
+				touch_nr++;
+			else {
+				doubletap2wake_reset();
+				new_touch(x, y);
+			}
+		} else {
+			doubletap2wake_reset();
+			new_touch(x, y);
+		}
+		if ((touch_nr == dt2s_tap)) {
+			exec_count = false;
+			doubletap2wake_pwrtrigger();
+			doubletap2wake_reset();
+		}
 	}
 }
 
@@ -182,9 +206,6 @@ static void dt2w_input_callback(struct work_struct *unused) {
 
 static void dt2w_input_event(struct input_handle *handle, unsigned int type,
 				unsigned int code, int value) {
-
-	if (!dt2w_scr_suspended)
-		return;
 
 	if (code == ABS_MT_SLOT) {
 		doubletap2wake_reset();
@@ -360,6 +381,31 @@ static ssize_t dt2w_doubletap2wake_dump(struct device *dev,
 
 static DEVICE_ATTR(doubletap2wake, (S_IWUSR|S_IRUGO),
 	dt2w_doubletap2wake_show, dt2w_doubletap2wake_dump);
+
+// doubletap2sleep_tap
+static ssize_t dt2w_doubletap2sleep_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", dt2s_tap);
+
+	return count;
+}
+
+static ssize_t dt2w_doubletap2sleep_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		dt2s_tap = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(doubletap2sleep, (S_IWUSR|S_IRUGO),
+	dt2w_doubletap2sleep_show, dt2w_doubletap2sleep_dump);
 
 // doubletap2wake_accuracy
 static ssize_t dt2w_doubletap2wake_accuracy_show(struct device *dev,
@@ -554,6 +600,10 @@ static int __init doubletap2wake_init(void)
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2wake.attr);
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for doubletap2wake\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2sleep.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for doubletap2sleep\n", __func__);
 	}
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2wake_accuracy.attr);
 	if (rc) {
