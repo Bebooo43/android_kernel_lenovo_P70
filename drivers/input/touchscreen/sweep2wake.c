@@ -123,7 +123,7 @@ static void detect_sweep2wake(int x, int y, bool st)
 	int prevx = 0, nextx = 0;
 	bool single_touch = st;
 	//left->right unlock
-	if ((single_touch) && (s2w_scr_suspended == true) && (s2w_switch == 1)) {
+	if ((single_touch) && (s2w_scr_suspended == true) && ((s2w_switch == 1) || (s2w_switch == 3))) {
 		prevx = s2w_left;
 		nextx = s2w_left_border;
 		if ((barrier[0] == true) ||
@@ -152,7 +152,7 @@ static void detect_sweep2wake(int x, int y, bool st)
 			}
 		}
 	//right->left lock
-	} else if ((single_touch) && (s2w_scr_suspended == false) && (s2w_switch > 0)) {
+	} else if ((single_touch) && (s2w_scr_suspended == false) && ((s2w_switch == 1) || (s2w_switch == 2))) {
 		scr_on_touch = true;
 		prevx = s2w_right;
 		nextx = s2w_right_border;

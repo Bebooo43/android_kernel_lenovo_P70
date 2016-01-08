@@ -349,7 +349,7 @@ static void eros_suspend(struct early_suspend *h) {
 	 *
 	 */
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
-	prevent_sleep = (s2w_switch == 1);
+	prevent_sleep = (s2w_switch == 1) || (s2w_switch == 3);
 	s2w_scr_suspended = true;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
@@ -369,7 +369,7 @@ static void eros_resume(struct early_suspend *h) {
 	bool prevent_sleep = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
-	prevent_sleep = (s2w_switch == 1);
+	prevent_sleep = (s2w_switch == 1) || (s2w_switch == 3);
 	s2w_scr_suspended = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
