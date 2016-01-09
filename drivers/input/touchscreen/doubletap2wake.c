@@ -150,7 +150,7 @@ static void detect_doubletap2wake(int x, int y, bool st)
 {
 	bool single_touch = st;
 	// lock
-	if ((single_touch) && (dt2w_scr_suspended == true) && (dt2w_tap > 0) && (exec_count) && (touch_cnt)) {
+	if ((single_touch) && (dt2w_scr_suspended == true) && (dt2w_tap > 1) && (exec_count) && (touch_cnt)) {
 		touch_cnt = false;
 		if (touch_nr == 0) {
 			new_touch(x, y);
@@ -173,7 +173,7 @@ static void detect_doubletap2wake(int x, int y, bool st)
 			doubletap2wake_reset();
 		}
 	// unlock
-	} else if ((single_touch) && (dt2w_scr_suspended == false) && (dt2s_tap > 0) && (exec_count) && (touch_cnt)) {
+	} else if ((single_touch) && (dt2w_scr_suspended == false) && (dt2s_tap > 1) && (exec_count) && (touch_cnt)) {
 		touch_cnt = false;
 		if (touch_nr == 0) {
 			new_touch(x, y);
@@ -383,7 +383,7 @@ static ssize_t dt2w_doubletap2wake_dump(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned int data;
-	if(sscanf(buf, "%i\n", &data) == 1)
+	if((sscanf(buf, "%i\n", &data) == 1) && (data != 1))
 		dt2w_tap = data;
 	else
 		pr_info("%s: unknown input!\n", __FUNCTION__);
@@ -408,7 +408,7 @@ static ssize_t dt2w_doubletap2sleep_dump(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned int data;
-	if(sscanf(buf, "%i\n", &data) == 1)
+	if((sscanf(buf, "%i\n", &data) == 1) && (data != 1))
 		dt2s_tap = data;
 	else
 		pr_info("%s: unknown input!\n", __FUNCTION__);
@@ -433,7 +433,7 @@ static ssize_t dt2w_doubletap2wake_accuracy_dump(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned int data;
-	if(sscanf(buf, "%i\n", &data) == 1)
+	if((sscanf(buf, "%i\n", &data) == 1)  && (data != 1))
 		dt2w_accuracy = data;
 	else
 		pr_info("%s: unknown input!\n", __FUNCTION__);
