@@ -52,7 +52,7 @@ static ssize_t vibr_vtg_store(struct kobject *kobj, struct kobj_attribute *attr,
 }
 
 static struct kobj_attribute thunderquake_level_attribute =
-	__ATTR(level,
+	__ATTR(pwmvalue,
 		0666,
 		vibr_vtg_show, vibr_vtg_store);
 
@@ -75,7 +75,7 @@ static int vibr_level_control_init(void)
 	printk(KERN_DEBUG "[%s]\n",__func__);
 
 	vibr_level_control_kobj =
-		kobject_create_and_add("thunderquake_engine", NULL);
+		kobject_create_and_add("vibrator", NULL);
 
 	if (!vibr_level_control_kobj) {
 		pr_err("%s Interface create failed!\n",
