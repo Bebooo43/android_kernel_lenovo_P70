@@ -37,6 +37,10 @@
 #endif
 #endif
 
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+#include <linux/touch_wake_fix.h>
+#endif
+
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
 #endif
@@ -349,11 +353,19 @@ static void eros_suspend(struct early_suspend *h) {
 	 *
 	 */
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+	prevent_sleep = ((s2w_switch == 1) || (s2w_switch == 3)) && (stk3x1x_ps_check() == 1);
+#else
 	prevent_sleep = (s2w_switch == 1) || (s2w_switch == 3);
+#endif
 	s2w_scr_suspended = true;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
-	prevent_sleep = prevent_sleep || (dt2w_tap > 1);
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+	prevent_sleep = (prevent_sleep || (dt2w_tap > 1)) && (stk3x1x_ps_check() == 1);
+#else
+	prevent_sleep = prevent_sleep || (dt2w_tap > 1)
+#endif
 	dt2w_scr_suspended = true;
 #endif
 
@@ -369,14 +381,21 @@ static void eros_resume(struct early_suspend *h) {
 	bool prevent_sleep = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+	prevent_sleep = ((s2w_switch == 1) || (s2w_switch == 3)) && (stk3x1x_ps_check() == 1);
+#else
 	prevent_sleep = (s2w_switch == 1) || (s2w_switch == 3);
+#endif
 	s2w_scr_suspended = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
-	prevent_sleep = prevent_sleep || (dt2w_tap > 1);
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+	prevent_sleep = (prevent_sleep || (dt2w_tap > 1)) && (stk3x1x_ps_check() == 1);
+#else
+	prevent_sleep = prevent_sleep || (dt2w_tap > 1)
+#endif
 	dt2w_scr_suspended = false;
 #endif
-
 	if (prevent_sleep) {
 		mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
 		/*

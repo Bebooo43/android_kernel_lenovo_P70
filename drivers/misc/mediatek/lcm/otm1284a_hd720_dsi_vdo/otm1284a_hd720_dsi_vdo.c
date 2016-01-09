@@ -157,6 +157,10 @@ MODULE_LICENSE("GPL");
 #include <linux/pocket_mod.h>
 #endif
 
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+#include <linux/touch_wake_fix.h>
+#endif
+
 // ---------------------------------------------------------------------------
 //  Local Constants
 // ---------------------------------------------------------------------------
@@ -876,6 +880,10 @@ static void lcm_suspend(void)
 	#ifdef CONFIG_POCKETMOD
 	is_screen_on = 0;
 	#endif
+	//needed for touch wake fix
+	#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+	screen_state = 0;
+	#endif
 
 }
 
@@ -889,6 +897,10 @@ static void lcm_resume(void)
 	// needed for pocket mode
 	#ifdef CONFIG_POCKETMOD
 	is_screen_on = 1;
+	#endif
+	//needed for touch wake fix
+	#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+	screen_state = 1;
 	#endif
 
 	//push_table(lcm_sleep_out_setting, sizeof(lcm_sleep_out_setting) / sizeof(struct LCM_setting_table), 1);

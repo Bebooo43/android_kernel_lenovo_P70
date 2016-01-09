@@ -80,6 +80,10 @@
 #include <linux/pocket_mod.h>
 #endif
 
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+#include <linux/touch_wake_fix.h>
+#endif
+
 #define DRIVER_VERSION          "3.5.0"
 //#define STK_PS_POLLING_LOG
 #define STK_TUNE0
@@ -5215,6 +5219,25 @@ int stk3x1x_pocket_detection_check(void)
 		stk3x1x_enable_ps(obj->client, 0, 1);
 
 		return (ps_val);
+	}
+}
+#endif
+
+#ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
+int stk3x1x_ps_check(void)
+{
+	int ps_val;
+
+	struct stk3x1x_priv *obj = stk3x1x_obj;
+	
+	if(obj == NULL)
+	{
+		return 0;
+	}
+	else
+	{
+		ps_val = stk3x1x_get_ps_value(obj, obj->ps);
+			return (ps_val);
 	}
 }
 #endif

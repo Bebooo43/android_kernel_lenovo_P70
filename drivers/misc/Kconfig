@@ -545,6 +545,12 @@ config POCKETMOD
 	  toggle this on/off from sysfs later (should they
 	  want it)
 
+config TOUCHSCREEN_WAKE_FIX
+	tristate "Small fix for dt2w & s2w"
+	depends on (TOUCHSCREEN_SWEEP2WAKE || TOUCHSCREEN_DOUBLETAP2WAKE)
+	default n
+	help
+	  Say Y here to enable small fix for dt2w & s2w.
 
 config THUNDERQUAKE_ENGINE_GPL
 	tristate "Vibrator Intensity Controller for MTK Vibrator"

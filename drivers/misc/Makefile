@@ -57,3 +57,4 @@ obj-$(CONFIG_LATTICE_ECP3_CONFIG)	+= lattice-ecp3-config.o
 obj-$(CONFIG_SRAM)		+= sram.o
 obj-$(CONFIG_MEDIATEK_SOLUTION) += mediatek/
 obj-$(CONFIG_POCKETMOD)		+= pocket_mod.o
+obj-$(CONFIG_TOUCHSCREEN_WAKE_FIX)	+= touch_wake_fix.o
