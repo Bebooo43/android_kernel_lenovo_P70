@@ -35,11 +35,6 @@
 int screen_state; // If screen on return 1; else screen off return 0
 // stk3x1x_ps_check() - if proximity sensor no close return 1; else return 0
 
-int in_call(void) {
-
-	return 0;
-}
-
 int in_screen_off(void) {
 
 	return 0;
