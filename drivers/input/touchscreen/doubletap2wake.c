@@ -383,8 +383,11 @@ static ssize_t dt2w_doubletap2wake_dump(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned int data;
-	if((sscanf(buf, "%i\n", &data) == 1) && (data != 1))
+	if((sscanf(buf, "%i\n", &data) == 1))
+	    if(data != 1)
 		dt2w_tap = data;
+	    if(data == 1)
+		dt2w_tap = 2;
 	else
 		pr_info("%s: unknown input!\n", __FUNCTION__);
 	return count;
