@@ -57,6 +57,8 @@
 #endif
 
 /* Tuneables */
+#define DT2W_HEIGHT		1280
+#define DT2W_WIDTH		720
 #define DT2W_TAP_DEFAULT	0
 #define DT2S_TAP_DEFAULT	0
 
@@ -64,12 +66,14 @@
 #define DT2W_ACCURACY_DEFAULT	50
 #define DT2W_TIME_DEFAULT	600
 
-#define DT2W_DOWN_DEFAULT	1280
+#define DT2W_DOWN_DEFAULT	0
 #define DT2W_UP_DEFAULT		0
-#define DT2W_RIGHT_DEFAULT	720
+#define DT2W_RIGHT_DEFAULT	0
 #define DT2W_LEFT_DEFAULT	0
 
 /* Resources */
+int dt2w_height = DT2W_HEIGHT;
+int dt2w_widht = DT2W_WIDTH;
 int dt2w_tap = DT2W_TAP_DEFAULT;
 int dt2s_tap = DT2S_TAP_DEFAULT;
 int dt2w_accuracy = DT2W_ACCURACY_DEFAULT;
@@ -206,9 +210,9 @@ static void dt2w_input_callback(struct work_struct *unused) {
 	}
 	else
 	#endif
-	if ((touch_y < dt2w_down) &&
+	if ((touch_y < (dt2w_height - dt2w_down)) &&
 	    (touch_y > dt2w_up) &&
-	    (touch_x < dt2w_right) &&
+	    (touch_x < (dt2w_widht - dt2w_right)) &&
 	    (touch_x > dt2w_left)) {
 	detect_doubletap2wake(touch_x, touch_y, true);
 	}

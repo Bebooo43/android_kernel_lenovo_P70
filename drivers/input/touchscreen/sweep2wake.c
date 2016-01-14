@@ -51,19 +51,23 @@
 //#define ANDROID_TOUCH_DECLARED
 
 /* Tuneables */
+#define S2W_HEIGHT			1280
+#define S2W_WIDTH			720
 #define S2W_DEFAULT			0 // 0 - off; 1 - s2w & s2s; 2 - s2s only
 #define S2W_INVERT_DEFAULT		0 // 0 - horizontal; 1 - vertical
 #define S2W_PWRKEY_DUR			60
-#define S2W_DOWN_DEFAULT		1280 // bottom border
 #define S2W_UP_DEFAULT			0 // upper border
-#define S2W_RIGHT_DEFAULT		720 // right border
+#define S2W_DOWN_DEFAULT		0 // bottom border
+#define S2W_RIGHT_DEFAULT		0 // right border
 #define S2W_LEFT_DEFAULT		0 // left border
-#define S2W_LEFT_BORDER_DEFAULT		240 // left border trigger
-#define S2W_RIGHT_BORDER_DEFAULT	600 // right border trigger
 #define S2W_UP_BORDER_DEFAULT		480 // up border trigger
-#define S2W_DOWN_BORDER_DEFAULT		1000 // down border trigger
+#define S2W_DOWN_BORDER_DEFAULT		10 // down border trigger
+#define S2W_RIGHT_BORDER_DEFAULT	100 // right border trigger
+#define S2W_LEFT_BORDER_DEFAULT		300 // left border trigger
 
 /* Resources */
+int s2w_height = S2W_HEIGHT;
+int s2w_widht = S2W_WIDTH;
 int s2w_switch = S2W_DEFAULT;
 int s2w_invert = S2W_INVERT_DEFAULT;
 int s2w_down = S2W_DOWN_DEFAULT;
@@ -136,20 +140,20 @@ static void detect_sweep2wake(int x, int y, bool st)
 		   ((x > prevx) &&
 		    (x < nextx) &&
 		    (y > s2w_up) &&
-		    (y < s2w_down))) {
+		    (y < (s2w_height - s2w_down)))) {
 			prevx = nextx;
-			nextx = s2w_right_border;
+			nextx = (s2w_widht - s2w_right_border);
 			barrier[0] = true;
 			if ((barrier[1] == true) ||
 			   ((x > prevx) &&
 			    (x < nextx) &&
 			    (y > s2w_up) &&
-			    (y < s2w_down))) {
+			    (y < (s2w_height - s2w_down)))) {
 				prevx = nextx;
 				barrier[1] = true;
 				if ((x > prevx) &&
 				    (y > s2w_up) &&
-				    (y < s2w_down)) {
+				    (y < (s2w_height - s2w_down))) {
 					if (exec_count) {
 						sweep2wake_pwrtrigger();
 						exec_count = false;
@@ -160,13 +164,13 @@ static void detect_sweep2wake(int x, int y, bool st)
 	//right->left lock
 	} else if ((single_touch) && (s2w_scr_suspended == false) && ((s2w_switch == 1) || (s2w_switch == 2)) && (s2w_invert == 0)) {
 		scr_on_touch = true;
-		prevx = s2w_right;
-		nextx = s2w_right_border;
+		prevx = (s2w_widht - s2w_right);
+		nextx = (s2w_widht - s2w_right_border);
 		if ((barrier[0] == true) ||
 		   ((x < prevx) &&
 		    (x > nextx) &&
 		    (y > s2w_up) &&
-		    (y < s2w_down))) {
+		    (y < (s2w_height - s2w_down)))) {
 			prevx = nextx;
 			nextx = s2w_left_border;
 			barrier[0] = true;
@@ -174,12 +178,12 @@ static void detect_sweep2wake(int x, int y, bool st)
 			   ((x < prevx) &&
 			    (x > nextx) &&
 			    (y > s2w_up) &&
-			    (y < s2w_down))) {
+			    (y < (s2w_height - s2w_down)))) {
 				prevx = nextx;
 				barrier[1] = true;
 				if ((x < prevx) &&
 				    (y > s2w_up) &&
-				    (y < s2w_down)) {
+				    (y < (s2w_height - s2w_down))) {
 					if (exec_count) {
 						sweep2wake_pwrtrigger();
 						exec_count = false;
@@ -195,20 +199,20 @@ static void detect_sweep2wake(int x, int y, bool st)
 		   ((y > prevy) &&
 		    (y < nexty) &&
 		    (x > s2w_left) &&
-		    (x < s2w_right))) {
+		    (x < (s2w_widht - s2w_right)))) {
 			prevy = nexty;
-			nexty = s2w_down_border;
+			nexty = (s2w_height - s2w_down_border);
 			barrier[0] = true;
 			if ((barrier[1] == true) ||
 			   ((y > prevy) &&
 			    (y < nexty) &&
 			    (x > s2w_left) &&
-			    (x < s2w_right))) {
+			    (x < (s2w_widht - s2w_right)))) {
 				prevy = nexty;
 				barrier[1] = true;
 				if ((y > prevy) &&
 				    (x > s2w_left) &&
-				    (x < s2w_right)) {
+				    (x < (s2w_widht - s2w_right))) {
 					if (exec_count) {
 						sweep2wake_pwrtrigger();
 						exec_count = false;
@@ -219,13 +223,13 @@ static void detect_sweep2wake(int x, int y, bool st)
 	//down->up lock
 	} else if ((single_touch) && (s2w_scr_suspended == false) && ((s2w_switch == 1) || (s2w_switch == 2)) && (s2w_invert == 1)) {
 		scr_on_touch = true;
-		prevy = s2w_down;
-		nexty = s2w_down_border;
+		prevy = (s2w_height - s2w_down);
+		nexty = (s2w_height - s2w_down_border);
 		if ((barrier[0] == true) ||
 		   ((y < prevy) &&
 		    (y > nexty) &&
 		    (x > s2w_left) &&
-		    (x < s2w_right))) {
+		    (x < (s2w_widht - s2w_right)))) {
 			prevy = nexty;
 			nexty = s2w_up_border;
 			barrier[0] = true;
@@ -233,12 +237,12 @@ static void detect_sweep2wake(int x, int y, bool st)
 			   ((y < prevy) &&
 			    (y > nexty) &&
 			    (x > s2w_left) &&
-			    (x < s2w_right))) {
+			    (x < (s2w_widht - s2w_right)))) {
 				prevy = nexty;
 				barrier[1] = true;
 				if ((y < prevy) &&
 				    (x > s2w_left) &&
-				    (x < s2w_right)) {
+				    (x < (s2w_widht - s2w_right))) {
 					if (exec_count) {
 						sweep2wake_pwrtrigger();
 						exec_count = false;
