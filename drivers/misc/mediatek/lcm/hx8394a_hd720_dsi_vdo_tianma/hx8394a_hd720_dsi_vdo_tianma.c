@@ -864,7 +864,7 @@ LCM_DRIVER hx8394a_hd720_dsi_vdo_tianma_lcm_drv =
 	.resume         = lcm_resume,
 	.compare_id     = lcm_compare_id,
 #if (LCM_DSI_CMD_MODE)
-	.set_backlight	= lcm_setbacklight,
+//	.set_backlight	= lcm_setbacklight,
 	.update         = lcm_update,
 #endif
 	//.esd_check   = lcm_esd_check,

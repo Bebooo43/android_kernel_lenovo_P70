@@ -1006,7 +1006,7 @@ LCM_DRIVER otm1284a_hd720_dsi_vdo_lcm_drv =
      .suspend_power = lcm_suspend_power,
 //by wangyang end
 #if (LCM_DSI_CMD_MODE)
-	.set_backlight	= lcm_setbacklight,
+//	.set_backlight	= lcm_setbacklight,
     .update         = lcm_update,
 #endif
 	//.esd_check   = lcm_esd_check,
