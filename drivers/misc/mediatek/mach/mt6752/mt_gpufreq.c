@@ -201,6 +201,19 @@ static gpufreq_input_boost_notify g_pGpufreq_input_boost_notify = NULL;
 /***************************
  * GPU DVFS OPP Table
  ****************************/
+#ifdef MTK_TABLET_TURBO
+// 800M
+static struct mt_gpufreq_table_info mt_gpufreq_opp_tbl_e1_0[] = {
+    GPUOP(GPU_DVFS_FREQT, GPU_DVFS_VOLT0, 0),
+    GPUOP(GPU_DVFS_FREQ0, GPU_DVFS_VOLT0, 1),
+    GPUOP(GPU_DVFS_FREQ1, GPU_DVFS_VOLT0, 2),
+    GPUOP(GPU_DVFS_FREQ2, GPU_DVFS_VOLT0, 3),
+    GPUOP(GPU_DVFS_FREQ3, GPU_DVFS_VOLT1, 4),
+    GPUOP(GPU_DVFS_FREQ4, GPU_DVFS_VOLT1, 5),
+    GPUOP(GPU_DVFS_FREQ5, GPU_DVFS_VOLT1, 6),
+    GPUOP(GPU_DVFS_FREQ6, GPU_DVFS_VOLT2, 7),
+};
+#else
 // 700M
 static struct mt_gpufreq_table_info mt_gpufreq_opp_tbl_e1_0[] = {
     GPUOP(GPU_DVFS_FREQ0, GPU_DVFS_VOLT0, 0),
@@ -210,6 +223,7 @@ static struct mt_gpufreq_table_info mt_gpufreq_opp_tbl_e1_0[] = {
     GPUOP(GPU_DVFS_FREQ5, GPU_DVFS_VOLT1, 4),
     GPUOP(GPU_DVFS_FREQ6, GPU_DVFS_VOLT2, 5),
 };
+#endif
 
 // 600M
 static struct mt_gpufreq_table_info mt_gpufreq_opp_tbl_e1_1[] = {
@@ -231,10 +245,12 @@ static struct mt_gpufreq_table_info mt_gpufreq_opp_tbl_e1_2[] = {
 static struct mt_gpufreq_table_info mt_gpufreq_opp_tbl_e1_t[] = {
     GPUOP(GPU_DVFS_FREQT, GPU_DVFS_VOLT0, 0),
     GPUOP(GPU_DVFS_FREQ0, GPU_DVFS_VOLT0, 1),
-    GPUOP(GPU_DVFS_FREQ2, GPU_DVFS_VOLT0, 2),
-    GPUOP(GPU_DVFS_FREQ3, GPU_DVFS_VOLT1, 3),
-    GPUOP(GPU_DVFS_FREQ5, GPU_DVFS_VOLT1, 4),
-    GPUOP(GPU_DVFS_FREQ6, GPU_DVFS_VOLT2, 5),
+    GPUOP(GPU_DVFS_FREQ1, GPU_DVFS_VOLT0, 2),
+    GPUOP(GPU_DVFS_FREQ2, GPU_DVFS_VOLT0, 3),
+    GPUOP(GPU_DVFS_FREQ3, GPU_DVFS_VOLT1, 4),
+    GPUOP(GPU_DVFS_FREQ4, GPU_DVFS_VOLT1, 5),
+    GPUOP(GPU_DVFS_FREQ5, GPU_DVFS_VOLT1, 6),
+    GPUOP(GPU_DVFS_FREQ6, GPU_DVFS_VOLT2, 7),
 };
 #endif
 
