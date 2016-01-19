@@ -1,1 +1,0 @@
-package_extract_file("boot.img", "/dev/block/platform/mtk-msdc.0/by-name/boot");
