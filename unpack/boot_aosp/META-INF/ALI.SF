@@ -1,0 +1,175 @@
+Signature-Version: 1.0
+SHA-256-Digest-Manifest: kcIu9jP8aNDJ/ff8Srv9ffg25SJzjt58e5U1pZJY8b8=
+Created-By: 1.0 (Android SignApk)
+
+Name: META-INF/com/google/android/updater-script
+SHA-256-Digest: Cv55RsOcRhX/SYW71SZQVYokyScv35eUyFUh2qEuZYg=
+
+Name: system/share/doc/bash/bashref.html
+SHA-256-Digest: R6qDg/6Ldr7eMO9OV9Vm/aiKofiKQZTfgbpqa9hDXDU=
+
+Name: system/share/locale/et/LC_MESSAGES/bash.mo
+SHA-256-Digest: Nas8k37IB6djGhtDTJZJxJ2aWYGy2gWYxO3VOT371aI=
+
+Name: system/share/locale/hr/LC_MESSAGES/bash.mo
+SHA-256-Digest: Dk/ZaNFESNqEDL/uf5ON1EagRiblemCpY6m8FQs9mqE=
+
+Name: system/share/locale/ga/LC_MESSAGES/bash.mo
+SHA-256-Digest: cC2wGcBU3HCsu9oGhp1z7/++ktGBSO2umPobb0O6ANM=
+
+Name: system/share/locale/eo/LC_MESSAGES/bash.mo
+SHA-256-Digest: BEGRp7d1Ka/ZF8uhHYE2hJfPadC0V762L6gaHvLnqw0=
+
+Name: system/share/doc/bash/RBASH
+SHA-256-Digest: NRANa2cBeqHeu9xHgr2ajVr/Epq48gbjZP7ZUtDKH1w=
+
+Name: system/etc/bash_logout
+SHA-256-Digest: RADbWbOMyzWjyh1VIkrOKbe0ArSH63bD7C0oQ7uwJSw=
+
+Name: system/share/locale/sr/LC_MESSAGES/bash.mo
+SHA-256-Digest: 1PQWaLV7U/t10GrZTktQqazIGHeuApGTkOiQlyOSakE=
+
+Name: system/share/doc/bash/COMPAT
+SHA-256-Digest: 8Ks1D2cjQZPRhWJSnRmnzS36XW9muyigcP67bloxCYY=
+
+Name: system/share/locale/ca/LC_MESSAGES/bash.mo
+SHA-256-Digest: tFYT3wHYxKQIZ6FY8qBvYGHpAty/hFn6ky92Bmfholg=
+
+Name: system/share/locale/zh_CN/LC_MESSAGES/bash.mo
+SHA-256-Digest: 9WAVVriVd8wl3KnLmFpRXnQngDj/27+82cC38O8+g0Q=
+
+Name: system/share/locale/it/LC_MESSAGES/bash.mo
+SHA-256-Digest: kBCmofjpq42eYSzIq9jkfDOtwZHRU9+nSo1189nrW9g=
+
+Name: system/share/doc/bash/INTRO
+SHA-256-Digest: ktkF5RWUjlSudUwcY8s4+82SIo4NZRXBvHdk123hLHM=
+
+Name: system/share/locale/fi/LC_MESSAGES/bash.mo
+SHA-256-Digest: fxqJVt8DeNClYFA68B16if2E7cgJoAj+WjeZ503x0Os=
+
+Name: META-INF/com/google/android/update-binary
+SHA-256-Digest: LdkPADQPnENa5yvqet5tbg+zpbSpQN5k+I/ESBNNr0Q=
+
+Name: system/share/locale/nl/LC_MESSAGES/bash.mo
+SHA-256-Digest: rWWbkS/fRRmbFs5Fjxi3trpCPwYuO3ebBiHSUJ4pSY4=
+
+Name: system/share/man/man1/bash.1
+SHA-256-Digest: T9NMfjKqQnHuVnfIYFJoqKZ1yJSQWCPItBNd3J3X1/Y=
+
+Name: system/share/locale/es/LC_MESSAGES/bash.mo
+SHA-256-Digest: b0v2xbfanlxV51XModSJt7oOYuSB6j6NgCthepqTpkk=
+
+Name: system/share/doc/bash/FAQ
+SHA-256-Digest: 2I2UD+Zr03cytN5GMNshaQUYIsZ6ZTj2SKvjJh+B2BI=
+
+Name: system/share/locale/af/LC_MESSAGES/bash.mo
+SHA-256-Digest: 4MPvPr+hxBrlvtnAAFkZlHqg0T/rYyC2/87nrwbUjvw=
+
+Name: system/share/locale/uk/LC_MESSAGES/bash.mo
+SHA-256-Digest: njQVbYmu40+YLO55E9AsBt4i+92e5M1/PMnarmMmifY=
+
+Name: system/share/locale/lt/LC_MESSAGES/bash.mo
+SHA-256-Digest: zUA8bs/ZkZ+Izb+HAY4wSz1/2pfUvR7LMJ0jbWuq9/Y=
+
+Name: system/share/locale/ru/LC_MESSAGES/bash.mo
+SHA-256-Digest: URXL5+cghNi+aWS6LtBQMCb82cB0siR95fyevE2xjAI=
+
+Name: system/share/locale/da/LC_MESSAGES/bash.mo
+SHA-256-Digest: XpZ40d1+InEJc6QZLh7f+BnMGGZNs3dX3MAaHfdz3p0=
+
+Name: system/share/locale/pt_BR/LC_MESSAGES/bash.mo
+SHA-256-Digest: 56CnsSflFtfofJ2t2DFR082FEAPv/snSbzPgY6koRPw=
+
+Name: system/share/locale/en@quot/LC_MESSAGES/bash.mo
+SHA-256-Digest: oeaGnpU6Oq8paZ/I8n3PbFECsAfAZO7++YZd8QWgkM8=
+
+Name: system/share/locale/gl/LC_MESSAGES/bash.mo
+SHA-256-Digest: 16QD1hORZ6t83vjVwh2oG/ihhbqh9bwAZF4xtPfFICI=
+
+Name: system/share/locale/fr/LC_MESSAGES/bash.mo
+SHA-256-Digest: CirqBHOZv3+QhGxX7KySrDFRnC465z7sm4V6XDMN9f8=
+
+Name: system/share/locale/id/LC_MESSAGES/bash.mo
+SHA-256-Digest: FMVOUncXyrThuJWOnPKby9q1ZQI8bpMXjfsva40As/s=
+
+Name: system/share/locale/tr/LC_MESSAGES/bash.mo
+SHA-256-Digest: zcytPMbqDyuGqDvs+Y8ZZtc4OkRnkI15+1RYzm8eO64=
+
+Name: system/share/man/man1/bashbug.1
+SHA-256-Digest: w+t7PHN+47sefcbQ0zEeLZu0jVr+667b9fXxNVHKnZg=
+
+Name: system/share/locale/el/LC_MESSAGES/bash.mo
+SHA-256-Digest: nrOWLx6MM+myPpj9XEpBxMMGAcKVP8ux3xOGUwCLvEo=
+
+Name: system/share/locale/ro/LC_MESSAGES/bash.mo
+SHA-256-Digest: OVpGPNa/RDARn5507zz3ct+jN3416wSoCkW6MAJpqKA=
+
+Name: system/share/locale/zh_TW/LC_MESSAGES/bash.mo
+SHA-256-Digest: OCrMkTzQH6hpLVJkBx5ZxPfLvlvb0k2cF3TlgeoLrHk=
+
+Name: system/share/doc/bash/POSIX
+SHA-256-Digest: qH2ks0ixYl6Rp+DDDJFPaCtsz+JrfaVbmisLEcgW5jk=
+
+Name: system/share/locale/ja/LC_MESSAGES/bash.mo
+SHA-256-Digest: cdZJ+/6b9kmsgXRklseRlSyQu/7TdyPm2nFfI9Vv9/Y=
+
+Name: system/share/doc/bash/README
+SHA-256-Digest: 4mr62iVjvH25oGLnF5BAWWD372U+eB5CeB07AJgcN+Y=
+
+Name: system/share/doc/bash/CHANGES
+SHA-256-Digest: /wYhMS27XEGdyqvak+lfMdhlHhxOU4hwzeeE+ZBZ7DU=
+
+Name: system/share/locale/en@boldquot/LC_MESSAGES/bash.mo
+SHA-256-Digest: jjA+fulaTJqhxN4dfcQQ9QtF859oAlVp04nsdOAHS70=
+
+Name: system/share/locale/de/LC_MESSAGES/bash.mo
+SHA-256-Digest: DnLyf6doSYRMb8kA9B8ePuKgldtkhYdKna8lR+k/Qzw=
+
+Name: system/share/locale/hu/LC_MESSAGES/bash.mo
+SHA-256-Digest: anFJC17i8+vM6tlVO5KRDQvTm1h8YqZ9fHa08k787m8=
+
+Name: system/bin/bash
+SHA-256-Digest: Eg71VX0SKRZ1w0wY1G0PCCVqfjSuez+nNvyzxhPqS+A=
+
+Name: system/share/info/bash.info
+SHA-256-Digest: tM8K0HVMhRU2Qtoa37SQBcgFgRMF+MuJsYBsOQKi74U=
+
+Name: system/share/locale/sk/LC_MESSAGES/bash.mo
+SHA-256-Digest: U0ou+NNLSzu7Dpkb8v4mSh2qg9It6lAw/fdtcKaGnqs=
+
+Name: system/share/locale/vi/LC_MESSAGES/bash.mo
+SHA-256-Digest: Bqn4sxxCbwB0P3gVLL0PxOF/k/JelRp2PJkDeCwXs2I=
+
+Name: META-INF/com/android/otacert
+SHA-256-Digest: fmbtubzMa/vuIZJeoCMTnqK+NAqoO/DWCGU1A+EO3ZY=
+
+Name: system/share/locale/cs/LC_MESSAGES/bash.mo
+SHA-256-Digest: oraQ9eZuT1lBwiH5YZ0i5nqmUQDS+XhLzI6Aq369lic=
+
+Name: system/share/info/dir
+SHA-256-Digest: KN+Ck9eeVjT5T9ZgK+PGy7Y+IEn/WDuYZ9AEUumA1wA=
+
+Name: system/share/locale/bg/LC_MESSAGES/bash.mo
+SHA-256-Digest: 5ONatEMGcJq6T95qP8rsYJ8JF40iI5bI9yXE7OOjwsU=
+
+Name: system/share/locale/pl/LC_MESSAGES/bash.mo
+SHA-256-Digest: mwNqLYzU0PonHWEMOwKisnrK08GiXz+eUak0uZwIN+g=
+
+Name: system/share/doc/bash/NEWS
+SHA-256-Digest: eLERxliNP5b8QeHz8Iqq8zTYdxfGcFlwqxX8V2gPmW8=
+
+Name: system/share/locale/sv/LC_MESSAGES/bash.mo
+SHA-256-Digest: 1wJHAl+QeXy4jLsqcZ2dcYbHRo2HOZFSkDCgD+qGGGM=
+
+Name: system/share/doc/bash/bash.html
+SHA-256-Digest: Kmvb2SPpM+qbLry4lAKNM2mWIjm2BfePgToD5jcsVCQ=
+
+Name: system/bin/bashbug
+SHA-256-Digest: 2aTqReqyYGWoF0O2A31a2xy0Gw3CykHxUxeeTtmKYFc=
+
+Name: system/etc/bashrc
+SHA-256-Digest: xY8bWmv73jO7g29W5GPo7OoA+Z/jKvp0gAZIS1ByESo=
+
+Name: system/share/locale/sl/LC_MESSAGES/bash.mo
+SHA-256-Digest: U9NpNJtC7r7MvRwk2pXxHZeEzX/Uy/wQkCzTK44/h68=
+
