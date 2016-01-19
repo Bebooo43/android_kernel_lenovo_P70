@@ -5,13 +5,13 @@ then
     then
         if [ -z "$1" ]
         then
-            exit 1
+            echo "Usage: git.sh 'your commit'"
         else
-            git commit -m "$1"
-        fi
-            if git push -u origin master
+            if git commit -m "$1"
             then
-                exit 0
+                git push -u origin master
             fi
+        fi
     fi
 fi
+
