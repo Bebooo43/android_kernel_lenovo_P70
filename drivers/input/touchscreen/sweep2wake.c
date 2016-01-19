@@ -272,8 +272,31 @@ static void s2w_input_callback(struct work_struct *unused) {
 	}
 	else
 	#endif
+// unlock
+	if ((s2w_scr_suspended == true) &&
+	    (s2w_invert == 0) &&
+	    (touch_y < s2w_down) &&
+	    (touch_y > s2w_up)) {
 	detect_sweep2wake(touch_x, touch_y, true);
-
+// unlock invert
+	} else if ((s2w_scr_suspended == true) &&
+	    (s2w_invert == 1) &&
+	    (touch_x < s2w_right) &&
+	    (touch_x > s2w_left)) {
+	detect_sweep2wake(touch_x, touch_y, true);
+// lock
+	} else if ((s2w_scr_suspended == false) &&
+	    (s2w_invert == 0) &&
+	    (touch_y < s2s_down) &&
+	    (touch_y > s2s_up)) {
+	detect_sweep2wake(touch_x, touch_y, true);
+// lock invert
+	} else if ((s2w_scr_suspended == false) &&
+	    (s2w_invert == 1) &&
+	    (touch_x < s2s_right) &&
+	    (touch_x > s2s_left)) {
+	detect_sweep2wake(touch_x, touch_y, true);
+	}
 	return;
 }
 
