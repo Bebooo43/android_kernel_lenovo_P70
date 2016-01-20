@@ -29,38 +29,44 @@ then
 						then
 							if ./repack.pl -boot kernel ramdisk/ boot.img
 							then
-								if [ "$CONFIG" == "$CONFIG_1" ]
+								if mv boot.img ../boot_aosp.img
 								then
-									zip -r Boot_P70_AOSP.zip META-INF system boot.img
-								elif [ "$CONFIG" == "$CONFIG_2" ]
-								then
-									zip -r Boot_P70_GC_AOSP.zip META-INF system boot.img
-								elif [ "$CONFIG" == "$CONFIG_3" ]
-								then
-									zip -r Boot_P70_G_AOSP.zip META-INF system boot.img
-								elif [ "$CONFIG" == "$CONFIG_4" ]
-								then
-									zip -r Boot_P70_C_AOSP.zip META-INF system boot.img
-								fi
-									if cd ../boot_vdt
+									if rm kernel
 									then
-										if ./repack.pl -boot kernel ramdisk/ boot.img
+										if cd ../boot_vdt
 										then
-											if [ "$CONFIG" == "$CONFIG_1" ]
+											if ./repack.pl -boot kernel ramdisk/ boot.img
 											then
-												zip -r Boot_P70_VDT.zip META-INF boot.img
-											elif [ "$CONFIG" == "$CONFIG_2" ]
-											then
-												zip -r Boot_P70_GC_VDT.zip META-INF boot.img
-											elif [ "$CONFIG" == "$CONFIG_3" ]
-											then
-												zip -r Boot_P70_G_VDT.zip META-INF boot.img
-											elif [ "$CONFIG" == "$CONFIG_4" ]
-											then
-												zip -r Boot_P70_C_VDT.zip META-INF boot.img
+												if mv boot.img ../boot_vdt.img
+												then
+													if rm kernel
+													then
+														if cd ../
+														then
+															if [ "$CONFIG" == "$CONFIG_1" ]
+															then
+																zip -r Boot_P70.zip META-INF system boot_aosp.img boot_vdt.img
+															elif [ "$CONFIG" == "$CONFIG_2" ]
+															then
+																zip -r Boot_P70_GC.zip META-INF system boot_aosp.img boot_vdt.img
+															elif [ "$CONFIG" == "$CONFIG_3" ]
+															then
+																zip -r Boot_P70_G.zip META-INF system boot_aosp.img boot_vdt.img
+															elif [ "$CONFIG" == "$CONFIG_4" ]
+															then
+																zip -r Boot_P70_C.zip META-INF system boot_aosp.img boot_vdt.img
+															fi
+																if rm boot_aosp.img
+																then
+																		rm boot_vdt.img
+																fi
+														fi
+													fi
+												fi
 											fi
 										fi
 									fi
+								fi
 							fi
 						fi
 					fi

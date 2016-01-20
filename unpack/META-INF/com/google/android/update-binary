@@ -1,23 +1,36 @@
 #!/sbin/sh
-archive="$3"
+
+zip="$3"
 fdout=/proc/self/fd/$2
+
 ui_print()
 {
 echo "ui_print $1" > $fdout
 echo "ui_print" > $fdout
 }
+
+set_progress()
+{
+echo set_progress 0.$1 > $fdout
+}
+
+aosp()
+{
 ui_print "Create temp directory"
+set_progress 20
 if mkdir -p /tmp/boot
 then
   if cd /tmp/boot
   then
     ui_print "Unzip arhive"
-    if unzip -o "$archive"
+    set_progress 40
+    if unzip -o "$zip"
     then
       ui_print "Mount /system"
       if mount /system
       then
         ui_print "Install files"
+        set_progress 60
         if cp system/framework/android.policy.jar /system/framework/android.policy.jar
         then
           ui_print "Set permission"
@@ -27,9 +40,11 @@ then
             if umount /system
             then
               ui_print "Install boot.img"
+              set_progress 80
               if dd if=boot.img of=/dev/block/mmcblk0p7
               then
                 ui_print "Clean"
+                set_progress 99
                 if rm -rf /tmp
                 then
                   ui_print "Complete!"
@@ -43,3 +58,54 @@ then
     fi
   fi
 fi
+}
+
+vdt()
+{
+ui_print "Create temp directory"
+set_progress 20
+if mkdir -p /tmp/boot
+then
+  if cd /tmp/boot
+  then
+    ui_print "Unzip arhive"
+    set_progress 40
+    if unzip -o "$zip"
+    then
+      ui_print "Install boot.img"
+      set_progress 80
+      if dd if=boot.img of=/dev/block/mmcblk0p7
+      then
+        ui_print "Clean"
+        set_progress 99
+        if rm -rf /tmp
+        then
+          ui_print "Complete!"
+          exit 0
+        fi
+      fi
+    fi
+  fi
+fi
+}
+
+detect()
+{
+if
+    grep zormax /system/build.prop > /dev/null
+then
+    ui_print "Detect AOSP by Zormax"
+    aosp
+elif
+    grep vibe /system/build.prop > /dev/null
+then
+    ui_print "Detect Vibe by VDT"
+    vdt
+else
+    ui_print "No compatible ROM"
+    exit 1
+fi
+}
+
+detect
+
