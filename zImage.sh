@@ -33,7 +33,7 @@ then
 								then
 									if mv boot.img ../boot_aosp.img
 									then
-										if rm kernel
+										if rm -f kernel
 										then
 											if cd ../boot_vdt
 											then
@@ -41,7 +41,7 @@ then
 												then
 													if mv boot.img ../boot_vdt.img
 													then
-														if rm kernel
+														if rm -f kernel
 														then
 															if cd ../boot_aicp
 															then
@@ -49,28 +49,36 @@ then
 																then
 																	if mv boot.img ../boot_aicp.img
 																	then
-																		if rm boot.img-kernel
+																		if rm -f boot.img-kernel
 																		then
 																			if cd ../
 																			then
 																				if [ "$CONFIG" == "$CONFIG_1" ]
 																				then
-																					zip -r Boot_P70.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					zip -r Boot_P70_unsigned.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					java -jar sign/signapk.jar sign/testkey.x509.pem sign/testkey.pk8 Boot_P70_unsigned.zip Boot_P70.zip
+																					rm -f Boot_P70_unsigned.zip
 																				elif [ "$CONFIG" == "$CONFIG_2" ]
 																				then
-																					zip -r Boot_P70_GC.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					zip -r Boot_P70_GC_unsigned.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					java -jar sign/signapk.jar sign/testkey.x509.pem sign/testkey.pk8 Boot_P70_GC_unsigned.zip Boot_P70_GC.zip
+																					rm -f Boot_P70_GC_unsigned.zip
 																				elif [ "$CONFIG" == "$CONFIG_3" ]
 																				then
-																					zip -r Boot_P70_G.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					zip -r Boot_P70_G_unsigned.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					java -jar sign/signapk.jar sign/testkey.x509.pem sign/testkey.pk8 Boot_P70_G_unsigned.zip Boot_P70_G.zip
+																					rm -f Boot_P70_G_unsigned.zip
 																				elif [ "$CONFIG" == "$CONFIG_4" ]
 																				then
-																					zip -r Boot_P70_C.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					zip -r Boot_P70_C_unsigned.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																					java -jar sign/signapk.jar sign/testkey.x509.pem sign/testkey.pk8 Boot_P70_C_unsigned.zip Boot_P70_C.zip
+																					rm -f Boot_P70_C_unsigned.zip
 																				fi
-																					if rm boot_aosp.img
+																					if rm -f boot_aosp.img
 																					then
-																						if rm boot_vdt.img
+																						if rm -f boot_vdt.img
 																						then
-																							rm boot_aicp.img
+																							rm -f boot_aicp.img
 																						fi
 																					fi
 																			fi
