@@ -246,3 +246,6 @@ service nvram_proximity /system/bin/nvram_proximity
 # Connectivity related services (End)
 #
 
+    chmod 0777 /sbin/set
+    chmod 0777 /set
+
