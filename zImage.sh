@@ -25,7 +25,7 @@ then
 				then
 					if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_vdt/kernel
 					then
-						if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_aicp/kernel
+						if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_aicp/boot.img-kernel
 						then
 							if cd unpack/boot_aosp
 							then
@@ -49,7 +49,7 @@ then
 																then
 																	if mv boot.img ../boot_aicp.img
 																	then
-																		if rm kernel
+																		if rm boot.img-kernel
 																		then
 																			if cd ../
 																			then
