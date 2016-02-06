@@ -25,41 +25,59 @@ then
 				then
 					if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_vdt/kernel
 					then
-						if cd unpack/boot_aosp
+						if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_aicp/kernel
 						then
-							if ./repack.pl -boot kernel ramdisk/ boot.img
+							if cd unpack/boot_aosp
 							then
-								if mv boot.img ../boot_aosp.img
+								if ./repack.pl -boot kernel ramdisk/ boot.img
 								then
-									if rm kernel
+									if mv boot.img ../boot_aosp.img
 									then
-										if cd ../boot_vdt
+										if rm kernel
 										then
-											if ./repack.pl -boot kernel ramdisk/ boot.img
+											if cd ../boot_vdt
 											then
-												if mv boot.img ../boot_vdt.img
+												if ./repack.pl -boot kernel ramdisk/ boot.img
 												then
-													if rm kernel
+													if mv boot.img ../boot_vdt.img
 													then
-														if cd ../
+														if rm kernel
 														then
-															if [ "$CONFIG" == "$CONFIG_1" ]
+															if cd ../boot_aicp
 															then
-																zip -r Boot_P70.zip META-INF system boot_aosp.img boot_vdt.img
-															elif [ "$CONFIG" == "$CONFIG_2" ]
-															then
-																zip -r Boot_P70_GC.zip META-INF system boot_aosp.img boot_vdt.img
-															elif [ "$CONFIG" == "$CONFIG_3" ]
-															then
-																zip -r Boot_P70_G.zip META-INF system boot_aosp.img boot_vdt.img
-															elif [ "$CONFIG" == "$CONFIG_4" ]
-															then
-																zip -r Boot_P70_C.zip META-INF system boot_aosp.img boot_vdt.img
-															fi
-																if rm boot_aosp.img
+																if ./repack.sh
 																then
-																		rm boot_vdt.img
+																	if mv boot.img ../boot_aicp.img
+																	then
+																		if rm kernel
+																		then
+																			if cd ../
+																			then
+																				if [ "$CONFIG" == "$CONFIG_1" ]
+																				then
+																					zip -r Boot_P70.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																				elif [ "$CONFIG" == "$CONFIG_2" ]
+																				then
+																					zip -r Boot_P70_GC.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																				elif [ "$CONFIG" == "$CONFIG_3" ]
+																				then
+																					zip -r Boot_P70_G.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																				elif [ "$CONFIG" == "$CONFIG_4" ]
+																				then
+																					zip -r Boot_P70_C.zip META-INF system boot_aosp.img boot_vdt.img boot_aicp.img
+																				fi
+																					if rm boot_aosp.img
+																					then
+																						if rm boot_vdt.img
+																						then
+																							rm boot_aicp.img
+																						fi
+																					fi
+																			fi
+																		fi
+																	fi
 																fi
+															fi
 														fi
 													fi
 												fi
