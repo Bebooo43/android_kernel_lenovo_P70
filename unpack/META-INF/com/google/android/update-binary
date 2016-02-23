@@ -44,14 +44,14 @@ vdt() {
   exit 0
 }
 
-aicp() {
+cm() {
   ui_print "Create temp directory"
   mkdir -p /tmp/boot
   cd /tmp/boot
   ui_print "Unzip arhive"
   unzip -o "$ZIP"
   ui_print "Install boot.img"
-  dd if=boot_aicp.img of=/dev/block/mmcblk0p7
+  dd if=boot_cm.img of=/dev/block/mmcblk0p7
   ui_print "Clean"
   rm -rf /tmp
   ui_print "Complete!"
@@ -59,18 +59,26 @@ aicp() {
 }
 
 mount /system
-if grep Lenovo/full_P70/P70:5.1/LMY47D/1449758667:user/test-keys /system/build.prop > /dev/null; then
+if grep full_P70-user /system/build.prop > /dev/null && grep zormax /system/build.prop > /dev/null; then
     ui_print "Detect AOSP by Zormax"
     umount /system
     aosp
-elif grep Lenovo/aio_otfp/aio_otfp:5.1/LMY47D/R1451890901.01041502:user/release-keys /system/build.prop > /dev/null; then
+elif grep vibeui /system/build.prop > /dev/null; then
     ui_print "Detect Vibe by VDT"
     umount /system
     vdt
-elif grep 5.1.1/LMY48Y/1783956:user/release-keys /system/build.prop > /dev/null; then
+elif grep full_6752-userdebug /system/build.prop > /dev/null && grep zormax /system/build.prop > /dev/null; then
     ui_print "Detect AICP by Zormax"
     umount /system
-    aicp
+    cm
+elif grep cm /system/build.prop > /dev/null && grep 12.1 /system/build.prop > /dev/null && grep zormax /system/build.prop > /dev/null; then
+    ui_print "Detect CM by Zormax"
+    umount /system
+    cm
+elif grep cm /system/build.prop > /dev/null && grep 12.1 /system/build.prop > /dev/null && grep zormax /system/build.prop > /dev/null; then
+    ui_print "Detect CM by Vgdn1942"
+    umount /system
+    cm
 else
     ui_print "No compatible ROM"
     umount /system

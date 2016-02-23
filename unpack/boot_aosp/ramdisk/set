@@ -461,7 +461,7 @@ echo "   2 - только sweep2sleep; 3 - только sweep2wake"
 echo "   Значение по умолчанию 0"
 echo
 echo "16) sweep2wake_invert:"
-echo "    0 - вертикальный свайп; 1 - горизонтальный свайп"
+echo "    0 - горизонтальный свайп; 1 - вертикальный свайп"
 echo "    Значение по умолчанию 0"
 echo
 echo "17) sweep2sleep"
