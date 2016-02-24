@@ -553,17 +553,17 @@ on post-fs-data
     chmod 0660 /dev/sec
     chown root system /dev/sec
 
-    # FM Radio device node
-    mknod /dev/fm     c 193 0;
-    chmod 0660 /dev/fm
-    chown system media /dev/fm
-
     # device apc settings
 
     # device info /proc interface
     mknod /dev/devmap c 196 0;
     chmod 0444 /dev/devmap
     chown root media /dev/devmap
+
+    # FM Radio device node
+    exec /system/xbin/mknod /dev/fm c 193 0
+    chmod 0777 /dev/fm
+    chown system media /dev/fm
 
     # bluetooth
     mkdir /data/@btmtk 0770 bluetooth net_bt
