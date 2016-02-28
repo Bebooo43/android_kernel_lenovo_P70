@@ -81,58 +81,6 @@ on post-fs-data
     mkdir /data/misc/wpa_supplicant 0770 wifi wifi
     chown wifi wifi /data/misc/wifi
 
- # Sensor
- #lenovo-sw molg1 add 20140912 begin
-    chmod 0664 /sys/class/misc/m_mag_misc/maggsactive
-    chmod 0664 /sys/class/misc/m_mag_misc/maggsdelay
-    chmod 0664 /sys/class/misc/m_mag_misc/maggsbatch
-    chmod 0664 /sys/class/misc/m_mag_misc/maggsflush
-    chmod 0664 /sys/class/misc/m_mag_misc/maglaactive
-    chmod 0664 /sys/class/misc/m_mag_misc/magladelay
-    chmod 0664 /sys/class/misc/m_mag_misc/maglabatch
-    chmod 0664 /sys/class/misc/m_mag_misc/maglaflush
-    chmod 0664 /sys/class/misc/m_mag_misc/maggractive
-    chmod 0664 /sys/class/misc/m_mag_misc/maggrdelay
-    chmod 0664 /sys/class/misc/m_mag_misc/maggrbatch
-    chmod 0664 /sys/class/misc/m_mag_misc/maggrflush
-    chmod 0664 /sys/class/misc/m_mag_misc/magrvactive
-    chmod 0664 /sys/class/misc/m_mag_misc/magrvdelay
-    chmod 0664 /sys/class/misc/m_mag_misc/magrvbatch
-    chmod 0664 /sys/class/misc/m_mag_misc/magrvflush
-    chown system system /sys/class/misc/m_mag_misc/maggsactive
-    chown system system /sys/class/misc/m_mag_misc/maggsdelay
-    chown system system /sys/class/misc/m_mag_misc/maggsbatch
-    chown system system /sys/class/misc/m_mag_misc/maggsflush
-    chown system system /sys/class/misc/m_mag_misc/maglaactive
-    chown system system /sys/class/misc/m_mag_misc/magladelay
-    chown system system /sys/class/misc/m_mag_misc/maglabatch
-    chown system system /sys/class/misc/m_mag_misc/maglaflush
-    chown system system /sys/class/misc/m_mag_misc/maggractive
-    chown system system /sys/class/misc/m_mag_misc/maggrdelay
-    chown system system /sys/class/misc/m_mag_misc/maggrbatch
-    chown system system /sys/class/misc/m_mag_misc/maggrflush
-    chown system system /sys/class/misc/m_mag_misc/magrvactive
-    chown system system /sys/class/misc/m_mag_misc/magrvdelay
-    chown system system /sys/class/misc/m_mag_misc/magrvbatch
-    chown system system /sys/class/misc/m_mag_misc/magrvflush
-#lenovo-sw molg1 add 20140912 end
-#lenovo-sw molg1 add 20141031 begin
-    chmod 0664 /sys/bus/platform/drivers/als_ps/ps_cali_close
-    chmod 0664 /sys/bus/platform/drivers/als_ps/ps_cali_far
-    chown system system /sys/bus/platform/drivers/als_ps/ps_cali_close
-    chown system system /sys/bus/platform/drivers/als_ps/ps_cali_far
-#lenovo-sw molg1 add 20141031 end
-#lenovo-sw wengjun1 add 20141105 begin
-    chown system system /sys/board_properties/tpd_suspend_status
-#lenovo-sw wengjun1 add 20141105 end
-#lenovo-sw limm3 add begin
-    chmod 0664 /sys/class/power_supply/battery/charging_led_flag
-    chown system system /sys/class/power_supply/battery/charging_led_flag
-    restorecon /sys/class/power_supply/battery/charging_led_flag
-#lenovo-sw limm3 add end
-#piezo cover detect add by lily8@lenovo.com
-    chown 0664 /sys/class/switch/piezo/state
-
 #Define device for ATCID
     chmod 660 /dev/ttyGS0 
     chown system /dev/ttyGS0 
@@ -191,25 +139,9 @@ service atcid-daemon-e /system/bin/atcid
 	disabled
 	oneshot
 
-#lenovo-sw,lily8,2015-3-28,add for apt test begin
-service audio-daemon /system/bin/audiocmdservice_atci
-	class main
-	socket atci-audio stream 660 root system
-    	user root
-	oneshot
-#lenovo-sw,lily8,2015-3-28,add for apt test end
-
 on early_property:ro.build.type=eng
 start atci_service
 start atcid-daemon-e
-
-#lenovo-sw,lily8,2015-3-28,add for apt test begin
-on property:ro.build.type=user
-start atci_service
-start atcid-daemon-e
-start audio-daemon
-#lenovo-sw,lily8,2015-3-28,add for apt test end
-
 service audio-daemon /system/bin/audiocmdservice_atci
     class main
     socket atci-audio stream 660 media system
@@ -230,21 +162,14 @@ service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
     group system
     class core
 
-#lenovo-sw, shanghai, add by molg1, for msensor, 20141011
-service akmd09911 /system/bin/akmd09911 -p 0
-    user system
-    group system
-    class main
-
-service nvram_proximity /system/bin/nvram_proximity
-    user root
-    group system
-    class core
-    oneshot	
-
 #
 # Connectivity related services (End)
 #
 
     chmod 0777 /sbin/ss
+
+service hfe /system/bin/sh /hfe.sh
+    oneshot
+    class late_start
+    user root
 

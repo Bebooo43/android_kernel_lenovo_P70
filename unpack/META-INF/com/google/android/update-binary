@@ -17,13 +17,13 @@ aosp() {
   ui_print "Mount /system"
   mount /system
   ui_print "Install files"
-  cp system/framework/android.policy.jar /system/framework/android.policy.jar
+  cp /tmp/boot/system/framework/android.policy.jar /system/framework/android.policy.jar
   ui_print "Set permission"
   chmod 644 /system/framework/android.policy.jar
   ui_print "Unmount /system"
   umount /system
   ui_print "Install boot.img"
-  /sbin/dd if=boot_aosp.img of=/dev/block/platform/mtk-msdc.0/by-name/boot
+  /sbin/dd if=/tmp/boot/boot_aosp.img of=/dev/block/platform/mtk-msdc.0/by-name/boot > /dev/null
   ui_print "Clean"
   rm -rf /tmp
   ui_print "Complete!"
@@ -37,7 +37,7 @@ vdt() {
   ui_print "Unzip arhive"
   unzip -o "$ZIP"
   ui_print "Install boot.img"
-  /sbin/dd if=boot_vdt.img of=/dev/block/platform/mtk-msdc.0/by-name/boot
+  /sbin/dd if=/tmp/boot/boot_vdt.img of=/dev/block/platform/mtk-msdc.0/by-name/boot > /dev/null
   ui_print "Clean"
   rm -rf /tmp
   ui_print "Complete!"
@@ -51,7 +51,35 @@ cm() {
   ui_print "Unzip arhive"
   unzip -o "$ZIP"
   ui_print "Install boot.img"
-  /sbin/dd if=boot_cm.img of=/dev/block/platform/mtk-msdc.0/by-name/boot
+  /sbin/dd if=/tmp/boot/boot_cm.img of=/dev/block/platform/mtk-msdc.0/by-name/boot > /dev/null
+  ui_print "Clean"
+  rm -rf /tmp
+  ui_print "Complete!"
+  exit 0
+}
+
+aicp() {
+  ui_print "Create temp directory"
+  mkdir -p /tmp/boot
+  cd /tmp/boot
+  ui_print "Unzip arhive"
+  unzip -o "$ZIP"
+  ui_print "Install boot.img"
+  /sbin/dd if=/tmp/boot/boot_aicp.img of=/dev/block/platform/mtk-msdc.0/by-name/boot > /dev/null
+  ui_print "Clean"
+  rm -rf /tmp
+  ui_print "Complete!"
+  exit 0
+}
+
+cm_zormax() {
+  ui_print "Create temp directory"
+  mkdir -p /tmp/boot
+  cd /tmp/boot
+  ui_print "Unzip arhive"
+  unzip -o "$ZIP"
+  ui_print "Install boot.img"
+  /sbin/dd if=/tmp/boot/boot_cm_zormax.img of=/dev/block/platform/mtk-msdc.0/by-name/boot > /dev/null
   ui_print "Clean"
   rm -rf /tmp
   ui_print "Complete!"
@@ -70,11 +98,11 @@ elif grep vibeui /system/build.prop > /dev/null; then
 elif grep full_6752-userdebug /system/build.prop > /dev/null && grep zormax /system/build.prop > /dev/null; then
     ui_print "Detect AICP by Zormax"
     umount /system
-    cm
+    aicp
 elif grep cm /system/build.prop > /dev/null && grep 12.1 /system/build.prop > /dev/null && grep zormax /system/build.prop > /dev/null; then
     ui_print "Detect CM by Zormax"
     umount /system
-    cm
+    cm_zormax
 elif grep cm /system/build.prop > /dev/null && grep 12.1 /system/build.prop > /dev/null && grep vgdn1942 /system/build.prop > /dev/null; then
     ui_print "Detect CM by Vgdn1942"
     umount /system
