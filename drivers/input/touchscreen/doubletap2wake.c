@@ -424,7 +424,7 @@ static ssize_t dt2w_doubletap2wake_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2wake, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2wake, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2wake_show, dt2w_doubletap2wake_dump);
 
 // doubletap2wake_accuracy
@@ -449,7 +449,7 @@ static ssize_t dt2w_doubletap2wake_accuracy_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2wake_accuracy, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2wake_accuracy, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2wake_accuracy_show, dt2w_doubletap2wake_accuracy_dump);
 
 // doubletap2wake_time
@@ -474,7 +474,7 @@ static ssize_t dt2w_doubletap2wake_time_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2wake_time, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2wake_time, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2wake_time_show, dt2w_doubletap2wake_time_dump);
 
 // doubletap2wake_down
@@ -499,7 +499,7 @@ static ssize_t dt2w_doubletap2wake_down_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2wake_down, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2wake_down, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2wake_down_show, dt2w_doubletap2wake_down_dump);
 
 // doubletap2wake_up
@@ -524,7 +524,7 @@ static ssize_t dt2w_doubletap2wake_up_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2wake_up, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2wake_up, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2wake_up_show, dt2w_doubletap2wake_up_dump);
 
 // doubletap2wake_right
@@ -549,7 +549,7 @@ static ssize_t dt2w_doubletap2wake_right_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2wake_right, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2wake_right, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2wake_right_show, dt2w_doubletap2wake_right_dump);
 
 // doubletap2wake_left
@@ -574,7 +574,7 @@ static ssize_t dt2w_doubletap2wake_left_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2wake_left, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2wake_left, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2wake_left_show, dt2w_doubletap2wake_left_dump);
 
 // doubletap2sleep_tap
@@ -599,7 +599,7 @@ static ssize_t dt2w_doubletap2sleep_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2sleep, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2sleep, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2sleep_show, dt2w_doubletap2sleep_dump);
 
 // doubletap2sleep_accuracy
@@ -624,7 +624,7 @@ static ssize_t dt2w_doubletap2sleep_accuracy_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2sleep_accuracy, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2sleep_accuracy, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2sleep_accuracy_show, dt2w_doubletap2sleep_accuracy_dump);
 
 // doubletap2sleep_time
@@ -649,7 +649,7 @@ static ssize_t dt2w_doubletap2sleep_time_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2sleep_time, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2sleep_time, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2sleep_time_show, dt2w_doubletap2sleep_time_dump);
 
 // doubletap2sleep_down
@@ -674,7 +674,7 @@ static ssize_t dt2w_doubletap2sleep_down_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2sleep_down, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2sleep_down, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2sleep_down_show, dt2w_doubletap2sleep_down_dump);
 
 // doubletap2sleep_up
@@ -699,7 +699,7 @@ static ssize_t dt2w_doubletap2sleep_up_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2sleep_up, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2sleep_up, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2sleep_up_show, dt2w_doubletap2sleep_up_dump);
 
 // doubletap2sleep_right
@@ -724,7 +724,7 @@ static ssize_t dt2w_doubletap2sleep_right_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2sleep_right, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2sleep_right, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2sleep_right_show, dt2w_doubletap2sleep_right_dump);
 
 // doubletap2sleep_left
@@ -749,7 +749,7 @@ static ssize_t dt2w_doubletap2sleep_left_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(doubletap2sleep_left, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(doubletap2sleep_left, (S_IWUGO|S_IRUGO),
 	dt2w_doubletap2sleep_left_show, dt2w_doubletap2sleep_left_dump);
 
 /*

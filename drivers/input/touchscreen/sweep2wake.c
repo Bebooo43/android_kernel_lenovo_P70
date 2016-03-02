@@ -474,7 +474,7 @@ static ssize_t s2w_sweep2wake_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2wake, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2wake, (S_IWUGO|S_IRUGO),
 	s2w_sweep2wake_show, s2w_sweep2wake_dump);
 
 // sweep2wake_invert
@@ -499,7 +499,7 @@ static ssize_t s2w_sweep2wake_invert_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2wake_invert, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2wake_invert, (S_IWUGO|S_IRUGO),
 	s2w_sweep2wake_invert_show, s2w_sweep2wake_invert_dump);
 
 // sweep2wake_down
@@ -524,7 +524,7 @@ static ssize_t s2w_sweep2wake_down_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2wake_down, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2wake_down, (S_IWUGO|S_IRUGO),
 	s2w_sweep2wake_down_show, s2w_sweep2wake_down_dump);
 
 // sweep2wake_up
@@ -549,7 +549,7 @@ static ssize_t s2w_sweep2wake_up_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2wake_up, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2wake_up, (S_IWUGO|S_IRUGO),
 	s2w_sweep2wake_up_show, s2w_sweep2wake_up_dump);
 
 // sweep2wake_right
@@ -574,7 +574,7 @@ static ssize_t s2w_sweep2wake_right_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2wake_right, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2wake_right, (S_IWUGO|S_IRUGO),
 	s2w_sweep2wake_right_show, s2w_sweep2wake_right_dump);
 
 // sweep2wake_left
@@ -599,7 +599,7 @@ static ssize_t s2w_sweep2wake_left_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2wake_left, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2wake_left, (S_IWUGO|S_IRUGO),
 	s2w_sweep2wake_left_show, s2w_sweep2wake_left_dump);
 
 // sweep2sleep_down
@@ -624,7 +624,7 @@ static ssize_t s2w_sweep2sleep_down_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2sleep_down, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2sleep_down, (S_IWUGO|S_IRUGO),
 	s2w_sweep2sleep_down_show, s2w_sweep2sleep_down_dump);
 
 // sweep2sleep_up
@@ -649,7 +649,7 @@ static ssize_t s2w_sweep2sleep_up_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2sleep_up, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2sleep_up, (S_IWUGO|S_IRUGO),
 	s2w_sweep2sleep_up_show, s2w_sweep2sleep_up_dump);
 
 // sweep2sleep_right
@@ -674,7 +674,7 @@ static ssize_t s2w_sweep2sleep_right_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2sleep_right, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2sleep_right, (S_IWUGO|S_IRUGO),
 	s2w_sweep2sleep_right_show, s2w_sweep2sleep_right_dump);
 
 // sweep2sleep_left
@@ -699,7 +699,7 @@ static ssize_t s2w_sweep2sleep_left_dump(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(sweep2sleep_left, (S_IWUSR|S_IRUGO),
+static DEVICE_ATTR(sweep2sleep_left, (S_IWUGO|S_IRUGO),
 	s2w_sweep2sleep_left_show, s2w_sweep2sleep_left_dump);
 
 /*
