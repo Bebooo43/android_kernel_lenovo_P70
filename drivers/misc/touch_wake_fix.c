@@ -34,20 +34,10 @@
 
 int screen_state; // If screen on return 1; else screen off return 0
 // stk3x1x_ps_check() - if proximity sensor no close return 1; else return 0
-int enabled_touchkey = 1;
 
 int screen_off(void) {
 
 	if(screen_state == 1) {
-	return 1;
-	} else {
-	return 0;
-	}
-}
-
-int touchkey(void) {
-
-	if(enabled_touchkey == 1) {
 	return 1;
 	} else {
 	return 0;
@@ -79,33 +69,15 @@ static ssize_t ps_state_set(struct device *dev,
 	return 0;
 }
 
-static ssize_t enabled_touchkey_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
-{
-	return sprintf(buf, "%u\n", enabled_touchkey);
-}
-
-static ssize_t enabled_touchkey_set(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
-{
-	unsigned int data;
-	if(sscanf(buf, "%i\n", &data) == 1)
-		enabled_touchkey = data;
-}
-
 static DEVICE_ATTR(screen_state_enable, 0777,
 		screen_state_show, screen_state_set);
 
 static DEVICE_ATTR(ps_state_enable, 0777,
 		ps_state_show, ps_state_set);
 
-static DEVICE_ATTR(enabled_touchkey_enable, 0777,
-		enabled_touchkey_show, enabled_touchkey_set);
-
 /********************************************************************************************/
 static struct attribute *touch_wake_fix_attributes[] =
 {
-	&dev_attr_enabled_touchkey_enable.attr,
 	&dev_attr_ps_state_enable.attr,
 	&dev_attr_screen_state_enable.attr,
 	NULL
@@ -127,7 +99,6 @@ static int touch_wake_fix_init_sysfs(void) {
 
 	dev_attr_screen_state_enable.attr.name = "screen_state";
 	dev_attr_ps_state_enable.attr.name = "ps_state";
-	dev_attr_enabled_touchkey_enable.attr.name = "enabled_touchkey";
 
 	rc = sysfs_create_group(touch_wake_fix_kobj,
 			&touch_wake_fix_group);

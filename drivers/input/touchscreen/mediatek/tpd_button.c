@@ -1,5 +1,4 @@
 #include "tpd.h"
-#include <linux/touch_wake_fix.h>
 
 extern struct tpd_device *tpd;
 
@@ -79,7 +78,7 @@ void tpd_button_init(void)
 void tpd_button(unsigned int x, unsigned int y, unsigned int down)
 {
 	int i;
-	if ((down) && (touchkey() == 1)) {
+	if (down) {
 		for (i = 0; i < tpd_keycnt; i++) {
 			if (x >= tpd_keys_dim[i][0] - (tpd_keys_dim[i][2] / 2) &&
 			    x <= tpd_keys_dim[i][0] + (tpd_keys_dim[i][2] / 2) &&
