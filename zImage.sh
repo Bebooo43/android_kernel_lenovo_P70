@@ -19,7 +19,7 @@ then
 	fi
 		if make O=$OUT ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE $CONFIG
 		then
-			if make -j2 O=out ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE
+			if make -j2 O=$OUT ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE
 			then
 				if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_aosp/kernel
 				then
@@ -90,13 +90,13 @@ then
 																															then
 																																if rm -f boot_vdt.img
 																																then
-																																	if rm -f boot_cm.img
-																																	then
+																																	#if rm -f boot_cm.img
+																																	#then
 																																		if rm -f boot_aicp.img
 																																		then
 																																			rm -f boot_cm_zormax.img
 																																		fi
-																																	fi
+																																	#fi
 																																fi
 																															fi
 																													fi

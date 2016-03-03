@@ -7,4 +7,6 @@ int stk3x1x_ps_check(void); // If proximity sensor no close return 1; else retur
 
 int screen_off(void);
 
+int touchkey(void);
+
 #endif // _LINUX_TOUCH_WAKE_FIX_H
