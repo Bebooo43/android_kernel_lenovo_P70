@@ -37,8 +37,6 @@
 #include <cust_eint.h>
 #include <cust_alsps.h>
 
-#include <linux/touch_wake_fix.h>
-
 /*if need these function, pls enable this MACRO*/
 //#define MT_PROTOCOL_B
 //#define TPD_PROXIMITY
@@ -611,7 +609,7 @@ void fts_get_upgrade_array(void)
 * Return: no
 ***********************************************************************/
 static void tpd_down(int x, int y, int p) {
-
+	
 	if(x > TPD_RES_X)
 	{
 		TPD_DEBUG("warning: IC have sampled wrong value.\n");;
@@ -627,8 +625,8 @@ static void tpd_down(int x, int y, int p) {
      	//input_report_abs(tpd->dev, ABS_MT_TRACKING_ID, p); 
 	input_mt_sync(tpd->dev);
      	if (FACTORY_BOOT == get_boot_mode()|| RECOVERY_BOOT == get_boot_mode())
-     	{
-       	tpd_button(x, y, 1);
+     	{   
+       	tpd_button(x, y, 1);  
      	}
 	if(y > TPD_RES_Y) //virtual key debounce to avoid android ANR issue
 	{
