@@ -126,6 +126,12 @@ static DECLARE_WORK(sweep2wake_presspwr_work, sweep2wake_presspwr);
 
 /* PowerKey trigger */
 static void sweep2wake_pwrtrigger(void) {
+	#ifdef CONFIG_POCKETMOD
+	if (device_is_pocketed()) {
+	return;
+	}
+	else
+	#endif
 	schedule_work(&sweep2wake_presspwr_work);
 	return;
 }
@@ -266,12 +272,6 @@ static void detect_sweep2wake(int x, int y, bool st)
 
 static void s2w_input_callback(struct work_struct *unused) {
 
-	#ifdef CONFIG_POCKETMOD
-	if (device_is_pocketed()){
-		return;
-	}
-	else
-	#endif
 // unlock
 	if ((s2w_scr_suspended == true) &&
 	    (s2w_invert == 0) &&

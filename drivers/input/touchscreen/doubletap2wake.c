@@ -148,6 +148,12 @@ static DECLARE_WORK(doubletap2wake_presspwr_work, doubletap2wake_presspwr);
 
 /* PowerKey trigger */
 static void doubletap2wake_pwrtrigger(void) {
+	#ifdef CONFIG_POCKETMOD
+	if (device_is_pocketed()) {
+	return;
+	}
+	else
+	#endif
 	schedule_work(&doubletap2wake_presspwr_work);
 	return;
 }
@@ -224,12 +230,6 @@ static void detect_doubletap2wake(int x, int y, bool st)
 
 static void dt2w_input_callback(struct work_struct *unused) {
 
-	#ifdef CONFIG_POCKETMOD
-	if (device_is_pocketed()){
-		return;
-	}
-	else
-	#endif
 	if ((dt2w_scr_suspended == true) &&
 	    (touch_y < dt2w_down) &&
 	    (touch_y > dt2w_up) &&
