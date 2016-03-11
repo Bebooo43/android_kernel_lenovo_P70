@@ -169,8 +169,3 @@ service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
 
     chmod 0777 /sbin/ss
 
-service hfe /system/bin/sh /hfe.sh
-    oneshot
-    class late_start
-    user root
-

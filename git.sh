@@ -1,18 +1,14 @@
 #!/bin/bash
-if cd ~/kernel-3.10
+if [ -z "$1" ]
 then
+    echo "Usage: git.sh 'your commi'"
+else
     if git add -A
     then
-        if [ -z "$1" ]
+        if git commit -m "$1"
         then
-            echo "Usage: git.sh 'your commit'"
-        else
-            if git commit -m "$1"
-            then
-                git push -u origin master
-            fi
+            git push -u origin master
         fi
     fi
 fi
-cd
 
