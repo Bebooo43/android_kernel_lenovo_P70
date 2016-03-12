@@ -1,0 +1,3 @@
+Переходим в: mm/vmscan.c
+Ищем: !PageReclaim(page) || !(sc->gfp_mask & __GFP_IO)) {
+Заменяем на: !PageReclaim(page) || !may_enter_fs) {
