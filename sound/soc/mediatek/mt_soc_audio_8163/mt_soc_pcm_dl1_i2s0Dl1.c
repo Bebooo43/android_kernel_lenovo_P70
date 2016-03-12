@@ -372,7 +372,7 @@ static int mtk_pcm_I2S0dl1_close(struct snd_pcm_substream *substream)
         if (GetMemoryPathEnable(Soc_Aud_Digital_Block_I2S_OUT_2) == false)
         {
             Afe_Set_Reg(AFE_I2S_CON3, 0x0, 0x1);
-            //Afe_Set_Reg(AFE_I2S_CON, 0x0, 0x1);// TODO: fix fm playback then mp3, i2s_con is misconfigured...
+            //Afe_Set_Reg(AFE_I2S_CON, 0x0, 0x1);//6752 TODO: fix fm playback then mp3, i2s_con is misconfigured...
         }
 
         RemoveMemifSubStream(Soc_Aud_Digital_Block_MEM_DL1, substream);
@@ -471,7 +471,7 @@ static int mtk_pcm_I2S0dl1_prepare(struct snd_pcm_substream *substream)
         if (GetMemoryPathEnable(Soc_Aud_Digital_Block_I2S_OUT_2) == false)
         {
             SetMemoryPathEnable(Soc_Aud_Digital_Block_I2S_OUT_2, true);
-            //Afe_Set_Reg(AFE_I2S_CON, Audio_I2S_Dac | 0x1, MASK_ALL); // TODO: fix fm playback then mp3, i2s_con is misconfigured...
+            //Afe_Set_Reg(AFE_I2S_CON, Audio_I2S_Dac | 0x1, MASK_ALL); //6752 TODO: fix fm playback then mp3, i2s_con is misconfigured...
             Afe_Set_Reg(AFE_I2S_CON3, u32AudioI2S | 1, AFE_MASK_ALL);
         }
         else

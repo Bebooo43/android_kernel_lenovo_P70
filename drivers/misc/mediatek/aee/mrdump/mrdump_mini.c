@@ -486,11 +486,13 @@ static void mrdump_mini_build_elf_misc(void)
 	memset(&misc, 0, sizeof(struct mrdump_mini_elf_misc));
 	get_kernel_log_buffer(&misc.vaddr, &misc.size, &misc.start);
 	mrdump_mini_add_misc(misc.vaddr, misc.size, misc.start, "_KERNEL_LOG_");
+	#ifdef CONFIG_HAVE_XLOG_FEATURE
 	for (i = 0; i < 4; i++) {
 		memset(&misc, 0, sizeof(struct mrdump_mini_elf_misc));
 		get_android_log_buffer(&misc.vaddr, &misc.size, &misc.start, i + 1);
 		mrdump_mini_add_misc(misc.vaddr, misc.size, misc.start, log_type[i]);
 	}
+	#endif
 }
 extern raw_spinlock_t logbuf_lock;
 extern unsigned long *stack_trace;

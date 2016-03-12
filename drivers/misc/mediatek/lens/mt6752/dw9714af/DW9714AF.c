@@ -33,19 +33,19 @@ static struct i2c_board_info __initdata kd_lens_dev={ I2C_BOARD_INFO(AF_DRVNAME,
 
 static spinlock_t g_AF_SpinLock;
 
-static struct i2c_client * g_pstAF_I2Cclient = NULL;
+static struct i2c_client * g_pstAF_I2Cclient;
 
 static dev_t g_AF_devno;
-static struct cdev * g_pAF_CharDrv = NULL;
-static struct class *actuator_class = NULL;
+static struct cdev * g_pAF_CharDrv;
+static struct class *actuator_class;
 
-static int    g_s4AF_Opened = 0;
-static long g_i4MotorStatus = 0;
-static long g_i4Dir = 0;
-static unsigned long g_u4AF_INF = 0;
+static int g_s4AF_Opened;
+static long g_i4MotorStatus;
+static long g_i4Dir;
+static unsigned long g_u4AF_INF;
 static unsigned long g_u4AF_MACRO = 1023;
-static unsigned long g_u4TargetPosition = 0;
-static unsigned long g_u4CurrPosition    = 0;
+static unsigned long g_u4TargetPosition;
+static unsigned long g_u4CurrPosition;
 
 static int g_sr = 3;
 
@@ -129,7 +129,7 @@ inline static int getAFInfo(__user stDW9714AF_MotorInfo * pstMotorInfo)
 
     return 0;
 }
-
+                                                                    
 #ifdef LensdrvCM3
 inline static int getAFMETA(__user stDW9714AF_MotorMETAInfo * pstMotorMETAInfo)
 {
@@ -218,6 +218,7 @@ inline static int moveAF(unsigned long a_u4Position)
     spin_unlock(&g_AF_SpinLock);
 
     
+    //LOG_INF("move [curr] %d [target] %d\n", g_u4CurrPosition, g_u4TargetPosition);
 
             spin_lock(&g_AF_SpinLock);
             g_sr = 3;
@@ -226,9 +227,9 @@ inline static int moveAF(unsigned long a_u4Position)
 
             if(s4AF_WriteReg((unsigned short)g_u4TargetPosition) == 0)
             {
-                spin_lock(&g_AF_SpinLock);
-                g_u4CurrPosition = (unsigned long)g_u4TargetPosition;
-                spin_unlock(&g_AF_SpinLock);
+		spin_lock(&g_AF_SpinLock);
+		g_u4CurrPosition = (unsigned long)g_u4TargetPosition;
+		spin_unlock(&g_AF_SpinLock);
             }
             else
             {
@@ -238,7 +239,7 @@ inline static int moveAF(unsigned long a_u4Position)
                 g_i4MotorStatus = -1;
                 spin_unlock(&g_AF_SpinLock);
             }
-
+                                                                   
     return 0;
 }
 
@@ -334,13 +335,18 @@ static int AF_Open(struct inode * a_pstInode, struct file * a_pstFile)
     return 0;
 }
 
+/* Main jobs: */
+/* 1.Deallocate anything that "open" allocated in private_data. */
+/* 2.Shut down the device on last close. */
+/* 3.Only called once on last time. */
+/* Q1 : Try release multiple times. */
 //Main jobs:
 // 1.Deallocate anything that "open" allocated in private_data.
 // 2.Shut down the device on last close.
 // 3.Only called once on last time.
 // Q1 : Try release multiple times.
-static int AF_Release(struct inode * a_pstInode, struct file * a_pstFile)
-{
+static int AF_Release(struct inode *a_pstInode, struct file *a_pstFile)
+    {
     LOG_INF("Start \n");
 
     if (g_s4AF_Opened)
@@ -352,13 +358,13 @@ static int AF_Release(struct inode * a_pstInode, struct file * a_pstFile)
         s4AF_WriteReg(100);
         msleep(10);
 
-        spin_lock(&g_AF_SpinLock);
-        g_s4AF_Opened = 0;
-        spin_unlock(&g_AF_SpinLock);
-    }
+		spin_lock(&g_AF_SpinLock);
+		g_s4AF_Opened = 0;
+		spin_unlock(&g_AF_SpinLock);
+
+	}
 
     LOG_INF("End \n");
-
     return 0;
 }
 

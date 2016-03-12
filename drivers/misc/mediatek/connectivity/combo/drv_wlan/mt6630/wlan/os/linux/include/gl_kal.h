@@ -604,11 +604,6 @@
 #include "nic/bow.h"
 #endif
 
-#if CFG_SUPPORT_XLOG
-#include "linux/xlog.h"
-#endif
-
-
 #include "linux/kallsyms.h"
 #include <linux/ftrace_event.h>
 
@@ -1173,52 +1168,34 @@ typedef struct _MONITOR_RADIOTAP_T {
 #define kalGetTimeTick()                            jiffies_to_msecs(jiffies)
 
 #define kalPrint                                    printk
+#define WLAN_TAG                                    "[wlan]"
 
-#if CFG_SUPPORT_XLOG
-#define XLOG_TAG   "wlan"
+#if 1
+#define kalPrintTag(_Fmt...)        kalPrint(WLAN_TAG _Fmt)
+#define kalDbgLog(_DbgClass, _Fmt)  kalPrintTag _Fmt 
+#else
 
-#define XLogErrorFunc(_Fmt...)                     xlog_printk(ANDROID_LOG_ERROR, XLOG_TAG, _Fmt)
-#define XLogWarnFunc(_Fmt...)                      xlog_printk(ANDROID_LOG_WARN, XLOG_TAG, _Fmt)
-#define XLogInfoFunc(_Fmt...)                      xlog_printk(ANDROID_LOG_DEBUG, XLOG_TAG, _Fmt)
-#define XLogDebugFunc(_Fmt...)                     xlog_printk(ANDROID_LOG_DEBUG, XLOG_TAG, _Fmt)
-#define XLogVerboseFunc(_Fmt...)                   xlog_printk(ANDROID_LOG_VERBOSE, XLOG_TAG, _Fmt)
+#define kalPrintErr(_Fmt...)                    kalPrint(KERN_ERR WLAN_TAG _Fmt)
+#define kalPrintWarn(_Fmt...)                   kalPrint(KERN_WARNING WLAN_TAG _Fmt)
+#define kalPrintInfo(_Fmt...)                   kalPrint(KERN_INFO WLAN_TAG _Fmt)
+#define kalPrintDebug(_Fmt...)                  kalPrint(KERN_INFO WLAN_TAG _Fmt)
 
 #define kalDbgLog(_DbgClass, _Fmt) \
 { \
     if (_DbgClass & DBG_CLASS_ERROR) { \
-        XLogErrorFunc _Fmt; \
+        kalPrintErr _Fmt; \
     } \
     else if (_DbgClass & DBG_CLASS_WARN) { \
-        XLogWarnFunc _Fmt; \
-    } \
-    else if (_DbgClass & (DBG_CLASS_STATE | DBG_CLASS_EVENT | DBG_CLASS_INFO)) { \
-        XLogInfoFunc _Fmt; \
-    } \
-    else if (_DbgClass & (DBG_CLASS_TRACE | DBG_CLASS_LOUD)) { \
-        XLogDebugFunc _Fmt; \
-    } \
-    else if (_DbgClass & DBG_CLASS_TEMP) { \
-        XLogVerboseFunc _Fmt; \
-    } \
-}    
-#else
-
-#define kalDbgLog(_DbgClass, (_Fmt)) \
-{ \
-    if (_DbgClass & DBG_CLASS_ERROR) { \
-        kalPrint(KERN_ERR _Fmt); \
-    } \
-    else if (_DbgClass & DBG_CLASS_WARN) { \
-        kalPrint(KERN_WARNING _Fmt); \
+        kalPrintWarn _Fmt; \
     } \
     else if (_DbgClass & (DBG_CLASS_EVENT | DBG_CLASS_INFO)) { \
-        kalPrint(KERN_INFO _Fmt); \
+        kalPrintInfo _Fmt; \
     } \
     else if (_DbgClass & (DBG_CLASS_STATE | DBG_CLASS_TRACE | DBG_CLASS_LOUD)) { \
-        kalPrint(KERN_DEBUG _Fmt); \
+        kalPrintDebug _Fmt; \
     } \
     else if (_DbgClass & DBG_CLASS_TEMP) { \
-        kalPrint(KERN_ERR _Fmt); \
+        kalPrintErr _Fmt; \
     } \
 }   
 #endif

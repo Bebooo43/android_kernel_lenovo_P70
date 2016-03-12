@@ -311,6 +311,21 @@ static void SCP_sensorHub_power(struct sensorHub_hw *hw, unsigned int on)
 {
 }
 /*----------------------------------------------------------------------------*/
+static unsigned long long SCP_sensorHub_GetCurNS()
+{
+/*
+    int64_t  nt;
+    struct timespec time;
+
+    time.tv_sec = 0;
+    time.tv_nsec = 0;
+    get_monotonic_boottime(&time);
+    nt = time.tv_sec*1000000000LL+time.tv_nsec;
+*/
+
+    return sched_clock();
+}
+/*----------------------------------------------------------------------------*/
 //md32 may lock hw semaphore about 6.x ms to push data to dram.
 static int SCP_sensorHub_get_md32_semaphore()
 {
@@ -741,6 +756,7 @@ static void SCP_sensorHub_late_resume(struct early_suspend *h)
 /*----------------------------------------------------------------------------*/
 #endif //#if !defined(CONFIG_HAS_EARLYSUSPEND) || !defined(USE_EARLY_SUSPEND)
 /*----------------------------------------------------------------------------*/
+static unsigned long long t1, t2, t3, t4, t5, t6;
 int SCP_sensorHub_req_send(SCP_SENSOR_HUB_DATA_P data, uint *len, unsigned int wait)
 {
     ipi_status status;
@@ -817,6 +833,8 @@ int SCP_sensorHub_req_send(SCP_SENSOR_HUB_DATA_P data, uint *len, unsigned int w
         wait_event_interruptible(SCP_sensorHub_req_wq, (atomic_read(&(obj_data->wait_rsp)) == 0));
         del_timer_sync(&obj_data->timer);
         err = userData->rsp.errCode;
+        if (t6-t1 > 3000000LL)
+            SCP_ERR("%llu, %llu, %llu, %llu, %llu, %llu\n", t1, t2, t3, t4, t5, t6);
         mutex_unlock(&SCP_sensorHub_req_mutex);
     }
 
@@ -888,6 +906,8 @@ static void SCP_sensorHub_IPI_handler(int id, void *data, unsigned int len)
     bool do_registed_handler = false;
     static int first_init_done = 0;
 
+    t1 = SCP_sensorHub_GetCurNS();
+
     if (SCP_TRC_FUN == atomic_read(&(obj_data->trace)))
         SCP_FUN();
 
@@ -945,6 +965,8 @@ static void SCP_sensorHub_IPI_handler(int id, void *data, unsigned int len)
                 return;
         }
 
+        t2 = SCP_sensorHub_GetCurNS();
+
         if (ID_SENSOR_MAX_HANDLE < rsp->rsp.sensorType)
         {
             SCP_ERR("SCP_sensorHub_IPI_handler invalid sensor type %d\n", rsp->rsp.sensorType);
@@ -957,6 +979,8 @@ static void SCP_sensorHub_IPI_handler(int id, void *data, unsigned int len)
                 sensor_handler[rsp->rsp.sensorType](data, len);
             }
         }
+
+        t3 = SCP_sensorHub_GetCurNS();
 
         if(atomic_read(&(obj_data->wait_rsp)) == 1 && true == wake_up_req)
         {
@@ -973,8 +997,11 @@ static void SCP_sensorHub_IPI_handler(int id, void *data, unsigned int len)
                 memcpy(userData, rsp, len);
                 *userDataLen = len;
             }
+            t4 = SCP_sensorHub_GetCurNS();
             atomic_set(&(obj_data->wait_rsp), 0);
+            t5 = SCP_sensorHub_GetCurNS();
             wake_up(&SCP_sensorHub_req_wq);
+            t6 = SCP_sensorHub_GetCurNS();
         }
     }
 }
@@ -1038,7 +1065,7 @@ static int SCP_sensorHub_get_fifo_status(int *dataLen, int *status, char *reserv
 
     if (SCP_TRC_FUN == atomic_read(&(obj_data->trace)))
         SCP_FUN();
-    for (i=0;i<=MAX_ANDROID_SENSOR_NUM;i++)
+    for (i=0;i<=ID_SENSOR_MAX_HANDLE;i++)
     {
         pt[i].total_count = 0;
     }
@@ -1241,7 +1268,7 @@ static int SCP_sensorHub_probe(/*struct platform_device *pdev*/)
 
     ctl.enable_hw_batch = SCP_sensorHub_enable_hw_batch;
 	ctl.flush = SCP_sensorHub_flush;
-	err = batch_register_control_path(MAX_ANDROID_SENSOR_NUM, &ctl);
+	err = batch_register_control_path(ID_SENSOR_MAX_HANDLE, &ctl);
 	if(err)
 	{
 	 	SCP_ERR("register SCP sensor hub control path err\n");
@@ -1251,7 +1278,7 @@ static int SCP_sensorHub_probe(/*struct platform_device *pdev*/)
 	data.get_data = SCP_sensorHub_get_data;
     data.get_fifo_status = SCP_sensorHub_get_fifo_status;
 	data.is_batch_supported = 1;
-	err = batch_register_data_path(MAX_ANDROID_SENSOR_NUM, &data);
+	err = batch_register_data_path(ID_SENSOR_MAX_HANDLE, &data);
 	if(err)
 	{
 	 	SCP_ERR("register SCP sensor hub control data path err\n");

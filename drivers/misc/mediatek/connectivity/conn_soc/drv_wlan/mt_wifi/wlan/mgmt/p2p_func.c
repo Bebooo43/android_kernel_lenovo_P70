@@ -1162,7 +1162,11 @@ p2pFuncTxMgmtFrame (
 
         switch (prWlanHdr->u2FrameCtrl & MASK_FRAME_TYPE) {
         case MAC_FRAME_PROBE_RSP:
+
 			DBGLOG(P2P, TRACE, ("p2pFuncTxMgmtFrame:  TX MAC_FRAME_PROBE_RSP\n"));
+
+            prMgmtTxMsdu->ucStaRecIndex = (prStaRec != NULL)? (prStaRec->ucIndex):(STA_REC_INDEX_NOT_FOUND);
+	    
             prMgmtTxMsdu = p2pFuncProcessP2pProbeRsp(prAdapter, prMgmtTxMsdu);
             break;
         default:
@@ -3017,6 +3021,8 @@ p2pFuncProcessP2pProbeRsp (
                                                 prP2pBssInfo,
                                                 prProbeRspFrame->aucDestAddr);
 
+
+	prRetMsduInfo->ucStaRecIndex = prMgmtTxMsdu->ucStaRecIndex;
 
         for (u4Idx = 0; u4Idx < u4IeArraySize; u4Idx++) {
             if (txProbeRspIETable[u4Idx].pfnAppendIE) {

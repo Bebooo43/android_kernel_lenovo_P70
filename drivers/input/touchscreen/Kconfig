@@ -421,6 +421,9 @@ config TOUCHSCREEN_MTK
 	help
 	  Say Y here if you have MediaTek touch panel.
 
+config TOUCHSCREEN_RESOLUTION_DIFF
+	bool "MediaTek EVB using same custom folder with different touch resolution"
+
 config TOUCHSCREEN_MTK_GT9XX
 	bool "GT9XX for Mediatek package"
 	depends on TOUCHSCREEN_MTK
@@ -508,7 +511,7 @@ config MTK_FT5406
         
 config MTK_FT5436I
         bool "FT5436I for Mediatek package"
-        default n        
+        default n
 
 config MTK_FT5406_82
         bool "FT5406_82 for Mediatek package"

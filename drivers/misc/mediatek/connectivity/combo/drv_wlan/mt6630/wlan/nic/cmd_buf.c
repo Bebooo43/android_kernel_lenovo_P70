@@ -142,7 +142,6 @@ P_CMD_INFO_T cmdBufAllocateCmdInfo(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Length
 
 	DEBUGFUNC("cmdBufAllocateCmdInfo");
 
-
 	ASSERT(prAdapter);
 
 	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
@@ -151,30 +150,34 @@ P_CMD_INFO_T cmdBufAllocateCmdInfo(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Length
 
 	if (prCmdInfo) {
 		/* Setup initial value in CMD_INFO_T */
-		/* Start address of allocated memory */
-		prCmdInfo->pucInfoBuffer = cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
+		prCmdInfo->u2InfoBufLen = 0;
+		prCmdInfo->fgIsOid = FALSE;
+		prCmdInfo->fgDriverDomainMCR = FALSE;        
 
-		if (prCmdInfo->pucInfoBuffer == NULL) {
-			KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
-			QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
-			KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+        if(u4Length) {
+    		/* Start address of allocated memory */
+    		prCmdInfo->pucInfoBuffer = 
+    		    cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
 
-			prCmdInfo = NULL;
-		} else {
-			prCmdInfo->u2InfoBufLen = 0;
-			prCmdInfo->fgIsOid = FALSE;
-			prCmdInfo->fgDriverDomainMCR = FALSE;
-		}
+    		if (prCmdInfo->pucInfoBuffer == NULL) {
+    			KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+    			QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
+    			KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+
+    			prCmdInfo = NULL;
+    		}
+        }
+        else {
+            prCmdInfo->pucInfoBuffer = NULL;
+        }
 	}
 
 	if (prCmdInfo) {
-		DBGLOG(MEM, INFO,
-		       ("CMD[0x%p] allocated! LEN[%04u], Rest[%u]\n", prCmdInfo, u4Length,
-			prAdapter->rFreeCmdList.u4NumElem));
+		DBGLOG(MEM, INFO, ("CMD[0x%p] allocated! LEN[%04u], Rest[%u]\n", 
+            prCmdInfo, u4Length, prAdapter->rFreeCmdList.u4NumElem));
 	} else {
-		DBGLOG(MEM, INFO,
-		       ("CMD allocation failed! LEN[%04u], Rest[%u]\n", u4Length,
-			prAdapter->rFreeCmdList.u4NumElem));
+		DBGLOG(MEM, INFO, ("CMD allocation failed! LEN[%04u], Rest[%u]\n", 
+            u4Length, prAdapter->rFreeCmdList.u4NumElem));
 	}
 
 	return prCmdInfo;

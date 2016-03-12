@@ -115,10 +115,7 @@ extern void charger_hv_detect_sw_workaround_init(void);
 extern void pmu_drv_tool_customization_init(void);
 extern void pmic_auxadc_init(void);
 extern int PMIC_IMM_GetOneChannelValue(upmu_adc_chl_list_enum dwChannel, int deCount, int trimd);
-#ifdef HQ_BOOT_WITH_VIBRATOR
-BOOL kernel_vibrate_flag = false; //vibration flag in MTK_KERNEL_POWER_OFF_CHARGING mode
-BOOL pwrkey_pressed_flag = false;//Powerkey pressed flag for vibration in MTK_KERNEL_POWER_OFF_CHARGING mode
-#endif
+
 #if defined (CONFIG_MTK_KERNEL_POWER_OFF_CHARGING)
 extern void mt_power_off(void);
 static kal_bool long_pwrkey_press = false;
@@ -695,10 +692,6 @@ void pwrkey_int_handler(void)
         #if defined (CONFIG_MTK_KERNEL_POWER_OFF_CHARGING)
         if(g_boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT && timer_pre != 0)
         {
-        #ifdef HQ_BOOT_WITH_VIBRATOR
-		BOOL kernel_vibrate_flag = false; //vibration flag in MTK_KERNEL_POWER_OFF_CHARGING mode
-		BOOL pwrkey_pressed_flag = false;//Powerkey pressed flag for vibration in MTK_KERNEL_POWER_OFF_CHARGING mode
-       #endif
                 timer_pos = sched_clock();
                 if(timer_pos - timer_pre >= LONG_PWRKEY_PRESS_TIME)
                 {
@@ -723,9 +716,6 @@ void pwrkey_int_handler(void)
         #if defined (CONFIG_MTK_KERNEL_POWER_OFF_CHARGING)
         if(g_boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT)
         {
-         #ifdef HQ_BOOT_WITH_VIBRATOR
-         pwrkey_pressed_flag = true;
-         #endif
             timer_pre = sched_clock();
         }
         #endif

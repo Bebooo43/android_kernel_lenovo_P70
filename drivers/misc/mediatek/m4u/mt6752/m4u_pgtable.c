@@ -834,7 +834,7 @@ int m4u_map_phys_range(m4u_domain_t *m4u_domain, unsigned int iova,
 		pgsize_idx = __fls(pgsize);
 		pgsize = 1UL << pgsize_idx;
 
-		pr_debug("mapping: iova 0x%x pa 0x%lx pgsize %lu\n", iova,
+		M4ULOG_LOW("mapping: iova 0x%x pa 0x%lx pgsize %lu\n", iova,
 					paddr, pgsize);
 
 		ret = m4u_map_phys_align(m4u_domain, iova, paddr, pgsize, prot);

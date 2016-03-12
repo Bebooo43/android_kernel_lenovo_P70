@@ -218,8 +218,9 @@ static const unsigned char LCD_MODULE_ID = 0x01; //  haobing modified 2013.07.11
 
 static LCM_DSI_MODE_SWITCH_CMD lcm_switch_mode_cmd;
 
-//#define UFO_ON_3X_60
-#define UFO_ON_3X_120
+#define UFO_ON_3X_60
+//#define UFO_ON_3X_120
+//#define UFO_OFF_60
 
 #ifndef TRUE
     #define TRUE 1
@@ -251,11 +252,49 @@ static int lcm_fps = 60;
 #define read_reg(cmd)										lcm_util.dsi_dcs_read_lcm_reg(cmd)
 #define read_reg_v2(cmd, buffer, buffer_size)   			lcm_util.dsi_dcs_read_lcm_reg_v2(cmd, buffer, buffer_size)
 #define dsi_set_cmdq_V22(cmdq, cmd, count, ppara, force_update)	lcm_util.dsi_set_cmdq_V22(cmdq, cmd, count, ppara, force_update)
+#define dsi_set_cmdq_V11(cmdq, pdata, queue_size, force_update)	lcm_util.dsi_set_cmdq_V11(cmdq, pdata, queue_size, force_update)
 
 struct LCM_setting_table {
     unsigned int cmd;
     unsigned char count;
     unsigned char para_list[64];
+};
+
+static unsigned char od_table_33x33[] =
+{  
+  0,   8,  19,  30,  43,  53,  61,  74,  84,  94, 104, 113, 122, 130, 139, 148, 156, 164, 172, 180, 188, 195, 203, 210, 217, 224, 230, 237, 243, 247, 252, 255, 255,
+  0,   8,  16,  26,  39,  50,  60,  72,  83,  94, 104, 113, 122, 130, 139, 148, 156, 164, 172, 180, 188, 196, 203, 210, 217, 224, 230, 236, 242, 245, 250, 253, 255,
+  0,   8,  16,  24,  36,  47,  59,  70,  81,  91, 102, 112, 120, 130, 138, 146, 154, 162, 170, 178, 186, 194, 202, 209, 216, 222, 229, 236, 242, 245, 250, 253, 255,
+  0,   8,  16,  24,  34,  45,  55,  66,  77,  88,  98, 109, 118, 128, 137, 146, 154, 162, 170, 178, 186, 194, 202, 209, 216, 222, 229, 236, 242, 245, 250, 253, 255,
+  0,   8,  16,  24,  32,  42,  53,  64,  75,  84,  96, 106, 116, 126, 136, 144, 152, 160, 169, 176, 184, 192, 200, 208, 214, 221, 228, 235, 240, 246, 249, 253, 255,
+  0,   8,  15,  23,  32,  40,  50,  62,  72,  84,  93, 104, 114, 125, 134, 144, 152, 160, 168, 176, 184, 192, 200, 207, 214, 221, 228, 234, 240, 245, 250, 253, 255,
+  0,   8,  15,  22,  30,  39,  48,  58,  69,  80,  89, 100, 111, 121, 132, 141, 150, 158, 168, 176, 183, 192, 200, 206, 214, 221, 228, 234, 240, 245, 250, 253, 255,
+  0,   8,  15,  20,  28,  36,  46,  56,  65,  77,  86,  98, 108, 119, 128, 140, 150, 158, 166, 174, 182, 190, 198, 206, 212, 220, 226, 234, 240, 245, 250, 253, 255,
+  0,   8,  14,  20,  26,  34,  44,  55,  64,  74,  85,  95, 106, 116, 128, 137, 148, 156, 165, 174, 181, 190, 198, 206, 212, 220, 226, 232, 238, 244, 249, 254, 255,
+  0,   8,  14,  19,  26,  33,  42,  52,  62,  72,  81,  93, 103, 114, 124, 136, 145, 156, 164, 172, 180, 188, 196, 204, 211, 218, 226, 232, 238, 244, 249, 254, 255,
+  0,   7,  14,  19,  25,  32,  40,  50,  60,  70,  80,  89, 101, 110, 122, 132, 142, 152, 162, 170, 179, 188, 196, 204, 210, 218, 225, 232, 238, 244, 247, 252, 255,
+  0,   7,  14,  18,  24,  30,  38,  47,  57,  66,  78,  88,  98, 109, 119, 130, 140, 150, 160, 170, 178, 186, 194, 202, 210, 218, 224, 232, 238, 243, 248, 251, 255,
+  0,   7,  14,  17,  22,  29,  37,  46,  54,  65,  74,  85,  96, 105, 117, 126, 138, 147, 158, 166, 176, 186, 194, 202, 210, 216, 224, 230, 236, 242, 248, 251, 255,
+  0,   7,  14,  16,  22,  29,  36,  44,  53,  62,  73,  82,  94, 104, 114, 126, 135, 146, 156, 166, 174, 184, 192, 201, 208, 216, 222, 230, 236, 242, 247, 252, 255,
+  0,   7,  14,  16,  22,  28,  34,  42,  50,  60,  70,  81,  90, 102, 112, 122, 134, 143, 154, 163, 172, 182, 192, 200, 208, 216, 222, 230, 236, 242, 247, 252, 255,
+  0,   7,  13,  17,  22,  28,  34,  42,  50,  58,  68,  78,  89,  99, 111, 120, 131, 142, 151, 162, 170, 180, 190, 199, 208, 214, 222, 230, 236, 242, 247, 252, 255,
+  0,   7,  13,  17,  22,  27,  33,  40,  46,  56,  64,  75,  86,  97, 106, 119, 128, 140, 151, 161, 169, 184, 190, 199, 208, 220, 228, 234, 238, 246, 252, 255, 255,
+  0,   7,  12,  16,  22,  27,  33,  40,  46,  54,  64,  74,  84,  94, 106, 116, 128, 136, 150, 161, 167, 182, 188, 199, 208, 218, 226, 234, 240, 246, 252, 255, 255,
+  0,   7,  12,  16,  21,  26,  31,  38,  44,  52,  60,  71,  82,  92, 102, 114, 124, 136, 144, 158, 166, 181, 188, 198, 208, 217, 226, 233, 240, 246, 253, 255, 255,
+  0,   7,  12,  16,  21,  26,  31,  38,  44,  52,  60,  68,  80,  90, 100, 110, 121, 131, 143, 152, 165, 176, 185, 196, 206, 215, 224, 232, 240, 246, 253, 255, 255,
+  0,   7,  12,  15,  20,  25,  30,  36,  42,  50,  58,  66,  76,  86,  96, 106, 116, 127, 138, 149, 160, 172, 185, 195, 205, 216, 224, 232, 240, 246, 252, 255, 255,
+  0,   7,  12,  16,  19,  24,  30,  36,  42,  49,  56,  65,  73,  82,  92, 102, 110, 122, 133, 145, 158, 168, 180, 191, 201, 212, 222, 230, 238, 246, 252, 255, 255,
+  0,   6,   9,  14,  18,  23,  28,  34,  41,  48,  56,  64,  72,  80,  89,  99, 107, 118, 129, 140, 153, 165, 176, 188, 201, 211, 221, 229, 238, 245, 252, 255, 255,
+  0,   6,   9,  14,  17,  22,  28,  33,  40,  47,  54,  63,  71,  79,  88,  97, 105, 115, 125, 136, 147, 159, 172, 184, 194, 207, 218, 228, 237, 245, 252, 255, 255,
+  0,   6,   9,  14,  18,  21,  26,  32,  38,  44,  52,  60,  68,  77,  86,  95, 104, 114, 124, 134, 145, 156, 167, 180, 192, 202, 216, 226, 236, 245, 252, 255, 255,
+  0,   6,   9,  12,  15,  20,  26,  31,  37,  44,  51,  59,  67,  76,  84,  93, 101, 110, 120, 130, 140, 151, 164, 175, 188, 200, 212, 225, 236, 245, 252, 255, 255,
+  0,   4,   8,  12,  13,  18,  23,  29,  35,  42,  50,  58,  66,  75,  83,  92, 100, 109, 118, 128, 138, 149, 160, 171, 183, 196, 208, 220, 233, 244, 252, 255, 255,
+  0,   4,   7,  10,  12,  17,  22,  27,  33,  40,  48,  56,  64,  74,  82,  91,  99, 108, 117, 126, 136, 146, 156, 166, 180, 191, 204, 216, 230, 241, 251, 255, 255,
+  0,   4,   7,  10,  11,  16,  20,  26,  32,  40,  48,  56,  64,  73,  81,  90,  97, 106, 114, 122, 132, 142, 152, 163, 176, 188, 201, 214, 224, 240, 251, 255, 255,
+  0,   4,   7,   9,  11,  16,  20,  25,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 121, 130, 140, 151, 162, 173, 185, 198, 211, 223, 232, 245, 254, 255,
+  0,   4,   7,   9,  11,  14,  19,  25,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 121, 130, 140, 150, 160, 171, 182, 195, 208, 220, 231, 240, 250, 255,
+  0,   4,   6,   7,   9,  13,  18,  24,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 120, 128, 138, 148, 158, 168, 178, 189, 200, 211, 224, 237, 248, 255,
+  0,   4,   6,   7,   8,  12,  17,  24,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 120, 128, 136, 146, 156, 164, 177, 188, 198, 211, 224, 236, 248, 255,
 };
 
 static struct LCM_setting_table lcm_suspend_setting[] = {
@@ -274,7 +313,7 @@ static struct LCM_setting_table lcm_60fps_setting[] = {
     {0xFF,2,{0x19,0x06}},
 
     {0x00,1,{0x80}},
-    {0xC0,14,{0x00,0x77,0x06,0x95,0x0f,0x00,0x77,0x02,0x06,0x00,0x77,0x00,0x02,0x06}},
+    {0xC0,14,{0x00,0x74,0x07,0xb0,0x0f,0x00,0x74,0x02,0x06,0x00,0x74,0x07,0xb0,0x0f}},
 
     {0x00,1,{0x00}},
     {0xFB,1,{0x01}},
@@ -295,7 +334,7 @@ static struct LCM_setting_table lcm_120fps_setting[] = {
     {0xFF,2,{0x19,0x06}},
 
     {0x00,1,{0x80}},
-    {0xC0,14,{0x00,0x72,0x00,0x02,0x06,0x00,0x72,0x02,0x06,0x00,0x72,0x00,0x02,0x06}},
+    {0xC0,14,{0x00,0x74,0x00,0x02,0x06,0x00,0x74,0x02,0x06,0x00,0x74,0x00,0x02,0x06}},
 
     {0x00,1,{0x00}},
     {0xFB,1,{0x01}},
@@ -316,24 +355,57 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0x00,1,{0x80}},
 	{0xFF,2,{0x19,0x06}},
 	
+    //ufoe on
 	{0x00,1,{0x00}},
-	//ufoe on
 	{0x1C,1,{0x04}},
+
+#if (!LCM_DSI_CMD_MODE)
+    {0x00,1,{0xA2}},
+    {0xC1,1,{0x01}},
+    
+    {0x00,1,{0x82}},
+    {0xC1,1,{0x01}},
+
+    {0x00,1,{0xC1}},
+    {0xC5,1,{0xBF}},
+#endif
 
 	{0x00,1,{0x80}},
 	{0xFF,2,{0x00,0x00}},
 
 	{0x00,1,{0x00}},
 	{0xFF,3,{0x00,0x00,0x00}},
+#if (defined UFO_ON_3X_60) || (defined UFO_OFF_60)
+	{0x00,1,{0x00}},
+	{0xFF,3,{0x19,0x06,0x01}},
 
-	{0x35,1,{0x00}},             
-                  
+	{0x00,1,{0x80}},
+	{0xFF,2,{0x19,0x06}},
+
+	{0x00,1,{0x80}},
+	{0xC0,14,{0x00,0x74,0x07,0xb0,0x0f,0x00,0x74,0x02,0x06,0x00,0x74,0x07,0xb0,0x0f}},
+#ifdef UFO_OFF_60
+	{0x00,1,{0x00}},
+	//ufoe off
+	{0x1C,1,{0x00}},
+#endif
+	{0x00,1,{0x00}},
+	{0xFB,1,{0x01}},
+
+	{0x00,1,{0x80}},
+	{0xFF,2,{0x00,0x00}},
+
+	{0x00,1,{0x00}},
+	{0xFF,3,{0x00,0x00,0x00}},
+#endif
+
+	{0x35,1,{0x00}},
 	{0x11,0,{}},    // Sleep out 
-	{REGFLAG_DELAY, 130, {}},             
-	{0x29,0,{}},    // Display on
-	{REGFLAG_END_OF_TABLE, 0x00, {}}	
-};
+	{REGFLAG_DELAY, 130, {}},
 
+	{0x29,0,{}},    // Display on
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
 
 static struct LCM_setting_table lcm_backlight_level_setting[] = {
     {0x51, 1, {0xFF}},
@@ -408,13 +480,17 @@ static void lcm_get_params(LCM_PARAMS *params)
 
 	// Highly depends on LCD driver capability.
 	params->dsi.packet_size=256;
+
+#if (LCM_DSI_CMD_MODE)
+	params->dsi.packet_size_mult=4;
+#endif
 	//video mode timing
 
 	params->dsi.PS=LCM_PACKED_PS_24BIT_RGB888;
 
-	params->dsi.vertical_sync_active				= 1;
-	params->dsi.vertical_backporch					= 5;
-	params->dsi.vertical_frontporch					= 6;
+	params->dsi.vertical_sync_active				= 2;
+	params->dsi.vertical_backporch					= 16;
+	params->dsi.vertical_frontporch					= 16;
 	params->dsi.vertical_active_line				= FRAME_HEIGHT;
 
 	params->dsi.horizontal_sync_active				= 4;
@@ -426,7 +502,7 @@ static void lcm_get_params(LCM_PARAMS *params)
     /*command mode clock*/
 #if (LCM_DSI_CMD_MODE)
 #if (defined UFO_ON_3X_60) || (defined UFO_ON_3X_120)
-    params->dsi.PLL_CLOCK = 340;
+    params->dsi.PLL_CLOCK = 150;//260;
 #else
     params->dsi.PLL_CLOCK = 500; //this value must be in MTK suggested table
 #endif
@@ -435,7 +511,7 @@ static void lcm_get_params(LCM_PARAMS *params)
     /*video mode clock*/
 #if (!LCM_DSI_CMD_MODE)
 #if (defined UFO_ON_3X_60) || (defined UFO_ON_3X_120)
-    params->dsi.PLL_CLOCK = 340;
+    params->dsi.PLL_CLOCK = 380;
 #else
     params->dsi.PLL_CLOCK = 450; //this value must be in MTK suggested table
 #endif
@@ -447,12 +523,23 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->dsi.ufoe_params.vlc_disable = 0;
 	params->dsi.horizontal_active_pixel	= FRAME_WIDTH/3;
 #endif
-	params->dsi.esd_check_enable = 0;
+	params->dsi.esd_check_enable = 1;
 	params->dsi.customization_esd_check_enable = 0;
 	params->dsi.lcm_esd_check_table[0].cmd          = 0x53;
 	params->dsi.lcm_esd_check_table[0].count        = 1;
 	params->dsi.lcm_esd_check_table[0].para_list[0] = 0x24;
 
+	params->dsi.lane_swap_en = 1;
+
+	params->dsi.lane_swap[MIPITX_PHY_PORT_0][MIPITX_PHY_LANE_0] 	= MIPITX_PHY_LANE_0;
+	params->dsi.lane_swap[MIPITX_PHY_PORT_0][MIPITX_PHY_LANE_1] 	= MIPITX_PHY_LANE_3;
+	params->dsi.lane_swap[MIPITX_PHY_PORT_0][MIPITX_PHY_LANE_2] 	= MIPITX_PHY_LANE_2;
+	params->dsi.lane_swap[MIPITX_PHY_PORT_0][MIPITX_PHY_LANE_3] 	= MIPITX_PHY_LANE_1;
+	params->dsi.lane_swap[MIPITX_PHY_PORT_0][MIPITX_PHY_LANE_CK] 	= MIPITX_PHY_LANE_CK;
+	params->dsi.lane_swap[MIPITX_PHY_PORT_0][MIPITX_PHY_LANE_RX] 	= MIPITX_PHY_LANE_0;
+
+	//params->od_table_size = 33 * 33;
+	//params->od_table = (void*)&od_table_33x33;
 }
 
 static void lcm_init_power(void)
@@ -500,6 +587,7 @@ static void lcm_init(void)
 	mt_set_gpio_mode(GPIO_65132_EN, GPIO_MODE_00);
 	mt_set_gpio_dir(GPIO_65132_EN, GPIO_DIR_OUT);
 	mt_set_gpio_out(GPIO_65132_EN, GPIO_OUT_ONE);
+    MDELAY(5);
 
 #ifdef BUILD_LK
 	ret=TPS65132_write_byte(cmd,data);
@@ -592,8 +680,8 @@ static void lcm_update(unsigned int x, unsigned int y, unsigned int width, unsig
 	dsi_set_cmdq(data_array, 1, 0);	
 }
 
-#define LCM_OTM1906A_ID_ADD  (0xDA)
-#define LCM_OTM1906A_ID     (0x40)
+#define LCM_OTM1906B_ID_ADD  (0xDA)
+#define LCM_OTM1906B_ID     (0x40)
 
 static unsigned int lcm_compare_id(void)
 {
@@ -612,7 +700,7 @@ static unsigned int lcm_compare_id(void)
 	array[0] = 0x00023700;// read id return two byte,version and id
 	dsi_set_cmdq(array, 1, 1);
 	
-	read_reg_v2(LCM_OTM1906A_ID_ADD, buffer, 2);
+	read_reg_v2(LCM_OTM1906B_ID_ADD, buffer, 2);
 	id = buffer[0]; //we only need ID
 #ifdef BUILD_LK
 	dprintf(0, "%s, LK otm1906a debug: otm1906a id = 0x%08x\n", __func__, id);
@@ -620,7 +708,7 @@ static unsigned int lcm_compare_id(void)
 	printk("%s, kernel otm1906a horse debug: otm1906a id = 0x%08x\n", __func__, id);
 #endif
 
-	if(id == LCM_OTM1906A_ID)
+	if(id == LCM_OTM1906B_ID)
 		return 1;
 	else
 		return 0;
@@ -743,6 +831,64 @@ static void* lcm_switch_mode(int mode)
 #endif
 }
 
+static void lcm_send_60hz(void * cmdq)
+{
+    unsigned int array[]={
+        0x00001500,
+        0x00042902,
+        0x010619FF,
+        0x80001500,
+        0x00032902,
+        0x000619FF,
+        0x80001500,
+        0x000F2902,
+        0x077400C0,
+        0x74000fb0,
+        0x74000602,
+        0x000fb007,
+        0x00001500,
+        0x01FB2300,
+        0x80001500,
+        0x00032902,
+        0x000000FF,
+        0x00001500,
+        0x00042902,
+        0x000000FF
+    };
+    dsi_set_cmdq_V11(cmdq, array, sizeof(array)/sizeof(unsigned int),1);
+    return;
+    
+}
+
+
+static void lcm_send_120hz(void * cmdq)
+{
+    unsigned int array[]={
+        0x00001500,
+        0x00042902,
+        0x010619FF,
+        0x80001500,
+        0x00032902,
+        0x000619FF,
+        0x80001500,
+        0x000F2902,
+        0x007400C0,
+        0x74000602,
+        0x74000602,
+        0x00060200,
+        0x00001500,
+        0x01FB2300,
+        0x80001500,
+        0x00032902,
+        0x000000FF,
+        0x00001500,
+        0x00042902,
+        0x000000FF
+    };
+    dsi_set_cmdq_V11(cmdq, array, sizeof(array)/sizeof(unsigned int),1);
+    return;
+    
+}
 
 static int lcm_adjust_fps(void * cmdq, int fps)
 {
@@ -759,12 +905,14 @@ static int lcm_adjust_fps(void * cmdq, int fps)
     if(fps == 60)
     {
         lcm_fps = 60;
-	    push_table(cmdq, lcm_60fps_setting, sizeof(lcm_60fps_setting) / sizeof(struct LCM_setting_table), 1);
+	    //push_table(cmdq, lcm_60fps_setting, sizeof(lcm_60fps_setting) / sizeof(struct LCM_setting_table), 1);
+	    lcm_send_60hz(cmdq);
     }
     else if(fps == 120)
     {
         lcm_fps = 120;
-	    push_table(cmdq, lcm_120fps_setting, sizeof(lcm_120fps_setting) / sizeof(struct LCM_setting_table), 1);
+	    //push_table(cmdq, lcm_120fps_setting, sizeof(lcm_120fps_setting) / sizeof(struct LCM_setting_table), 1);
+        lcm_send_120hz(cmdq);
     }
     else
     {
@@ -788,7 +936,9 @@ LCM_DRIVER otm1906b_fhd_dsi_cmd_jdi_tps65132_lcm_drv=
      .init_power		= lcm_init_power,
      .resume_power      = lcm_resume_power,
      .suspend_power     = lcm_suspend_power,
+#if (defined UFO_ON_3X_60) || (defined UFO_ON_3X_120)
      .adjust_fps        = lcm_adjust_fps,
+#endif
      .esd_check         = lcm_esd_check,
      .set_backlight     = lcm_setbacklight,
 	 .ata_check		    = lcm_ata_check,

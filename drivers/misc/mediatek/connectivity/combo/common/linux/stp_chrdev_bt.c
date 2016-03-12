@@ -28,13 +28,19 @@ MODULE_LICENSE("Dual BSD/GPL");
 #define BT_LOG_WARN                 1
 #define BT_LOG_ERR                  0
 
-#define COMBO_IOC_BT_HWVER           6
-
+#if 0
 #define COMBO_IOC_MAGIC        0xb0
 #define COMBO_IOCTL_FW_ASSERT  _IOWR(COMBO_IOC_MAGIC, 0, void*)
 #define COMBO_IOCTL_BT_IC_HW_VER  _IOWR(COMBO_IOC_MAGIC, 1, int)
 #define COMBO_IOCTL_BT_IC_FW_VER  _IOWR(COMBO_IOC_MAGIC, 2, int)
-
+#define COMBO_IOC_BT_HWVER           6
+#else
+#define COMBO_IOCTL_FW_ASSERT        2
+#define COMBO_IOCTL_BT_IC_HW_VER     3
+#define COMBO_IOCTL_BT_IC_FW_VER     4
+#define COMBO_IOC_BT_HWVER           5
+#define COMBO_IOC_BT_SET_PSM         6
+#endif
 
 static UINT32 gDbgLevel = BT_LOG_INFO;
 
@@ -330,9 +336,9 @@ long BT_unlocked_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	INT32 retval = 0;
 	MTK_WCN_BOOL bRet = MTK_WCN_BOOL_TRUE;
-
 	ENUM_WMTHWVER_TYPE_T hw_ver_sym = WMTHWVER_INVALID;
-	BT_DBG_FUNC("BT_ioctl(): cmd (%d)\n", cmd);
+	
+	BT_DBG_FUNC("cmd[0x%x]\n", cmd);
 
 	switch (cmd) {
 #if 0
@@ -364,7 +370,7 @@ long BT_unlocked_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			BT_INFO_FUNC("BT Set fw assert OK\n");
 			retval = 0;
 		} else {
-			BT_INFO_FUNC("BT Set fw assert Failed\n");
+			BT_ERR_FUNC("BT Set fw assert Failed\n");
 			retval = (-1000);
 		}
 		break;
@@ -376,11 +382,21 @@ long BT_unlocked_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	default:
 		retval = -EFAULT;
-		BT_DBG_FUNC("BT_ioctl(): unknown cmd (%d)\n", cmd);
+		BT_ERR_FUNC("BT_ioctl(): unknown cmd (%d)\n", cmd);
 		break;
 	}
 
 	return retval;
+}
+
+long BT_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	long ret;
+
+	BT_INFO_FUNC("cmd[0x%x]\n", cmd);
+	ret = BT_unlocked_ioctl(filp, cmd, arg);
+	
+	return ret;
 }
 
 static int BT_open(struct inode *inode, struct file *file)
@@ -465,8 +481,9 @@ struct file_operations BT_fops = {
 	.release = BT_close,
 	.read = BT_read,
 	.write = BT_write,
-/* .ioctl = BT_ioctl, */
+	/* .ioctl = BT_ioctl, */
 	.unlocked_ioctl = BT_unlocked_ioctl,
+	.compat_ioctl = BT_compat_ioctl,
 	.poll = BT_poll
 };
 

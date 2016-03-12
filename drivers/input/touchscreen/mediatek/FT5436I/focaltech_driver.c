@@ -37,12 +37,14 @@
 #include <cust_eint.h>
 #include <cust_alsps.h>
 
+
 /*if need these function, pls enable this MACRO*/
 //#define MT_PROTOCOL_B
 //#define TPD_PROXIMITY
+//#define FTS_GESTRUE
 //#define TPD_AUTO_UPGRADE				
 
-#define FTS_CTL_IIC
+//#define FTS_CTL_IIC
 #define SYSFS_DEBUG
 //#define FTS_APK_DEBUG
 int fts_load_status = 0;
@@ -1482,6 +1484,39 @@ extern int register_alsps(void);
    		INIT_DELAYED_WORK(&gtp_esd_check_work, gtp_esd_check_func);
     		gtp_esd_check_workqueue = create_workqueue("gtp_esd_check");
     		queue_delayed_work(gtp_esd_check_workqueue, &gtp_esd_check_work, TPD_ESD_CHECK_CIRCLE);
+	#endif
+
+	#ifdef FTS_GESTRUE
+		init_para(480,854,60,0,0);
+	 
+		input_set_capability(tpd->dev, EV_KEY, KEY_POWER);
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_U); 
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_UP); 
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_DOWN);
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_LEFT); 
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_RIGHT); 
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_O);
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_E); 
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_M); 
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_L);
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_W);
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_S); 
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_V);
+		input_set_capability(tpd->dev, EV_KEY, KEY_GESTURE_Z);
+			
+		__set_bit(KEY_GESTURE_RIGHT, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_LEFT, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_UP, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_DOWN, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_U, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_O, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_E, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_M, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_W, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_L, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_S, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_V, tpd->dev->keybit);
+		__set_bit(KEY_GESTURE_Z, tpd->dev->keybit);
 	#endif
 
 	#ifdef MT_PROTOCOL_B

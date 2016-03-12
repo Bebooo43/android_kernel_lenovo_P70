@@ -263,4 +263,6 @@ BOOLEAN p2PFreeInfo(P_GLUE_INFO_T prGlueInfo);
 
 VOID p2pSetSuspendMode(P_GLUE_INFO_T prGlueInfo, BOOLEAN fgEnable);
 
+VOID p2pUpdateChannelTableByDomain(P_GLUE_INFO_T prGlueInfo);
+
 #endif

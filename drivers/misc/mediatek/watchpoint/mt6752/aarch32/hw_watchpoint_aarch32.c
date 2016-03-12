@@ -20,19 +20,19 @@ struct wp_trace_context_t wp_tracer;
  int err;
  volatile int my_watch_data2;
  int wp_flag;
- int my_wp_handler1(unsigned int addr)
+ int my_wp_handler1(unsigned long addr)
  {
      
      wp_flag++; 
-     pr_notice("[MTK WP] Access my data from an instruction at 0x%x\n" ,addr);
+     pr_notice("[MTK WP] Access my data from an instruction at 0x%lx\n" ,addr);
      return 0;
  }
 
- int my_wp_handler2(unsigned int addr)
+ int my_wp_handler2(unsigned long addr)
  {
    
      //this_cpu = get_cpu();
-     pr_notice("[MTK WP] In my_wp_handler2 Access my data from an instruction at 0x%x\n",addr);
+     pr_notice("[MTK WP] In my_wp_handler2 Access my data from an instruction at 0x%lx\n",addr);
      /* trigger exception */
      return 0;
  }
@@ -167,6 +167,39 @@ void wp_test3(void)
 } 
 #endif
 
+
+unsigned int non_invasive_debug_enable(void){
+        unsigned int auth_status = 0 ;
+        unsigned int wp_enable = 0;
+
+#ifdef CONFIG_ARM64
+        asm volatile("MRS %0,DBGAUTHSTATUS_EL1" : "=r" (auth_status));
+        wp_enable = (auth_status >> NSNID_SHIFT) & 0x1;
+#else
+
+/*
+* Since we can't read SCR register in non-secure mode, we can't get info about
+* which mode we are in.
+* Thus, We use these config to identify if this is ATF or TEE Project.
+* If, it is ATF/TEE Proejct kernel is run in non-secure mode, else it is run in secure mode.
+*/
+
+#if  defined(CONFIG_ARM_PSCI) || defined(CONFIG_MTK_PSCI)
+        asm volatile("MRC p14,0,%0,c7,c14,6" : "=r" (auth_status));
+        wp_enable = (auth_status >> NSNID_SHIFT) & 0x1;
+#else
+        asm volatile("MRC p14,0,%0,c7,c14,6" : "=r" (auth_status));
+        wp_enable = (auth_status >> SNID_SHIFT) & 0x1;
+#endif
+#endif
+        pr_notice("[MTK WP] Authencation Interface, status 0x%x, wp_enable 0x%x\n",auth_status,wp_enable);
+        return wp_enable;
+
+};
+
+
+
+
 void smp_read_dbgdscr_callback(void *info)
 {
     unsigned long tmp;
@@ -257,6 +290,13 @@ int enable_hw_watchpoint(void)
     unsigned int args;
     int oslsr;
     int dbglsr;
+
+
+    if(!non_invasive_debug_enable()){
+        pr_notice("[MTK WP] WATCHPOINT DEBUG is not permitted by authentication interface of this chip\n");
+        return -EPERM;
+    }
+
     pr_notice("[MTK WP] Hotplug disable\n");
     cpu_hotplug_disable();
     for(i = 0 ; i < num_possible_cpus() ; i++) {
@@ -307,6 +347,11 @@ int add_hw_watchpoint(struct wp_event *wp_event)
     unsigned long flags;
     unsigned int ctl;
 
+    if(!non_invasive_debug_enable()){
+        pr_notice("[MTK WP] WATCHPOINT DEBUG is not permitted by authentication interface of this chip\n");
+        return -EPERM ;
+    }
+
     if (!wp_event) {
         return -EINVAL;
     }
@@ -350,7 +395,7 @@ int add_hw_watchpoint(struct wp_event *wp_event)
     wp_tracer.wp_events[i].auto_disable = wp_event->auto_disable;
     pr_notice("[MTK WP] Hotplug disable\n");
     cpu_hotplug_disable();
-    pr_notice("[MTK WP] Add watchpoint %d at address 0x%x\n", i, wp_tracer.wp_events[i].virt);
+    pr_notice("[MTK WP] Add watchpoint %d at address 0x%lx\n", i, wp_tracer.wp_events[i].virt);
     for(j = 0; j <  num_possible_cpus(); j++) {
         if(cpu_online(j)){
           cs_cpu_write(wp_tracer.debug_regs[j], DBGWVR + (i << 4),wp_tracer.wp_events[i].virt);
@@ -382,6 +427,12 @@ int del_hw_watchpoint(struct wp_event *wp_event)
 {
     unsigned long flags;
     int i, j;
+
+    if(!non_invasive_debug_enable()){
+        pr_notice("[MTK WP] WATCHPOINT DEBUG is not permitted by authentication interface of this chip\n");
+        return -EPERM ;
+    }
+
 
     if (!wp_event) {
         return -EINVAL;
@@ -446,6 +497,12 @@ int watchpoint_handler(unsigned long addr, unsigned int fsr, struct pt_regs *reg
 
     /* update PC to avoid re-execution of the instruction under watching */
     regs->ARM_pc += thumb_mode(regs)? 2: 4;
+
+    if(!non_invasive_debug_enable()){
+        pr_notice("[MTK WP] WATCHPOINT DEBUG is not permitted by authentication interface of this chip\n");
+        return -EPERM;
+    }
+
 
     for (i = 0; i < MAX_NR_WATCH_POINT; i++) {
         if (wp_tracer.wp_events[i].in_use && wp_tracer.wp_events[i].virt == (daddr)) {
@@ -512,6 +569,12 @@ int wp_probe(struct platform_device *pdev)
            pr_notice("[MTK WP] debug_interface %d @ vm:0x%p pm:0x%x \n", i, wp_tracer.debug_regs[i],IO_VIRT_TO_PHYS((unsigned int)wp_tracer.debug_regs[i]));
          }
     }
+
+    if(!non_invasive_debug_enable()){
+        pr_notice("[MTK WP] WATCHPOINT DEBUG is not permitted by authentication interface of this chip\n");
+        return -EPERM;
+    }
+
     ARM_DBG_READ(c0,c0,0,wp_tracer.dbgdidr); 
     wp_tracer.wp_nr=((wp_tracer.dbgdidr & (0xf <<28))>>28);
     wp_tracer.bp_nr=((wp_tracer.dbgdidr & (0xf <<24))>>24);
@@ -573,7 +636,6 @@ DRIVER_ATTR(wp_test_suit, 0664, wp_test_suit_show, wp_test_suit_store);
 static int __init hw_watchpoint_init(void)
 {
     int err;
-    int ret;
     spin_lock_init(&wp_lock);
     err = platform_driver_register(&wp_driver);
     if (err) {

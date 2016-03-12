@@ -498,7 +498,7 @@ typedef struct
     unsigned int		word_count;
     
     unsigned int		packet_size;
-    
+    unsigned int        packet_size_mult;
     unsigned int		vertical_sync_active;
     unsigned int		vertical_backporch;
     unsigned int		vertical_frontporch;
@@ -657,6 +657,7 @@ typedef struct
     int (*set_gpio_mode)(unsigned int pin, unsigned int mode);
     int (*set_gpio_dir)(unsigned int pin, unsigned int dir);
     int (*set_gpio_pull_enable)(unsigned int pin, unsigned char pull_en);
+    void (*dsi_set_cmdq_V11)(void* cmdq, unsigned int *pdata, unsigned int queue_size, unsigned char force_update);
     void (*dsi_set_cmdq_V22)(void* cmdq, unsigned cmd, unsigned char count, unsigned char *para_list, unsigned char force_update);
     void (*dsi_swap_port)(int swap);
 	void (*dsi_set_cmdq_V23)(void* cmdq, unsigned cmd, unsigned char count, unsigned char *para_list, unsigned char force_update);//dual
@@ -710,6 +711,7 @@ typedef struct
     ////switch mode
     void* (*switch_mode)(int mode);
 	void (*set_cmd)(void* handle,int* mode,unsigned int cmd_num);
+	void (*set_lcm_cmd)(void* handle,unsigned int *lcm_cmd,unsigned int *lcm_count,unsigned int *lcm_value);
 } LCM_DRIVER;
 
 

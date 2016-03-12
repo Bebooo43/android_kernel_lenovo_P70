@@ -112,9 +112,9 @@ static void ptp_init01_finish(struct ptp_det *det);
 #define PTPOD_PMIC_OFFSET (0x10)
 
 
-#define VMAX_VAL		PTP_VOLT_TO_PMIC_VAL(112500)
-#define VMIN_VAL		PTP_VOLT_TO_PMIC_VAL(80000)
-#define VMIN_VAL_GPU	PTP_VOLT_TO_PMIC_VAL(93000)
+#define VMAX_VAL		PTP_VOLT_TO_PMIC_VAL(112500) //K2
+#define VMIN_VAL		PTP_VOLT_TO_PMIC_VAL(80000)  //K2
+#define VMIN_VAL_GPU	PTP_VOLT_TO_PMIC_VAL(93000) //K2
 
 
 #define DTHI_VAL		0x01		/* positive */
@@ -1579,7 +1579,7 @@ static void ptp_set_ptp_volt(struct ptp_det *det)
 	//all scale of volt_tbl_pmic,volt_tbl,volt_offset are pmic value
 	//scale of det->volt_offset must equal 10uV
 	for (i = 0; i < det->num_freq_tbl; i++)
-		det->volt_tbl_pmic[i] = clamp(det->volt_tbl[i] + det->volt_offset + low_temp_offset, det->VMIN+PTPOD_PMIC_OFFSET, det->VMAX+PTPOD_PMIC_OFFSET);
+		det->volt_tbl_pmic[i] = clamp(det->volt_tbl[i] + det->volt_offset + low_temp_offset, det->VMIN, det->VMAX);
 
 	ctrl->volt_update |= PTP_VOLT_UPDATE;
 	wake_up_interruptible(&ctrl->wq);

@@ -111,8 +111,11 @@ static char* cable_type_print(unsigned short type)
 	}	
 }
 
-static HDMI_CABLE_TYPE MHL_Connect_type = MHL_CABLE;
-static bool HDCP_Supported_Info = false;
+HDMI_CABLE_TYPE MHL_Connect_type = MHL_CABLE;
+static unsigned int HDCP_Supported_Info = 0;
+bool MHL_3D_Support = false;
+int MHL_3D_format=0x00;
+
 static void hdmi_drv_get_params(HDMI_PARAMS *params)
 {
 	memset(params, 0, sizeof(HDMI_PARAMS));
@@ -139,8 +142,13 @@ static void hdmi_drv_get_params(HDMI_PARAMS *params)
     params->scaling_factor 				= 0;
     params->cabletype 					= MHL_Connect_type;
 	params->HDCPSupported 				= HDCP_Supported_Info;
+#ifdef CONFIG_MTK_HDMI_3D_SUPPORT	
+    if(MHL_Connect_type== MHL_3D_GLASSES)    
+        params->cabletype 				= MHL_CABLE;
 
-    HDMI_LOG("type %s\n", cable_type_print(params->cabletype));
+	params->is_3d_support 				= MHL_3D_Support;
+#endif
+    HDMI_LOG("type %s-%d hdcp %d-%d\n", cable_type_print(params->cabletype), MHL_Connect_type, params->HDCPSupported, HDCP_Supported_Info);
 	return ;
 }
 
@@ -175,7 +183,13 @@ static int hdmi_drv_audio_enable(bool enable)
 static int hdmi_drv_enter(void)  {return 0;}
 static int hdmi_drv_exit(void)  {return 0;}
 
+#ifdef CONFIG_MTK_HDMI_3D_SUPPORT
+extern void si_mhl_tx_drv_video_3d_update(struct mhl_dev_context *dev_context, int video_3d);
+extern void si_mhl_tx_drv_video_3d(struct mhl_dev_context *dev_context, int video_3d);
+static int hdmi_drv_video_config(HDMI_VIDEO_RESOLUTION vformat, HDMI_VIDEO_INPUT_FORMAT vin, int vout)
+#else
 static int hdmi_drv_video_config(HDMI_VIDEO_RESOLUTION vformat, HDMI_VIDEO_INPUT_FORMAT vin, HDMI_VIDEO_OUTPUT_FORMAT vout)
+#endif
 {
 	if(vformat == HDMI_VIDEO_720x480p_60Hz)
 	{
@@ -201,9 +215,31 @@ static int hdmi_drv_video_config(HDMI_VIDEO_RESOLUTION vformat, HDMI_VIDEO_INPUT
 	{
 		HDMI_LOG("%s, video format not support now\n", __func__);
 	}
-	
+
+#ifdef CONFIG_MTK_HDMI_3D_SUPPORT
+	if(vout & HDMI_VOUT_FORMAT_3D_SBS)
+        MHL_3D_format=VIDEO_3D_SS;
+	else if(vout & HDMI_VOUT_FORMAT_3D_TAB)
+	    MHL_3D_format=VIDEO_3D_TB;
+    else
+	    MHL_3D_format = VIDEO_3D_NONE;
+	    
+	if(si_dev_context)
+	{	    
+        HDMI_LOG("video format  -- %d, 0x%x, %d\n", MHL_3D_Support, vout, MHL_3D_format);
+		if(vformat < HDMI_VIDEO_RESOLUTION_NUM)
+		{
+		    ///if(MHL_3D_Support && (MHL_3D_format > 0))
+		    si_mhl_tx_drv_video_3d(si_dev_context, MHL_3D_format);			
+            si_mhl_tx_set_path_en_I(si_dev_context);
+		}
+		else
+		    si_mhl_tx_drv_video_3d_update(si_dev_context, MHL_3D_format);
+ 	}
+ #else
     if(si_dev_context)
     	si_mhl_tx_set_path_en_I(si_dev_context);
+ #endif
     return 0;
 }
 
@@ -331,7 +367,11 @@ void hdmi_drv_power_off(void)
 
 }
 
-
+void switch_mhl_to_d3(void)
+{    
+    if(si_dev_context)
+        ForceSwitchToD3(si_dev_context);
+}
 static unsigned int pal_resulution = 0;
 void update_av_info_edid(bool audio_video, unsigned int param1, unsigned int param2)
 {
@@ -617,7 +657,12 @@ void Notify_AP_MHL_TX_Event(unsigned int event, unsigned int event_param, void *
 			break;
 		case MHL_TX_EVENT_DEV_CAP_UPDATE:
 		{
-			MHL_Connect_type = MHL_SMB_CABLE;			
+#ifdef CONFIG_MTK_HDMI_3D_SUPPORT		
+		    if(event_param == 0xBA)
+                MHL_Connect_type = MHL_3D_GLASSES;	
+		    else		    
+#endif		    
+    			MHL_Connect_type = MHL_SMB_CABLE;			
 		}
 			break;
 		case MHL_TX_EVENT_EDID_UPDATE:
@@ -627,9 +672,10 @@ void Notify_AP_MHL_TX_Event(unsigned int event, unsigned int event_param, void *
 			break;
 		case MHL_TX_EVENT_EDID_DONE:
 		{
-#ifdef HDCP_ENABLE
-			HDCP_Supported_Info = true;
-#endif
+///#ifdef HDCP_ENABLE
+            if(chip_device_id == 0x8346)
+			    HDCP_Supported_Info = 140; ///HDCP 1.4
+///#endif
 			sii_mhl_connected = MHL_TX_EVENT_CALLBACK;
 			hdmi_invoke_cable_callbacks(HDMI_STATE_ACTIVE);
 			SMB_Init();

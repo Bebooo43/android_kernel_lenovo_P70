@@ -136,9 +136,11 @@ const char musb_driver_name[] = MUSB_DRIVER_NAME;
 struct musb	*_mu3d_musb = NULL;
 
 u32 debug_level = K_ALET | K_CRIT | K_ERR | K_WARNIN | K_NOTICE | K_INFO;
+u32 fake_CDP = 0;
 
 module_param(debug_level , int, 0644);
 MODULE_PARM_DESC(debug_level, "Debug Print Log Lvl");
+module_param(fake_CDP , int, 0644);
 
 #ifdef EP_PROFILING
 u32 is_prof = 1;
@@ -871,6 +873,7 @@ static void ep_prof_work(struct work_struct *data)
 
 static void musb_restore_context(struct musb *musb);
 static void musb_save_context(struct musb *musb);
+extern void usb20_pll_settings(bool host, bool forceOn);
 
 /*-------------------------------------------------------------------------*/
 /*
@@ -896,6 +899,9 @@ void musb_start(struct musb *musb)
 
 		/* disable IP reset and power down, disable U2/U3 ip power down */
 		_ex_mu3d_hal_ssusb_en();
+
+		/* USB PLL Force settings */
+		usb20_pll_settings(false, false);
 
 		/* reset U3D all dev module. */
 		mu3d_hal_rst_dev();

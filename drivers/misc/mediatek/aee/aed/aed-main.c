@@ -47,7 +47,7 @@ static DEFINE_SEMAPHORE(aed_ee_sem);
  *  may be accessed from irq
 */
 static spinlock_t aed_device_lock;
-int aee_mode = AEE_MODE_CUSTOMER_USER;
+int aee_mode = AEE_MODE_NOT_INIT;
 static int force_red_screen = AEE_FORCE_NOT_SET;
 
 static struct proc_dir_entry *aed_proc_dir;
@@ -1720,7 +1720,7 @@ static void kernel_reportAPI(const AE_DEFECT_ATTR attr, const int db_opt, const 
 {
 	struct aee_oops *oops;
 	int n = 0;
-	if (aee_mode >= AEE_MODE_CUSTOMER_USER || (aee_mode == AEE_MODE_CUSTOMER_ENG && attr > AE_DEFECT_EXCEPTION))
+	if (aee_mode == AEE_MODE_CUSTOMER_USER || (aee_mode == AEE_MODE_CUSTOMER_ENG && attr == AE_DEFECT_WARNING))
 		return;
 	oops = aee_oops_create(attr, AE_KERNEL_PROBLEM_REPORT, module);
 	if (NULL != oops) {

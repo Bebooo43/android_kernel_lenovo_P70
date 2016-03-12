@@ -570,7 +570,7 @@ static snd_pcm_uframes_t mtk_pcm_hdmi_pointer(struct snd_pcm_substream *substrea
 
     if (pMemControl->interruptTrigger == 1)
     {
-    	#if 0 //  removed
+    	#if 0 // 6752 removed
         HW_Cur_ReadIdx = Afe_Get_Reg(AFE_HDMI_CUR);
 		#endif
         if (HW_Cur_ReadIdx == 0)

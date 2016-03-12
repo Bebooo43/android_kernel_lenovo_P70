@@ -2254,6 +2254,197 @@ wlanoidSetSsid(IN P_ADAPTER_T prAdapter,
 
 }				/* end of wlanoidSetSsid() */
 
+/*----------------------------------------------------------------------------*/
+/*!
+* \brief This routine will initiate the join procedure to attempt
+*        to associate with the new BSS, base on given SSID, BSSID, and freqency.
+*	If the target connecting BSS is in the same ESS as current connected BSS, roaming
+*	will be performed.
+*
+* \param[in] prAdapter Pointer to the Adapter structure.
+* \param[in] pvSetBuffer Pointer to the buffer that holds the data to be set.
+* \param[in] u4SetBufferLen The length of the set buffer.
+* \param[out] pu4SetInfoLen If the call is successful, returns the number of
+*                           bytes read from the set buffer. If the call failed
+*                           due to invalid length of the set buffer, returns
+*                           the amount of storage needed.
+*
+* \retval WLAN_STATUS_SUCCESS
+* \retval WLAN_STATUS_INVALID_DATA
+* \retval WLAN_STATUS_ADAPTER_NOT_READY
+* \retval WLAN_STATUS_INVALID_LENGTH
+*/
+/*----------------------------------------------------------------------------*/
+WLAN_STATUS
+wlanoidSetConnect(
+    IN  P_ADAPTER_T       prAdapter,
+    IN  PVOID             pvSetBuffer,
+    IN  UINT_32           u4SetBufferLen,
+    OUT PUINT_32          pu4SetInfoLen
+    )
+{
+	P_GLUE_INFO_T prGlueInfo;
+    P_PARAM_CONNECT_T pParamConn;
+	P_CONNECTION_SETTINGS_T prConnSettings;
+    UINT_32 i;
+    INT_32 i4Idx = -1, i4MaxRSSI = INT_MIN;
+    P_MSG_AIS_ABORT_T prAisAbortMsg;
+    BOOLEAN fgIsValidSsid = TRUE;
+	BOOLEAN fgEqualSsid = FALSE;
+	BOOLEAN fgEqualBssid = FALSE;
+	const UINT_8 aucZeroMacAddr[] = NULL_MAC_ADDR;
+
+    ASSERT(prAdapter);
+    ASSERT(pu4SetInfoLen);
+
+    /* MSDN:
+     * Powering on the radio if the radio is powered off through a setting of OID_802_11_DISASSOCIATE
+     */
+    if(prAdapter->fgIsRadioOff == TRUE) {
+        prAdapter->fgIsRadioOff = FALSE;
+    }
+
+    if(u4SetBufferLen != sizeof(PARAM_CONNECT_T)) {
+        return WLAN_STATUS_INVALID_LENGTH;
+    }
+    else if (prAdapter->rAcpiState == ACPI_STATE_D3) {
+        DBGLOG(REQ, WARN, ("Fail in set ssid! (Adapter not ready). ACPI=D%d, Radio=%d\n",
+                    prAdapter->rAcpiState, prAdapter->fgIsRadioOff));
+        return WLAN_STATUS_ADAPTER_NOT_READY;
+    }
+	prAisAbortMsg = (P_MSG_AIS_ABORT_T)cnmMemAlloc(prAdapter, RAM_TYPE_MSG, sizeof(MSG_AIS_ABORT_T));
+	if (!prAisAbortMsg) {
+		ASSERT(0);
+		return WLAN_STATUS_FAILURE;
+	}
+	prAisAbortMsg->rMsgHdr.eMsgId = MID_OID_AIS_FSM_JOIN_REQ;
+
+    pParamConn = (P_PARAM_CONNECT_T) pvSetBuffer;
+	prConnSettings = &prAdapter->rWifiVar.rConnSettings;
+
+    if (pParamConn->u4SsidLen > 32) {
+        return WLAN_STATUS_INVALID_LENGTH;
+    } else if (!pParamConn->pucBssid && !pParamConn->pucSsid)
+    	return WLAN_STATUS_INVALID_LENGTH;
+
+    prGlueInfo = prAdapter->prGlueInfo;
+	kalMemZero(prConnSettings->aucSSID, sizeof(prConnSettings->aucSSID));
+	kalMemZero(prConnSettings->aucBSSID, sizeof(prConnSettings->aucBSSID));
+	prConnSettings->eConnectionPolicy = CONNECT_BY_SSID_ANY;
+	prConnSettings->fgIsConnByBssidIssued = FALSE;
+	
+	if (pParamConn->pucSsid) {
+		prConnSettings->eConnectionPolicy = CONNECT_BY_SSID_BEST_RSSI;
+	    COPY_SSID(prConnSettings->aucSSID,
+				prConnSettings->ucSSIDLen,
+				pParamConn->pucSsid,
+	            (UINT_8)pParamConn->u4SsidLen);
+		if (EQUAL_SSID(prAdapter->rWlanInfo.rCurrBssId.rSsid.aucSsid,
+						prAdapter->rWlanInfo.rCurrBssId.rSsid.u4SsidLen,
+						pParamConn->pucSsid,
+						pParamConn->u4SsidLen))
+			fgEqualSsid = TRUE;
+	}
+	if (pParamConn->pucBssid) {
+		if (!EQUAL_MAC_ADDR(aucZeroMacAddr, pParamConn->pucBssid) &&
+				IS_UCAST_MAC_ADDR(pParamConn->pucBssid)) {
+			prConnSettings->eConnectionPolicy = CONNECT_BY_BSSID;
+			prConnSettings->fgIsConnByBssidIssued = TRUE;
+			COPY_MAC_ADDR(prConnSettings->aucBSSID, pParamConn->pucBssid);
+			if (EQUAL_MAC_ADDR(prAdapter->rWlanInfo.rCurrBssId.arMacAddress,
+										pParamConn->pucBssid))
+				fgEqualBssid = TRUE;
+		} else {
+			DBGLOG(INIT, INFO, ("wrong bssid "MACSTR"to connect\n", MAC2STR(pParamConn->pucBssid)));
+		}
+	} else
+		DBGLOG(INIT, INFO, ("No Bssid set\n"));
+	prConnSettings->u4FreqInKHz = pParamConn->u4CenterFreq;
+
+    // prepare for CMD_BUILD_CONNECTION & CMD_GET_CONNECTION_STATUS
+    // re-association check
+    if(kalGetMediaStateIndicated(prGlueInfo) == PARAM_MEDIA_STATE_CONNECTED) {
+        if(fgEqualSsid) {
+			prAisAbortMsg->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_REASSOCIATION;
+            if (fgEqualBssid) {
+				kalSetMediaStateIndicated(prGlueInfo, PARAM_MEDIA_STATE_TO_BE_INDICATED);
+            }
+        }
+        else {
+			DBGLOG(INIT, INFO, ("DisBySsid\n"));
+            kalIndicateStatusAndComplete(prGlueInfo,
+                    WLAN_STATUS_MEDIA_DISCONNECT,
+                    NULL,
+                    0);
+			prAisAbortMsg->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_NEW_CONNECTION;
+        }
+    } else
+    	prAisAbortMsg->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_NEW_CONNECTION;
+#if 0
+    // check if any scanned result matchs with the SSID
+    for(i = 0 ; i < prAdapter->rWlanInfo.u4ScanResultNum ; i++) {
+        PUINT_8 aucSsid = prAdapter->rWlanInfo.arScanResult[i].rSsid.aucSsid;
+        UINT_8 ucSsidLength = (UINT_8) prAdapter->rWlanInfo.arScanResult[i].rSsid.u4SsidLen;
+        INT_32 i4RSSI = prAdapter->rWlanInfo.arScanResult[i].rRssi;
+
+        if(EQUAL_SSID(aucSsid, ucSsidLength, pParamConn->pucSsid, pParamConn->u4SsidLen) &&
+                i4RSSI >= i4MaxRSSI) {
+            i4Idx = (INT_32)i;
+            i4MaxRSSI = i4RSSI;
+        }
+		if(EQUAL_MAC_ADDR(prAdapter->rWlanInfo.arScanResult[i].arMacAddress, pAddr)) {
+            i4Idx = (INT_32)i;
+            break;
+        }
+    }
+#endif
+    /* prepare message to AIS */
+    if (prConnSettings->eOPMode == NET_TYPE_IBSS
+            || prConnSettings->eOPMode == NET_TYPE_DEDICATED_IBSS) {
+        /* IBSS */ /* beacon period */
+        prConnSettings->u2BeaconPeriod    = prAdapter->rWlanInfo.u2BeaconPeriod;
+        prConnSettings->u2AtimWindow      = prAdapter->rWlanInfo.u2AtimWindow;
+    }
+
+    if (prAdapter->rWifiVar.fgSupportWZCDisassociation) {
+        if (pParamConn->u4SsidLen == ELEM_MAX_LEN_SSID) {
+            fgIsValidSsid = FALSE;
+
+            for (i = 0; i < ELEM_MAX_LEN_SSID; i++) {
+                if ( !((0 < pParamConn->pucSsid[i]) && (pParamConn->pucSsid[i] <= 0x1F)) ) {
+                    fgIsValidSsid = TRUE;
+                    break;
+                }
+            }
+        }
+    }
+
+    /* Set Connection Request Issued Flag */
+    if (fgIsValidSsid) {
+        prConnSettings->fgIsConnReqIssued = TRUE;
+    }
+    else {
+        prConnSettings->fgIsConnReqIssued = FALSE;
+    }
+	
+    if (fgEqualSsid || fgEqualBssid) {
+        prAisAbortMsg->fgDelayIndication = TRUE;
+    }
+    else {
+        /* Update the information to CONNECTION_SETTINGS_T */
+        prAisAbortMsg->fgDelayIndication = FALSE;
+    }
+
+    mboxSendMsg(prAdapter,
+            MBOX_ID_0,
+            (P_MSG_HDR_T) prAisAbortMsg,
+            MSG_SEND_METHOD_BUF);
+
+	DBGLOG(INIT, INFO, ("ssid %s, bssid "MACSTR", conn policy %d, disc reason %d\n",
+			prConnSettings->aucSSID, MAC2STR(prConnSettings->aucBSSID),
+			prConnSettings->eConnectionPolicy, prAisAbortMsg->ucReasonOfDisconnect));
+    return WLAN_STATUS_SUCCESS;
+}/* end of wlanoidSetConnect */
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -7632,7 +7823,7 @@ wlanoidSetDisassociate(IN P_ADAPTER_T prAdapter,
 	/* indicate for disconnection */
 	if (kalGetMediaStateIndicated(prAdapter->prGlueInfo) == PARAM_MEDIA_STATE_CONNECTED) {
 		kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
-					     WLAN_STATUS_MEDIA_DISCONNECT, NULL, 0);
+					     WLAN_STATUS_MEDIA_DISCONNECT_LOCALLY, NULL, 0);
 	}
 #if !defined(LINUX)
 	prAdapter->fgIsRadioOff = TRUE;
@@ -10325,6 +10516,10 @@ wlanoidSetCountryCode(IN P_ADAPTER_T prAdapter,
 
 	prAdapter->prDomainInfo = NULL;	/* Force to re-search country code */
 	rlmDomainSendCmd(prAdapter, TRUE);
+
+    /* Update supported channel list for WLAN & P2P interface (wiphy->bands) */
+    wlanUpdateChannelTable(prAdapter->prGlueInfo);
+    p2pUpdateChannelTableByDomain(prAdapter->prGlueInfo);
 
 	return WLAN_STATUS_SUCCESS;
 }

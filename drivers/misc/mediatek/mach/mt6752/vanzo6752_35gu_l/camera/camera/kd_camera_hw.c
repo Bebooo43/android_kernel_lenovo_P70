@@ -122,6 +122,32 @@ PowerUp PowerOnList={
                 {RST,   Vol_High, 0},
             },
         },
+		{SENSOR_DRVNAME_OV13850_MIPI_RAW,
+			{
+				{SensorMCLK,Vol_High, 0},
+				{RST,   Vol_Low,  4},//==pdn
+				{PDN,   Vol_Low,  1},//==rst
+				{DOVDD, Vol_1800, 0},
+				{RST,   Vol_High, 3},//==pdn
+				{AVDD,  Vol_2800, 3},
+				{DVDD,  VOL_1200, 10},
+				{AFVDD, Vol_2800, 5},
+				{PDN,   Vol_High, 0},
+			},
+		},
+		{SENSOR_DRVNAME_OV5670_MIPI_RAW,
+			{
+				{SensorMCLK,Vol_High, 0},
+				{PDN,   Vol_Low,  4},
+				{RST,   Vol_Low,  1},
+				{DOVDD, Vol_1800, 0},				
+				{PDN,   Vol_High, 3},
+				{AVDD,  Vol_2800, 3},
+				{DVDD,  Vol_1200, 10},
+				{AFVDD, Vol_2800, 5},
+				{RST,   Vol_High, 0},
+			},
+		},
         {SENSOR_DRVNAME_OV5648_MIPI_RAW,
             {
                 {SensorMCLK,Vol_High, 0},
@@ -426,6 +452,10 @@ BOOL hwpowerdown(PowerInformation pwInfo, char* mode_name)
 
         if(mt_set_gpio_mode(pinSet[pinSetIdx][IDX_PS_CMPDN],pinSet[pinSetIdx][IDX_PS_CMPDN+IDX_PS_MODE])){PK_DBG("[CAMERA LENS] set gpio mode failed!! \n");}
         if(mt_set_gpio_dir(pinSet[pinSetIdx][IDX_PS_CMPDN],GPIO_DIR_OUT)){PK_DBG("[CAMERA LENS] set gpio dir failed!! \n");}
+     #if 1
+	    if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMPDN],pinSet[pinSetIdx][IDX_PS_CMPDN+IDX_PS_OFF])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
+			msleep(2);
+	 #else
         if(pwInfo.Voltage == Vol_High)
         {           
             if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMPDN],pinSet[pinSetIdx][IDX_PS_CMPDN+IDX_PS_ON])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
@@ -436,6 +466,7 @@ BOOL hwpowerdown(PowerInformation pwInfo, char* mode_name)
             if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMPDN],pinSet[pinSetIdx][IDX_PS_CMPDN+IDX_PS_OFF])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
             msleep(1);
         }
+	 #endif
     }
     else if(pwInfo.PowerType==RST)
     {
@@ -446,14 +477,17 @@ BOOL hwpowerdown(PowerInformation pwInfo, char* mode_name)
         if(mt_set_gpio_mode(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_MODE])){PK_DBG("[CAMERA SENSOR] set gpio mode failed!! (CMRST)\n");}
         if(mt_set_gpio_dir(pinSet[pinSetIdx][IDX_PS_CMRST],GPIO_DIR_OUT)){PK_DBG("[CAMERA SENSOR] set gpio dir failed!! (CMRST)\n");}
         if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_OFF])){PK_DBG("[CAMERA SENSOR] set gpio failed!! (CMRST)\n");}
-        if(pwInfo.Voltage == Vol_High)
-        {           
-            if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_ON])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
-        }
-        else
-        {           
-            if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_OFF])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
-        }
+        msleep(2);
+	 #if 0
+		if(pwInfo.Voltage == Vol_High)
+		{			
+			if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_ON])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
+		}
+		else
+		{			
+			if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_OFF])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
+		}
+	  #endif
 #else
         if(mt6306_set_gpio_dir(pinSet[pinSetIdx][IDX_PS_CMRST],GPIO_DIR_OUT)){PK_DBG("[CAMERA SENSOR] set gpio dir failed!! (CMRST)\n");}
         if(pwInfo.Voltage == Vol_High)
@@ -470,14 +504,17 @@ BOOL hwpowerdown(PowerInformation pwInfo, char* mode_name)
             if(mt_set_gpio_mode(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_MODE])){PK_DBG("[CAMERA SENSOR] set gpio mode failed!! (CMRST)\n");}
             if(mt_set_gpio_dir(pinSet[pinSetIdx][IDX_PS_CMRST],GPIO_DIR_OUT)){PK_DBG("[CAMERA SENSOR] set gpio dir failed!! (CMRST)\n");}
             if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_OFF])){PK_DBG("[CAMERA SENSOR] set gpio failed!! (CMRST)\n");}
-            if(pwInfo.Voltage == Vol_High)
-            {           
-                if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_ON])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
-            }
-            else
-            {           
-                if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_OFF])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
-            }
+         	msleep(2);
+		 #if 0
+			if(pwInfo.Voltage == Vol_High)
+			{			
+				if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_ON])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
+			}
+			else
+			{			
+				if(mt_set_gpio_out(pinSet[pinSetIdx][IDX_PS_CMRST],pinSet[pinSetIdx][IDX_PS_CMRST+IDX_PS_OFF])){PK_DBG("[CAMERA LENS] set gpio failed!! \n");}
+			}
+		 #endif
         }
 
     }

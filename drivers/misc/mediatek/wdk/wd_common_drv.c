@@ -599,7 +599,8 @@ static int __cpuinit wk_cpu_callback(struct notifier_block *nfb, unsigned long a
 }
 
 static struct notifier_block cpu_nfb __cpuinitdata = {
-	.notifier_call = wk_cpu_callback
+	.notifier_call = wk_cpu_callback,
+	.priority = 6
 };
 
 

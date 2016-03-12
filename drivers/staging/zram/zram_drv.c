@@ -307,7 +307,7 @@ static int remove_node_from_zram_list(struct zram *zram,struct zram_meta *meta,u
                                 {
 					u32 tmp_index = 0;
 	                                printk("[ZRAM]ERROR !!can't find2 meta->table[%d].size %d chunksum %d in list\n",index,meta->table[index].size,meta->table[index].checksum);
-					tmp_index = meta->table[current_index].copy_count;
+					tmp_index = meta->table[current_index].copy_index;
 					if(i > meta->table[tmp_index].copy_count)
                                         {
                                                 BUG_ON(1);

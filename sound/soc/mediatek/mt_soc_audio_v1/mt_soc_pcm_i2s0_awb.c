@@ -143,7 +143,7 @@ static void StartAudioI2S0AWBHardware(struct snd_pcm_substream *substream)
     Afe_Set_Reg(AFE_I2S_CON, Audio_I2S_Dac | 0x1, MASK_ALL);
 
     // here to set interrupt
-    SetIrqMcuCounter(Soc_Aud_IRQ_MCU_MODE_IRQ2_MCU_MODE, substream->runtime->period_size);
+    SetIrqMcuCounter(Soc_Aud_IRQ_MCU_MODE_IRQ2_MCU_MODE, substream->runtime->period_size >> 1);
     SetIrqMcuSampleRate(Soc_Aud_IRQ_MCU_MODE_IRQ2_MCU_MODE, substream->runtime->rate);
     SetIrqEnable(Soc_Aud_IRQ_MCU_MODE_IRQ2_MCU_MODE, true);
 
@@ -200,7 +200,7 @@ static snd_pcm_uframes_t mtk_i2s0_awb_pcm_pointer(struct snd_pcm_substream *subs
         // get total bytes to copysinewavetohdmi
         Frameidx =audio_bytes_to_frame(substream , Awb_Block->u4WriteIdx);
         return Frameidx;
-
+#if 0
         HW_Cur_ReadIdx = Align64ByteSize(Afe_Get_Reg(AFE_AWB_CUR));
         if (HW_Cur_ReadIdx == 0)
         {
@@ -211,6 +211,7 @@ static snd_pcm_uframes_t mtk_i2s0_awb_pcm_pointer(struct snd_pcm_substream *subs
         Previous_Hw_cur = HW_memory_index;
         PRINTK_AUD_AWB("[Auddrv] mtk_i2s0_awb_pcm_pointer =0x%x HW_memory_index = 0x%x\n", HW_Cur_ReadIdx, HW_memory_index);
         return audio_bytes_to_frame(substream,Previous_Hw_cur);
+#endif
     }
     return 0;
 }
@@ -344,6 +345,7 @@ static int mtk_i2s0_awb_pcm_open(struct snd_pcm_substream *substream)
 static int mtk_i2s0_awb_pcm_close(struct snd_pcm_substream *substream)
 {
     AudDrv_Emi_Clk_Off();
+    AudDrv_Clk_Off();
     return 0;
 }
 

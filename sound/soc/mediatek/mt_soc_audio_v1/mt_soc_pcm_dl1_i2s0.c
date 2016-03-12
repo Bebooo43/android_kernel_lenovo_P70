@@ -149,9 +149,10 @@ static int Audio_i2s0_SideGen_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_
         REG44C = Afe_Get_Reg(AFE_GAIN1_CONN3);
         printk("%s() AFE_GAIN1_CONN3 (0X44C) =0x%x\n",  __func__, REG44C);
         // Set HW_GAIN1
-        SetHwDigitalGainMode(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, samplerate, 0x80);
-        SetHwDigitalGainEnable(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, true);
+        SetHwDigitalGainMode(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, samplerate, 0x1F);
         SetHwDigitalGain(0x80000, Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1);
+        Afe_Set_Reg(AFE_GAIN1_CUR, 0x80000, 0xfffff);
+        SetHwDigitalGainEnable(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, true);
 
         Afe_Set_Reg(AFE_DAC_CON1, 0x400, 0xF00);
 

@@ -676,6 +676,9 @@ static int mtu3d_musb_exit(struct musb *musb)
 extern bool usb_phy_check_in_uart_mode(void);
 extern bool in_uart_mode;
 #endif
+
+extern void usb20_pll_settings(bool host, bool forceOn);
+
 static void mtu3d_musb_reg_init(struct musb *musb)
 {
 	int ret = 1;
@@ -708,6 +711,9 @@ static void mtu3d_musb_reg_init(struct musb *musb)
 
 		/* disable ip power down, disable U2/U3 ip power down */
 		_ex_mu3d_hal_ssusb_en();
+
+		/* USB PLL Force settings */
+		usb20_pll_settings(false, false);
 
 		/* reset U3D all dev module. */
 		mu3d_hal_rst_dev();

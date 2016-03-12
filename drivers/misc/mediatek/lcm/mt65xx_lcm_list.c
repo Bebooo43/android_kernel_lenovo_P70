@@ -238,11 +238,16 @@ extern LCM_DRIVER st7789h2_dbi_lcm_drv;
 extern LCM_DRIVER otm1284a_hd720_dsi_vdo_lcm_drv;
 LCM_DRIVER* lcm_driver_list[] =
 {
-#if defined(OTM1284A_HD720_DSI_VDO)
-	&otm1284a_hd720_dsi_vdo_lcm_drv,
-#endif
 #if defined(HX8394A_HD720_DSI_VDO_TIANMA)
 	&hx8394a_hd720_dsi_vdo_tianma_lcm_drv,
+#endif
+
+#if defined(OTM1284A_HD720_DSI_VDO_TM)
+	&otm1284a_hd720_dsi_vdo_tm_lcm_drv,
+#endif
+
+#if defined(OTM1285A_HD720_DSI_VDO_TM)
+	&otm1285a_hd720_dsi_vdo_tm_lcm_drv,
 #endif
 
 #if defined(S6E3FA2_FHD1080_DSI_VDO)

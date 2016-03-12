@@ -1042,7 +1042,7 @@ unsigned int btif_dma_rx_data_receiver(P_MTK_DMA_INFO_STR p_dma_info,
 	_btif_dump_memory("<DMA Rx>", p_buf, buf_len);
 #endif
 
-	btif_bbs_write(&p_btif->btif_buf, p_buf, buf_len);
+	btif_bbs_write(&(p_btif->btif_buf), p_buf, buf_len);
 /*save DMA Rx packet here*/
 	if (0 < buf_len)
 		btif_log_buf_dmp_in(&p_btif->rx_log, p_buf, buf_len);
@@ -1060,7 +1060,7 @@ unsigned int btif_pio_rx_data_receiver(P_MTK_BTIF_INFO_STR p_btif_info,
 #if 0
 	_btif_dump_memory("<PIO Rx>", p_buf, buf_len);
 #endif
-	btif_bbs_write(&p_btif->btif_buf, p_buf, buf_len);
+	btif_bbs_write(&(p_btif->btif_buf), p_buf, buf_len);
 
 /*save PIO Rx packet here*/
 	if (0 < buf_len)
@@ -1077,7 +1077,7 @@ bool btif_parser_wmt_evt(p_mtk_btif p_btif,
 	unsigned int copy_cnt = 0;
 	char *local_buf = NULL;
 	bool b_ret = false;
-	p_btif_buf_str p_bbs = &p_btif->btif_buf;
+	p_btif_buf_str p_bbs = &(p_btif->btif_buf);
 	unsigned int wr_idx = p_bbs->wr_idx;
 	unsigned int rd_idx = p_bbs->rd_idx;
 	
@@ -2543,7 +2543,7 @@ unsigned int btif_bbs_read(p_btif_buf_str p_bbs,
 			} else {
 				memcpy(p_buf, BBS_PTR(p_bbs, p_bbs->rd_idx), tail_len);
 				memcpy(p_buf + tail_len,
-				       &(p_bbs)->buf[0], rd_len - tail_len);
+				       &(p_bbs)->p_buf, rd_len - tail_len);
 				(p_bbs)->rd_idx = rd_len - tail_len;
 			}
 		}
@@ -2563,8 +2563,8 @@ unsigned int btif_bbs_wr_direct(p_btif_buf_str p_bbs,
 
 	l = min(tail_len, buf_len);
 
-	memcpy(&p_bbs->buf[tmp_wr_idx & BBS_MASK(p_bbs)], p_buf, l);
-	memcpy(&p_bbs->buf[0], p_buf + l, buf_len - l);
+	memcpy((p_bbs->p_buf) + (tmp_wr_idx & BBS_MASK(p_bbs)), p_buf, l);
+	memcpy(p_bbs->p_buf, p_buf + l, buf_len - l);
 
 	dsb();
 
@@ -2852,7 +2852,7 @@ int btif_log_buf_dmp_in(P_BTIF_LOG_QUEUE_T p_log_que, const char *p_buf,
 	spin_lock_irqsave(&(p_log_que->lock), flags);
 
 /*get next log buffer for record usage*/
-	p_log_buf = &(p_log_que->queue[p_log_que->in]);
+	p_log_buf = p_log_que->p_queue[0] + p_log_que->in;
 	p_timer = &p_log_buf->timer;
 
 /*log time stamp*/
@@ -2917,7 +2917,7 @@ int btif_log_buf_dmp_out(P_BTIF_LOG_QUEUE_T p_log_que)
 
 	if (0 != dump_size) {
 		while (dump_size--) {
-			p_log_buf = &p_log_que->queue[out_index];
+			p_log_buf = p_log_que->p_queue[0] + out_index;
 
 			len = p_log_buf->len;
 			p_buf = p_log_buf->buffer;
@@ -3002,7 +3002,7 @@ int btif_log_buf_reset(P_BTIF_LOG_QUEUE_T p_log_que)
 	p_log_que->out = 0;
 	p_log_que->size = 0;
 	p_log_que->enable = true;
-	memset(p_log_que->queue, 0, sizeof(p_log_que->queue));
+	memset((p_log_que->p_queue[0]), 0, sizeof(BTIF_LOG_BUF_T));
 
 	spin_unlock_irqrestore(&p_log_que->lock, flags);
 	BTIF_INFO_FUNC("reset %s log buffer\n",
@@ -3020,7 +3020,8 @@ int btif_log_buf_init(p_mtk_btif p_btif)
 	p_btif->tx_log.output_flag = false;
 	p_btif->tx_log.enable = true;
 	spin_lock_init(&(p_btif->tx_log.lock));
-	memset(p_btif->tx_log.queue, 0, sizeof(p_btif->tx_log.queue));
+	BTIF_DBG_FUNC("tx_log.p_queue:0x%p\n", p_btif->tx_log.p_queue[0]);
+	memset((p_btif->tx_log.p_queue[0]), 0, sizeof(BTIF_LOG_BUF_T));
 
 /*rx log buffer init*/
 	p_btif->rx_log.dir = BTIF_RX;
@@ -3030,7 +3031,8 @@ int btif_log_buf_init(p_mtk_btif p_btif)
 	p_btif->rx_log.output_flag = false;
 	p_btif->rx_log.enable = true;
 	spin_lock_init(&(p_btif->rx_log.lock));
-	memset(p_btif->rx_log.queue, 0, sizeof(p_btif->rx_log.queue));
+	BTIF_DBG_FUNC("rx_log.p_queue:0x%p\n", p_btif->rx_log.p_queue[0]);
+	memset((p_btif->rx_log.p_queue[0]), 0, sizeof(BTIF_LOG_BUF_T));
 
 	return 0;
 }
@@ -3063,7 +3065,10 @@ static int BTIF_init(void)
 	int index = 0;
 	p_mtk_btif_dma p_tx_dma = NULL;
 	p_mtk_btif_dma p_rx_dma = NULL;
-
+	unsigned char *p_btif_buffer = NULL;
+	unsigned char *p_tx_queue = NULL;
+	unsigned char *p_rx_queue = NULL;
+	
 	BTIF_DBG_FUNC("++\n");
 
 /*Platform Driver initialization*/
@@ -3083,6 +3088,25 @@ static int BTIF_init(void)
 
 /*SW init*/
 	for (index = 0; index < BTIF_PORT_NR; index++) {
+		p_btif_buffer = (char *) vmalloc(BTIF_RX_BUFFER_SIZE);
+		if (!p_btif_buffer) {
+			BTIF_ERR_FUNC("vmalloc memory fail\n");
+			return false;
+		} else
+			BTIF_INFO_FUNC("p_btif_buffer get memory 0x%p\n", p_btif_buffer);
+		p_tx_queue = (char *) vmalloc(BTIF_LOG_ENTRY_NUM * sizeof(BTIF_LOG_BUF_T));
+		if (!p_tx_queue) {
+			BTIF_ERR_FUNC("vmalloc memory fail\n");
+			return false;
+		} else
+			BTIF_INFO_FUNC("p_tx_queue get memory 0x%p\n", p_tx_queue);
+		p_rx_queue = (char *) vmalloc(BTIF_LOG_ENTRY_NUM * sizeof(BTIF_LOG_BUF_T));
+		if (!p_rx_queue) {
+			BTIF_ERR_FUNC("vmalloc memory fail\n");
+			return false;
+		} else
+			BTIF_INFO_FUNC("p_rx_queue get memory 0x%p\n", p_rx_queue);
+
 		INIT_LIST_HEAD(&(g_btif[index].user_list));
 		BBS_INIT(&(g_btif[index].btif_buf));
 		g_btif[index].enable = false;
@@ -3096,6 +3120,9 @@ static int BTIF_init(void)
 		g_btif[index].lpbk_flag = false;
 		g_btif[index].rx_cb = NULL;
 		g_btif[index].rx_notify = NULL;
+		g_btif[index].btif_buf.p_buf = p_btif_buffer;
+		g_btif[index].tx_log.p_queue[0] = (P_BTIF_LOG_BUF_T) p_tx_queue;
+		g_btif[index].rx_log.p_queue[0] = (P_BTIF_LOG_BUF_T) p_rx_queue;
 		btif_log_buf_init(&g_btif[index]);
 
 #if !(MTK_BTIF_ENABLE_CLK_REF_COUNTER)

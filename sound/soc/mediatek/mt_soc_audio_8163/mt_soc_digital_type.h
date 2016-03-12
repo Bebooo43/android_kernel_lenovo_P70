@@ -981,7 +981,7 @@ typedef struct
     uint32 REG_AFE_ASRC3_CON12;
     uint32 REG_AFE_ASRC3_CON13;
     uint32 REG_AFE_ASRC3_CON14;
-#if 1 
+#if 1
     uint32 REG_AFE_ADDA4_TOP_CON0;
     uint32 REG_AFE_ADDA4_UL_SRC_CON0;
     uint32 REG_AFE_ADDA4_UL_SRC_CON1;

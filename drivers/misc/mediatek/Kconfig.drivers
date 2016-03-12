@@ -688,6 +688,10 @@ config MT6326_PMIC
 	depends on ARCH_MT6516
 	default y
 
+config MTK_HAFG_20
+	bool "MediaTek Fuel Gauge 2.0"
+	default n
+
 config MTK_SMART_BATTERY
 	tristate "MediaTek Smart Battery Driver"
 	default y
@@ -927,7 +931,7 @@ config MTK_EPL2182_NEW
 config MTK_STK3310
 	bool "STK3310 for MediaTek package"
 	default n
-	
+
 config MTK_STK3X1X
 	bool "STK3X1X for MediaTek package"
 	default n
@@ -1016,6 +1020,11 @@ config MTK_LSM6DS3
 config MTK_MXC400X_NEW
 	bool "MXC400X for MediaTek package"
 	default n	
+	
+config MTK_DA213
+        bool "DA213 for MediaTek package"
+        default n
+        
 # Gyro sensor
 config MTK_MPU3050C
 	bool "MPU3050C for MediaTek package"
@@ -1124,7 +1133,7 @@ config MTK_YAS532
 config MTK_YAS532_NEW
         bool "YAS532 for Mediatek package"
         default n
-        
+
 config MTK_IST8303
 			 bool "MTK_ist8303 for MediaTek package"
 			 default n
@@ -1132,7 +1141,7 @@ config MTK_IST8303
 config MTK_ST480
 	bool "ST480 for MediaTek package"
 	default n
-	
+			 
 # Barometer sensor
 config MTK_BMP180_NEW
 	bool "BMP180 for MediaTek package"
@@ -1451,7 +1460,7 @@ config MTK_STAGING
 
 config MTKPASR
 	bool "MTK proprietary PASR mechanism"
-	depends on SYSFS && ZSMALLOC && ARM && HIGHMEM
+	depends on SYSFS && ZSMALLOC
 	select MTKPASR_RDIRECT
 	select MTKPASR_MAFL
 	select MTKPASR_DEBUG
@@ -1488,7 +1497,7 @@ config MTKPASR_DEBUG
 	  This option adds additional debugging code to MTK PASR
 
 config MTKPASR_NO_LASTBANK
-	bool "Modem occupies last bank"
+	bool "Modem/TEE/Others occupy the last bank"
 	depends on MTKPASR
 	default n
 
@@ -1693,6 +1702,10 @@ config NAND_OTP_SUPPORT
 
 config MTK_OD_SUPPORT
 	bool "MTK_OD_SUPPORT"
+	default n
+
+config MTK_DISPLAY_120HZ_SUPPORT
+	bool "MTK_DISPLAY_120HZ_SUPPORT"
 	default n
 
 #

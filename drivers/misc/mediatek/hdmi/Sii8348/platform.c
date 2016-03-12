@@ -514,31 +514,54 @@ static inline int platform_write_i2c_block(struct i2c_adapter *i2c_bus
 }
 
 /***************************End*******************************/
-
+///#define ENABLE_MHL_VBUS_POWER_OUT
+#ifdef ENABLE_MHL_VBUS_POWER_OUT
+extern void mtk_disable_pmic_otg_mode(void);
+extern void mtk_enable_pmic_otg_mode(void);
+bool VBUS_state = false;
+#include <mach/battery_meter.h>
+#endif
 void mhl_tx_vbus_control(enum vbus_power_state power_state)
 {
-    return ;
-    
-	struct mhl_dev_context *dev_context;
-	dev_context = i2c_get_clientdata(device_addresses[0].client);	// TODO: FD, TBC, it seems the 'client' is always 'NULL', is it right here???
+
+#ifdef ENABLE_MHL_VBUS_POWER_OUT
+	///struct mhl_dev_context *dev_context;
+	///dev_context = i2c_get_clientdata(device_addresses[0].client);	// TODO: FD, TBC, it seems the 'client' is always 'NULL', is it right here
+	printk("%s: mhl_tx_vbus_control3 %d-%d received!\n", __func__, VBUS_state, power_state);
+    if(VBUS_state == power_state)
+        return;
+        
+    VBUS_state = power_state;
 
 	switch (power_state) {
 	case VBUS_OFF:
 		//set_pin(dev_context,TX2MHLRX_PWR_M,1);
 		//set_pin(dev_context,LED_SRC_VBUS_ON,GPIO_LED_OFF);
+		mtk_disable_pmic_otg_mode();
 		break;
 
 	case VBUS_ON:
 		//set_pin(dev_context,TX2MHLRX_PWR_M,0);
 		//set_pin(dev_context,LED_SRC_VBUS_ON,GPIO_LED_ON);
+		printk(	"%s:  power chg %d received!\n",
+				__func__, battery_meter_get_charger_voltage());
+		if(battery_meter_get_charger_voltage() > 4000)
+		    VBUS_state = VBUS_OFF;
+		else
+    		mtk_enable_pmic_otg_mode();
+		printk(	"%s:  power chg %d received!\n",
+				__func__, battery_meter_get_charger_voltage());
 		break;
 
 	default:
-		dev_err(dev_context->mhl_dev,
-				"%s: Invalid power state %d received!\n",
+		printk(	"%s: Invalid power state %d received!\n",
 				__func__, power_state);
 		break;
-	}
+	}        
+#else
+	printk(	"%s: do not support power out %d received!\n",
+				__func__, power_state);
+#endif	
 }
 
 /******************************Debug Start*****************************/
@@ -879,6 +902,9 @@ int32_t sii_8348_tx_init()
 {
 	int32_t ret = 0;
 
+#ifdef ENABLE_MHL_VBUS_POWER_OUT	
+    VBUS_state = false;
+#endif
 	ret = mhl_tx_init(&drv_info, mClient);
 	printk("sii_8348_init, mClient is %p\n", mClient);
 	

@@ -36,7 +36,6 @@
 #include <linux/of_i2c.h>
 #endif
 
-
 // tangqingcai sync usb otg
 #ifdef CONFIG_MTK_BQ24296_SUPPORT
 extern void bq24296_set_en_hiz(kal_uint32 val);

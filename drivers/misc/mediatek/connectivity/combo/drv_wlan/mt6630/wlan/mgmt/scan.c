@@ -814,7 +814,6 @@ VOID scnFreeAllPendingScanRquests (IN P_ADAPTER_T prAdapter)
     P_SCAN_INFO_T prScanInfo;
     P_MSG_HDR_T prMsgHdr;
     P_MSG_SCN_SCAN_REQ prScanReqMsg;
-    P_MSG_SCN_SCAN_REQ_V2 prScanReqV2Msg;
 
 
     prScanInfo = &(prAdapter->rWifiVar.rScanInfo);
@@ -2079,9 +2078,23 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 			}
 		}
 	}
+	
+	/* 4 <5> Check IE information corret or not */
+	if (!rlmDomainIsValidRfSetting(prAdapter, prBssDesc->eBand, prBssDesc->ucChannelNum, prBssDesc->eSco, 
+		prBssDesc->eChannelWidth, prBssDesc->ucCenterFreqS1, prBssDesc->ucCenterFreqS2)) {
+		/*Dump IE Inforamtion*/
+		DBGLOG(RLM, WARN, ("ScanAddToBssDesc IE Information\n"));
+		DBGLOG(RLM, WARN, ("IE Length = %d\n", u2IELength));
+		DBGLOG_MEM8(RLM, WARN, pucIE, u2IELength);
+	
+		/*Error Handling for Non-predicted IE - Fixed to set 20MHz*/		 
+		prBssDesc->eChannelWidth = CW_20_40MHZ; 
+		prBssDesc->ucCenterFreqS1 = 0;
+		prBssDesc->ucCenterFreqS2 = 0;
+		prBssDesc->eSco = CHNL_EXT_SCN;
+	}
 
-
-	/* 4 <5> PHY type setting */
+	/* 4 <6> PHY type setting */
 	prBssDesc->ucPhyTypeSet = 0;
 
 	if (BAND_2G4 == prBssDesc->eBand) {
@@ -2126,7 +2139,7 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 	}
 
 
-	/* 4 <6> Update BSS_DESC_T's Last Update TimeStamp. */
+	/* 4 <7> Update BSS_DESC_T's Last Update TimeStamp. */
 	GET_CURRENT_SYSTIME(&prBssDesc->rUpdateTime);
 
 	return prBssDesc;

@@ -342,14 +342,17 @@ enum mc_result mc_open_session(struct mc_session_handle *session,
 		}
 
 		/* Read command response */
+		struct mc_drv_rsp_open_session_t rsp_open_session;
+		memset(&rsp_open_session, 0, sizeof(rsp_open_session));
 
-		/* read header first */
-		struct mc_drv_response_header_t rsp_header;
-		memset(&rsp_header, 0, sizeof(rsp_header));
+		/* read whole response, to prevent being interrupted
+			between header and payload */
 		len = connection_read_datablock(dev_con,
-						&rsp_header,
-						sizeof(rsp_header));
-		if (len != sizeof(rsp_header)) {
+						&rsp_open_session,
+						sizeof(rsp_open_session));
+
+		/* header processing */
+		if (len < sizeof(rsp_open_session.header)) {
 			MCDRV_DBG_ERROR(mc_kapi,
 					"CMD_OPEN_SESSION readResp failed %d",
 					len);
@@ -357,11 +360,11 @@ enum mc_result mc_open_session(struct mc_session_handle *session,
 			break;
 		}
 
-		if (rsp_header.response_id != MC_DRV_RSP_OK) {
+		if (rsp_open_session.header.response_id != MC_DRV_RSP_OK) {
 			MCDRV_DBG_ERROR(mc_kapi,
 					"CMD_OPEN_SESSION failed, respId=%d",
-					rsp_header.response_id);
-			switch (rsp_header.response_id) {
+					rsp_open_session.header.response_id);
+			switch (rsp_open_session.header.response_id) {
 			case MC_DRV_RSP_TRUSTLET_NOT_FOUND:
 				mc_result = MC_DRV_ERR_INVALID_DEVICE_FILE;
 				break;
@@ -375,16 +378,9 @@ enum mc_result mc_open_session(struct mc_session_handle *session,
 			break;
 		}
 
-		/* read payload */
-		struct mc_drv_rsp_open_session_payload_t
-					rsp_open_session_payload;
-		memset(&rsp_open_session_payload, 0,
-		       sizeof(rsp_open_session_payload));
-		len = connection_read_datablock(
-					dev_con,
-					&rsp_open_session_payload,
-					sizeof(rsp_open_session_payload));
-		if (len != sizeof(rsp_open_session_payload)) {
+		/* payload */
+		len -= sizeof(rsp_open_session.header);
+		if (len != sizeof(rsp_open_session.payload)) {
 			MCDRV_DBG_ERROR(mc_kapi,
 					"CMD_OPEN_SESSION readPayload fail %d",
 					len);
@@ -393,7 +389,7 @@ enum mc_result mc_open_session(struct mc_session_handle *session,
 		}
 
 		/* Register session with handle */
-		session->session_id = rsp_open_session_payload.session_id;
+		session->session_id = rsp_open_session.payload.session_id;
 
 		/* Set up second channel for notifications */
 		struct connection *session_connection = connection_new();
@@ -420,8 +416,8 @@ enum mc_result mc_open_session(struct mc_session_handle *session,
 			{
 				session->device_id,
 				session->session_id,
-				rsp_open_session_payload.device_session_id,
-				rsp_open_session_payload.session_magic
+				rsp_open_session.payload.device_session_id,
+				rsp_open_session.payload.session_magic
 			}
 		};
 		connection_write_data(session_connection,
@@ -429,6 +425,7 @@ enum mc_result mc_open_session(struct mc_session_handle *session,
 				      sizeof(cmd_nqconnect));
 
 		/* Read command response, header first */
+		struct mc_drv_response_header_t rsp_header;
 		len = connection_read_datablock(session_connection,
 						&rsp_header,
 						sizeof(rsp_header));

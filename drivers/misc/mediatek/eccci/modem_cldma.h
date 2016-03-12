@@ -43,7 +43,6 @@ struct md_cd_queue {
 };
 
 struct md_cd_ctrl {
-	struct ccci_modem * modem;
 	// hardcode, max queue number should be synced with struct ccci_port@ccci_core.h
 	struct md_cd_queue txq[CLDMA_TXQ_NUM];
 	struct md_cd_queue rxq[CLDMA_RXQ_NUM];

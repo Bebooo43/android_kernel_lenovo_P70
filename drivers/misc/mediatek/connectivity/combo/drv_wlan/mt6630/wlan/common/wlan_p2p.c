@@ -12,6 +12,10 @@
 /*
 ** $Log: wlan_p2p.c $
 **
+** 04 07 2015 eason.tsai
+** [ALPS02012000] [MT6795][L-MR1][NFC][Beam Plus][Blocking]The picture will not transfer.
+** 4-way handshake with  key stuck in 2/4 recieve
+**
 ** 03 07 2014 eason.tsai
 ** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
 ** fix ap mode crash by hotspot only set_beacon without chenge_interface
@@ -645,7 +649,9 @@ wlanoidSetRemoveP2PKey(IN P_ADAPTER_T prAdapter,
 	/* Clean up the Tx key flag */
 	prStaRec = cnmGetStaRecByAddress(prAdapter, prRemovedKey->ucBssIdx, prRemovedKey->arBSSID);
 
-	if (prRemovedKey->u4KeyIndex & IS_UNICAST_KEY) {
+
+	/*mark for MR1 to avoid remove-key, but remove the wlan_tbl0 at the same time*/
+	if (1/*prRemovedKey->u4KeyIndex & IS_UNICAST_KEY */) {
 		if (prStaRec) {
 			rCmdKey.ucKeyType = 1;
 			rCmdKey.ucWlanIndex = prStaRec->ucWlanIndex;
@@ -669,7 +675,8 @@ wlanoidSetRemoveP2PKey(IN P_ADAPTER_T prAdapter,
 		}
 	}
 
-	secPrivacyFreeForEntry(prAdapter, rCmdKey.ucWlanIndex);
+	/*mark for MR1 to avoid remove-key, but remove the wlan_tbl0 at the same time*/
+	//secPrivacyFreeForEntry(prAdapter, rCmdKey.ucWlanIndex);
 
 	return wlanoidSendSetQueryP2PCmd(prAdapter,
 					 CMD_ID_ADD_REMOVE_KEY,

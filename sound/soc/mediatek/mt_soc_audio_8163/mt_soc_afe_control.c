@@ -1463,7 +1463,7 @@ bool SetMrgI2SEnable(bool bEnable, unsigned int sampleRate)
 }
 bool Set2ndI2SAdcIn(AudioDigtalI2S *DigtalI2S)
 {
-    // todo
+    // todo?
     return true;
 }
 
@@ -2000,10 +2000,7 @@ bool SetModemPcmEnable(int modem_index, bool modem_pcm_on)
             mPcm1AsyncFifo  = (Afe_Get_Reg(PCM_INTF_CON) & 0x0040) >> 6;
             if (mPcm1AsyncFifo == 0)
             {
-                //Afe_Set_Reg(AFE_ASRC_CON6, 0x005f188f, MASK_ALL); 
                 Afe_Set_Reg(AFE_ASRC_CON0,  0x86083031, MASK_ALL);
-
-                //Afe_Set_Reg(AFE_ASRC4_CON6, 0x005f188f, MASK_ALL); 
                 Afe_Set_Reg(AFE_ASRC4_CON0, 0x06003031, MASK_ALL);
             }
             Afe_Set_Reg(PCM_INTF_CON, 0x1, 0x1);
@@ -2255,7 +2252,6 @@ void SetHdmiPcmInterConnection(unsigned int connection_state, unsigned int chann
 
 bool SetHDMIConnection(uint32 ConnectionState, uint32 Input , uint32 Output)
 {
-    //  removed
     return true;
 }
 
@@ -3101,7 +3097,7 @@ void Auddrv_UL1_Spinlock_unlock(void)
 
 void Auddrv_HDMI_Interrupt_Handler(void)  // irq5 ISR handler
 {
-    //  removed
+    // removed
 }
 
 
@@ -3798,7 +3794,7 @@ bool BackUp_Audio_Register(void)
     mAudioRegCache.REG_AFE_IRQ_MCU_EN = Afe_Get_Reg(AFE_IRQ_MCU_EN);
     mAudioRegCache.REG_AFE_MEMIF_MAXLEN = Afe_Get_Reg(AFE_MEMIF_MAXLEN);
     mAudioRegCache.REG_AFE_MEMIF_PBUF_SIZE = Afe_Get_Reg(AFE_MEMIF_PBUF_SIZE);
-    mAudioRegCache.REG_AFE_IRQ_MCU_CNT7 = Afe_Get_Reg(AFE_IRQ_MCU_CNT7); //  add
+    mAudioRegCache.REG_AFE_IRQ_MCU_CNT7 = Afe_Get_Reg(AFE_IRQ_MCU_CNT7); 
 
     mAudioRegCache.REG_AFE_APLL1_TUNER_CFG = Afe_Get_Reg(AFE_APLL1_TUNER_CFG);
     mAudioRegCache.REG_AFE_APLL2_TUNER_CFG = Afe_Get_Reg(AFE_APLL2_TUNER_CFG);
@@ -3821,7 +3817,7 @@ bool BackUp_Audio_Register(void)
     mAudioRegCache.REG_AFE_CONN7 = Afe_Get_Reg(AFE_CONN7);
     mAudioRegCache.REG_AFE_CONN8 = Afe_Get_Reg(AFE_CONN8);
     mAudioRegCache.REG_AFE_CONN9 = Afe_Get_Reg(AFE_CONN9);
-    mAudioRegCache.REG_AFE_CONN10 = Afe_Get_Reg(AFE_CONN10); //  add
+    mAudioRegCache.REG_AFE_CONN10 = Afe_Get_Reg(AFE_CONN10);
 
     mAudioRegCache.REG_FPGA_CFG2 = Afe_Get_Reg(FPGA_CFG2);
     mAudioRegCache.REG_FPGA_CFG3 = Afe_Get_Reg(FPGA_CFG3);
@@ -3843,7 +3839,7 @@ bool BackUp_Audio_Register(void)
     mAudioRegCache.REG_PCM_INTF_CON = Afe_Get_Reg(PCM_INTF_CON);
     mAudioRegCache.REG_PCM_INTF_CON2 = Afe_Get_Reg(PCM_INTF_CON2);
     mAudioRegCache.REG_PCM2_INTF_CON = Afe_Get_Reg(PCM2_INTF_CON);
-    //6752 add
+   
     mAudioRegCache.REG_AUDIO_CLK_AUDDIV_0 = Afe_Get_Reg(AUDIO_CLK_AUDDIV_0);
     mAudioRegCache.REG_AUDIO_CLK_AUDDIV_1 = Afe_Get_Reg(AUDIO_CLK_AUDDIV_1);
     mAudioRegCache.REG_AFE_ASRC4_CON0 = Afe_Get_Reg(AFE_ASRC4_CON0);
@@ -3901,7 +3897,7 @@ bool BackUp_Audio_Register(void)
     mAudioRegCache.REG_AFE_ASRC3_CON12 = Afe_Get_Reg(AFE_ASRC3_CON12);
     mAudioRegCache.REG_AFE_ASRC3_CON13 = Afe_Get_Reg(AFE_ASRC3_CON13);
     mAudioRegCache.REG_AFE_ASRC3_CON14 = Afe_Get_Reg(AFE_ASRC3_CON14);
-    //6752 add
+    
     mAudioRegCache.REG_AFE_ADDA4_TOP_CON0 = Afe_Get_Reg(AFE_ADDA4_TOP_CON0);
     mAudioRegCache.REG_AFE_ADDA4_UL_SRC_CON0 = Afe_Get_Reg(AFE_ADDA4_UL_SRC_CON0);
     mAudioRegCache.REG_AFE_ADDA4_UL_SRC_CON1 = Afe_Get_Reg(AFE_ADDA4_UL_SRC_CON1);
@@ -3929,7 +3925,7 @@ bool BackUp_Audio_Register(void)
 
 bool Restore_Audio_Register(void)
 {
-    // 6752 TODO?
+    // TODO?
     return true;
 }
 

@@ -143,8 +143,8 @@
 //#define ACCDET_DEFVAL_SEL        (1<<15)
 */
 //power mode and auxadc switch on/off
-#define ACCDET_1V9_MODE_OFF   0x1A10
-#define ACCDET_2V8_MODE_OFF   0x5A10
-#define ACCDET_1V9_MODE_ON   0x1E10
-#define ACCDET_2V8_MODE_ON   0x5A20
+//#define ACCDET_1V9_MODE_OFF   0x1A10
+//#define ACCDET_2V8_MODE_OFF   0x5A10
+//#define ACCDET_1V9_MODE_ON   0x1E10
+//#define ACCDET_2V8_MODE_ON   0x5A20
 #define ACCDET_SWCTRL_IDLE_EN    (0x07<<4)

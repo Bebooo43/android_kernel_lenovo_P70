@@ -123,7 +123,7 @@ typedef struct _mtk_btif_register_ {
 
 typedef struct _btif_buf_str_ {
 	unsigned int size;
-	unsigned char buf[BTIF_RX_BUFFER_SIZE];
+	unsigned char *p_buf;
 	/*For Tx: next Tx data pointer to FIFO;
 	For Rx: next read data pointer from BTIF user */
 	unsigned int rd_idx;
@@ -178,7 +178,7 @@ typedef struct _btif_log_queue_t_ {
 	unsigned int out;
 	unsigned int size;
 	spinlock_t lock;
-	BTIF_LOG_BUF_T queue[BTIF_LOG_ENTRY_NUM];
+	P_BTIF_LOG_BUF_T p_queue[BTIF_LOG_ENTRY_NUM];
 } BTIF_LOG_QUEUE_T, *P_BTIF_LOG_QUEUE_T;
 
 /*---------------------------------------------------------------------------*/
@@ -286,7 +286,7 @@ typedef struct _mtk_btif_user_ {
 } mtk_btif_user, *p_mtk_btif_user;
 
 /*---------------------------------------------------------------------------*/
-#define BBS_PTR(ptr, idx) (&((ptr)->buf[idx]))
+#define BBS_PTR(ptr, idx) ((ptr->p_buf) + idx)
 
 #define BBS_SIZE(ptr) ((ptr)->size)
 #define BBS_MASK(ptr) (BBS_SIZE(ptr) - 1)

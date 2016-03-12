@@ -140,7 +140,8 @@ typedef enum _ENUM_CMD_ID_T {
     CMD_ID_SEC_CHECK,                   /* 0xc5 (Set / Query) */
     CMD_ID_DUMP_MEM,                    /* 0xc6 (Query) */
     CMD_ID_RESOURCE_CONFIG,             /* 0xc7 (Set / Query) */	
-    CMD_ID_CHIP_CONFIG          = 0xCA, /* 0xca (Set / Query) */    
+    CMD_ID_CHIP_CONFIG          = 0xCA, /* 0xca (Set / Query) */
+    CMD_ID_STATS_LOG            = 0xCB, /* 0xcb (Set) */
     CMD_ID_SET_RDD_CH           = 0xE1,
     CMD_ID_SET_BWCS             = 0xF1,
     CMD_ID_SET_OSC              = 0xF2,
@@ -757,8 +758,10 @@ typedef struct _EVENT_TX_DONE_T {
     UINT_8      ucStatus;
     UINT_16     u2SequenceNumber;
     UINT_8      ucWlanIndex;
-    UINT_8      aucReserved1[3];
-    UINT_32     au4Reserved2;
+    UINT_8      ucTxCount;
+    UINT_16     u2TxRate;
+    UINT_8      ucFlag;
+    UINT_8      au4Reserved2[3];
     UINT_32     au4Reserved3;
 } EVENT_TX_DONE_T, *P_EVENT_TX_DONE_T;
 
@@ -1497,6 +1500,11 @@ typedef struct _CMD_MONITOR_SET_INFO_T {
     UINT_8      aucResv[9];
 } CMD_MONITOR_SET_INFO_T, *P_CMD_MONITOR_SET_INFO_T;
 #endif
+
+typedef struct _CMD_STATS_LOG_T {
+    UINT_32         u4DurationInMs;
+    UINT_8          aucReserved[32];
+} CMD_STATS_LOG_T, *P_CMD_STATS_LOG_T;
 
 /*******************************************************************************
 *                            P U B L I C   D A T A

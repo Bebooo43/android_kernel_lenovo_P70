@@ -30,7 +30,7 @@
 #define CS_TP_PORTSIZE 16
 /* T32 is 0x2001, we can apply 0x1 is fine */
 #define CS_FORMATMODE 0x11	/* Enable Continuous formatter and FLUSHIN */
-//#define ETM_DEBUG 0
+//#define ETM_DEBUG 1
 //#define ETM_INIT_SAMPLE_CODE 1
 
 #ifdef ETM_DEBUG
@@ -79,6 +79,12 @@ struct etm_trace_context_t
 	int etm_idx;
 	int state;
 	struct mutex mutex;
+};
+
+static int restart_trace(struct notifier_block *nfb, unsigned long action, void *hcpu);
+
+static struct notifier_block __cpuinitdata pftracer_notifier = {
+        .notifier_call = restart_trace,
 };
 
 static struct etm_trace_context_t tracer;
@@ -1791,11 +1797,9 @@ static void remove_files(void)
 
 static int etm_probe(struct platform_device *pdev)
 {
-	int ret = 0, i;
-
+    int ret = 0, i;
     ETM_PRINT("[ETM LOG] etm_probe\n");
-
-	mutex_lock(&tracer.mutex);
+    mutex_lock(&tracer.mutex);
 
     of_property_read_u32(pdev->dev.of_node, "num", &tracer.nr_etm_regs);
 
@@ -1815,12 +1819,16 @@ static int etm_probe(struct platform_device *pdev)
         ETM_PRINT("[ETM LOG]etm %d @ 0x%p\n", i+1, tracer.etm_regs[i]);
     }
 
+
     tracer.etm_info = kmalloc(sizeof(struct etm_info) * tracer.nr_etm_regs, GFP_KERNEL);
 	if (!tracer.etm_info) {
 		pr_err("[ETM LOG] Failed to allocate ETM info array\n");
 		ret = -ENOMEM;
 		goto out;
 	}
+
+
+
 
     for(i = 0; i < tracer.nr_etm_regs; i++) {
         memset(&(tracer.etm_info[i]), 0, sizeof(struct etm_info));
@@ -1984,7 +1992,7 @@ int etb_probe(struct platform_device *pdev)
 	tracer.state = TRACE_STATE_STOP;
 
 	mutex_unlock(&tracer.mutex);
-        ETM_PRINT("[ETM LOG][ETM LOG] ETBCTL &0x%lx=0x%x\n",(vmalloc_to_pfn(tracer.etb_regs)<<12)+ETBCTL,cs_cpu_read(tracer.etb_regs+ETBCTL,0x0));
+        ETM_PRINT("[ETM LOG] ETBCTL &0x%lx=0x%x\n",(vmalloc_to_pfn(tracer.etb_regs)<<12)+ETBCTL,cs_cpu_read(tracer.etb_regs+ETBCTL,0x0));
         ETM_PRINT("[ETM LOG][ETM LOG] %s Done\n",__func__);
 	return 0;
 }
@@ -2080,9 +2088,37 @@ restart_trace(struct notifier_block *nfb, unsigned long action, void *hcpu)
 	return NOTIFY_OK;
 }
 
-static struct notifier_block __cpuinitdata pftracer_notifier = {
-	.notifier_call = restart_trace,
+
+
+static unsigned int check_if_non_invasive_debug_enable(void){
+	unsigned int auth_status = 0;
+	unsigned int etm_enable = 0;
+#ifdef CONFIG_ARM64
+	asm volatile("MRS %0,DBGAUTHSTATUS_EL1" : "=r" (auth_status));
+	etm_enable = (auth_status >> NSNID_SHIFT) & 0x1;
+#else
+
+/*
+* Since we can't read SCR register in non-secure mode, we can't get info about
+* which mode we are in.
+* Thus, We use these config to identify if this is ATF or TEE Project.
+* If, it is ATF/TEE Proejct kernel is run in non-secure mode, else it is run in secure mode.
+*/
+
+
+#if  defined(CONFIG_ARM_PSCI) || defined(CONFIG_MTK_PSCI)
+        asm volatile("MRC p14,0,%0,c7,c14,6" : "=r" (auth_status));
+	etm_enable = (auth_status >> NSNID_SHIFT) & 0x1;
+#else
+        asm volatile("MRC p14,0,%0,c7,c14,6" : "=r" (auth_status));
+	etm_enable = (auth_status >> SNID_SHIFT) & 0x1;
+#endif
+#endif
+	pr_notice("[ETM LOG] Authencation Interface, status 0x%x, etm_enable 0x%x\n",auth_status,etm_enable);
+	return etm_enable;
 };
+
+
 
 /**
  * driver initialization entry point
@@ -2090,6 +2126,12 @@ static struct notifier_block __cpuinitdata pftracer_notifier = {
 static int __init etm_init(void)
 {
 	int i, err;
+
+        if(!check_if_non_invasive_debug_enable()){
+            pr_notice("[ETM LOG] ETM DEBUG is not permitted by authentication interface of this chip\n");	
+	    return -EPERM;
+	}
+	
 	memset(&tracer, 0,sizeof(struct etm_trace_context_t));
 	mutex_init(&tracer.mutex);
 	tracer.trace_range_start = TRACE_RANGE_START;

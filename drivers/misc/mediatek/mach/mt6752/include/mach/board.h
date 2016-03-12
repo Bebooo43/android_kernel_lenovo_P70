@@ -24,7 +24,7 @@ typedef void (*pm_callback_t)(pm_message_t state, void *data);
 #endif
 #define MSDC_HS400          (1 <<13)  /* HS400 speed mode support      */
 
-#define MSDC_SD_NEED_POWER  (1 << 31) /* for Yecon board, need SD power always on!! or cannot recognize the sd card*/
+#define MSDC_SD_NEED_POWER  (1 << 31) /* for some board, need SD power always on!! or cannot recognize the sd card*/
 
 #define MSDC_SMPL_RISING    (0)
 #define MSDC_SMPL_FALLING   (1)

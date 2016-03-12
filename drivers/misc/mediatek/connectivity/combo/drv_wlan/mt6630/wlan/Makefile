@@ -18,12 +18,6 @@ else
     ccflags-y += -DCFG_SUPPORT_CHNL_CONFLICT_REVISE=1
 endif
 
-ifeq ($(CONFIG_HAVE_XLOG_FEATURE), y)
-    ccflags-y += -DCFG_SUPPORT_XLOG=1
-else
-    ccflags-y += -DCFG_SUPPORT_XLOG=0
-endif
-
 ifeq ($(CONFIG_HAVE_AEE_FEATURE), y)
     ccflags-y += -DCFG_SUPPORT_AEE=1
 else

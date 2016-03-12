@@ -445,12 +445,18 @@ static void lcm_init_registers()
 	unsigned int data_array[16];
 	data_array[0] = 0x00002300;
 	dsi_set_cmdq(&data_array, 1, 1);//EXTC = 1
+#ifndef BUILD_LK
+	printk("[KERNEL][LCM_INIT_REGS]otm1283a_hd720_dsi_vdo_tm----First cmd DONE\n");
+#endif	
 	
-	data_array[0] = 0x00042902;
+        data_array[0] = 0x00042902;
 	data_array[1] = 0x018312FF;
 	dsi_set_cmdq(&data_array, 2, 1);//EXTC = 1
+#ifndef BUILD_LK
+	printk("[KERNEL][LCM_INIT_REGS]otm1283a_hd720_dsi_vdo_tm----Second cmd DONE\n");
+#endif
 	
-	data_array[0] = 0x80002300;
+        data_array[0] = 0x80002300;
 	dsi_set_cmdq(&data_array, 1, 1);	//Orise mode enable
 	
 	data_array[0] = 0x00032902;
@@ -1589,7 +1595,14 @@ static void lcm_init(void)
     SET_RESET_PIN(1);
 	MDELAY(10);//100
 
+#ifndef BUILD_LK
+	printk("[KERNEL][LCM_INIT]otm1283a_hd720_dsi_vdo_tm----RESET DONE\n");
+#endif
 	lcm_init_registers();
+
+#ifndef BUILD_LK
+	printk("[KERNEL][LCM_INIT_REGS]otm1283a_hd720_dsi_vdo_tm----DONE\n");
+#endif
 	data_array[0] = 0x00352500;
 	dsi_set_cmdq(&data_array, 1, 1);
 	data_array[0] = 0x00362500;
@@ -1612,10 +1625,14 @@ static void lcm_init(void)
 	dsi_set_cmdq(data_array, 2, 1);
 
 	push_table(lcm_sleep_out_setting, sizeof(lcm_sleep_out_setting) / sizeof(struct LCM_setting_table), 1);
+#ifndef BUILD_LK
+	printk("[KERNEL][LCM_INIT]otm1283a_hd720_dsi_vdo_tm----SleepOut DONE\n");
+#endif
 #ifndef BUILD_LK	
 	// Refresh value of backlight level.for esd check recovery because lcm init need set backlight as 0.
 	lcm_backlight_level_setting[0].para_list[0] = 25;
 	push_table(lcm_backlight_level_setting, sizeof(lcm_backlight_level_setting) / sizeof(struct LCM_setting_table), 1);
+        printk("[KERNEL][LCM_INIT]otm1283a_hd720_dsi_vdo_tm----SetBacklight DONE\n");
 #endif	
 }
 

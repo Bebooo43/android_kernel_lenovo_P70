@@ -336,6 +336,7 @@ static unsigned short mAuxAdc_Offset = 0;
 static int Audio_HP_ImpeDance_Set(struct snd_kcontrol *kcontrol,
                                   struct snd_ctl_elem_value *ucontrol)
 {
+#ifndef DENALI_FPGA_EARLYPORTING
 
     const int off_counter = 20;
     printk("%s \n", __func__);
@@ -423,7 +424,7 @@ static int Audio_HP_ImpeDance_Set(struct snd_kcontrol *kcontrol,
     }
 
     AudDrv_Clk_Off();
-
+#endif
     return 0;
 }
 
@@ -506,6 +507,8 @@ static void CheckDcinitValue(void)
 
 static void ApplyDctoDl(void)
 {
+#ifndef DENALI_FPGA_EARLYPORTING
+
     unsigned short  value = 0 , average = 0;
     unsigned short dcoffset , dcoffset2, dcoffset3;
     printk("%s\n", __func__);
@@ -584,6 +587,7 @@ static void ApplyDctoDl(void)
             break;
         }
     }
+#endif
 }
 
 static int Audio_HP_ImpeDance_Get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)

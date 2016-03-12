@@ -1926,9 +1926,7 @@ VOID nicRxProcessForwardPkt(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
     prTxCtrl = &prAdapter->rTxCtrl;
     prRxCtrl = &prAdapter->rRxCtrl;
 
-    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-    QUEUE_REMOVE_HEAD(&prTxCtrl->rFreeMsduInfoList, prMsduInfo, P_MSDU_INFO_T);
-    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+    prMsduInfo = cnmPktAlloc(prAdapter, 0);
 
 	if (prMsduInfo &&
        kalProcessRxPacket(prAdapter->prGlueInfo,
@@ -1939,13 +1937,12 @@ VOID nicRxProcessForwardPkt(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 			       CFG_RX_RETAINED_PKT_THRESHOLD ? TRUE : FALSE,
                 prSwRfb->aeCSUM) == WLAN_STATUS_SUCCESS) {
 
-        prMsduInfo->eSrc = TX_PACKET_FORWARDING;
-
 		/* parsing forward frame */
 		wlanProcessTxFrame(prAdapter, (P_NATIVE_PACKET) (prSwRfb->pvPacket));
 		/* pack into MSDU_INFO_T */
 		nicTxFillMsduInfo(prAdapter, prMsduInfo, (P_NATIVE_PACKET) (prSwRfb->pvPacket));
 
+        prMsduInfo->eSrc = TX_PACKET_FORWARDING;
         prMsduInfo->ucBssIndex = secGetBssIdxByWlanIdx(prAdapter, prSwRfb->ucWlanIdx);
 
 		/* release RX buffer (to rIndicatedRfbList) */
@@ -2503,7 +2500,7 @@ VOID nicRxProcessDataPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb)
 VOID nicRxProcessEventPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb)
 {
     P_CMD_INFO_T prCmdInfo;
-    P_MSDU_INFO_T prMsduInfo;
+    //P_MSDU_INFO_T prMsduInfo;
     P_WIFI_EVENT_T prEvent;
     P_GLUE_INFO_T prGlueInfo;
     BOOLEAN fgIsNewVersion;
@@ -2866,6 +2863,9 @@ VOID nicRxProcessEventPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb
         break;
 
     case EVENT_ID_TX_DONE:
+#if 1
+        nicTxProcessTxDoneEvent(prAdapter, prEvent);
+#else
         {
             P_EVENT_TX_DONE_T prTxDone;
 			prTxDone = (P_EVENT_TX_DONE_T) (prEvent->aucBuffer);
@@ -2889,12 +2889,17 @@ VOID nicRxProcessEventPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb
 
 			if (prMsduInfo) {
 				prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo,
-							    (ENUM_TX_RESULT_CODE_T) (prTxDone->
-										     ucStatus));
-
-                cnmMgtPktFree(prAdapter, prMsduInfo);
+							    (ENUM_TX_RESULT_CODE_T)(prTxDone->ucStatus));
+                
+                if(prMsduInfo->eSrc == TX_PACKET_MGMT) {
+                    cnmMgtPktFree(prAdapter, prMsduInfo);
+                }
+                else {
+                    nicTxReturnMsduInfo(prAdapter, prMsduInfo);
+                }
             }
         }
+#endif
         break;
 
     case EVENT_ID_SLEEPY_INFO:
@@ -3269,7 +3274,7 @@ VOID nicRxProcessEventPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb
             u2MsgSize = prEventDebugMsg->u2MsgSize;
             pucMsg = prEventDebugMsg->aucMsg;
 
-			DBGLOG(SW4, INFO, ("DEBUG_MSG Id %u Type %u Fg 0x%x Val 0x%x Size %u\n",
+			DBGLOG(SW4, TRACE, ("DEBUG_MSG Id %u Type %u Fg 0x%x Val 0x%x Size %u\n",
 					   u2DebugMsgId, ucMsgType, ucFlags, u4Value, u2MsgSize));
 
 			if (u2MsgSize <= DEBUG_MSG_SIZE_MAX) {
@@ -3281,26 +3286,10 @@ VOID nicRxProcessEventPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb
                     pucMsg[u2MsgSize] = '\0';
                     DBGLOG(SW4, INFO, ("%s\n", pucMsg));
 				} else if (ucMsgType == DEBUG_MSG_TYPE_MEM32) {
-
-#if CFG_SUPPORT_XLOG
-					/* dumpMemory32(ANDROID_LOG_INFO, pucMsg, u2MsgSize); */
-#else
-					/* dumpMemory32(pucMsg, u2MsgSize); */
-#endif
 					DBGLOG_MEM32(SW4, INFO, pucMsg, u2MsgSize);
 				} else if (prEventDebugMsg->ucMsgType == DEBUG_MSG_TYPE_MEM8) {
-#if CFG_SUPPORT_XLOG
-/* dumpMemory8(ANDROID_LOG_INFO, pucMsg, u2MsgSize); */
-#else
-					/* dumpMemory8(pucMsg, u2MsgSize); */
-#endif
 					DBGLOG_MEM8(SW4, INFO, pucMsg, u2MsgSize);
 				} else {
-#if CFG_SUPPORT_XLOG
-					/* dumpMemory32(ANDROID_LOG_INFO, pucMsg, u2MsgSize); */
-#else
-					/* dumpMemory32(pucMsg, u2MsgSize); */
-#endif
 					DBGLOG_MEM32(SW4, INFO, pucMsg, u2MsgSize);
                 }
             } /* DEBUG_MSG_SIZE_MAX */

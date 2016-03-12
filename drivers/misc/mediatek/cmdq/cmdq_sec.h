@@ -87,7 +87,7 @@ typedef int32_t(*CmdqSecFillIwcCB) (int32_t, void *, int32_t, void *);
 
 int32_t cmdq_sec_exec_task_async_unlocked(TaskStruct *pTask, int32_t thread);
 int32_t cmdq_sec_cancel_error_task_unlocked(TaskStruct *pTask, int32_t thread, cmdqSecCancelTaskResultStruct *pResult);
-int32_t cmdq_sec_allocate_path_resource_unlocked(void);
+int32_t cmdq_sec_allocate_path_resource_unlocked(bool throwAEE);
 
 
 /**

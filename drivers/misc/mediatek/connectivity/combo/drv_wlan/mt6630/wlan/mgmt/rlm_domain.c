@@ -603,7 +603,7 @@ COUNTRY_CH_SET_T arCountryChSets[] = {
 #include "rlm_txpwr_init.h"
 
 
-#if CFG_SUPPORT_PWR_LIMIT_COUNTRY 
+
 
 SUBBAND_CHANNEL_T g_rRlmSubBand[] = {
 
@@ -615,7 +615,7 @@ SUBBAND_CHANNEL_T g_rRlmSubBand[] = {
 	
 };
 
-#endif
+
 
 /*******************************************************************************
 *                           P R I V A T E   D A T A
@@ -1017,6 +1017,215 @@ UINT_32 rlmDomainSupOperatingClassIeFill(PUINT_8 pBuf)
 
 	return u4IeLen;
 }
+/*----------------------------------------------------------------------------*/
+/*!
+* @brief
+*
+* @param[in]
+*
+* @return (fgValid) : 0 -> inValid, 1 -> Valid
+*/
+/*----------------------------------------------------------------------------*/
+BOOLEAN
+rlmDomainCheckChannelEntryValid(
+    P_ADAPTER_T     prAdapter,
+    UINT_8          ucCentralCh
+    )
+{
+    BOOLEAN         fgValid = FALSE;
+    UINT_8          ucTemp = 0;
+    UINT_8          i;
+	/*Check Power limit table channel efficient or not*/
+
+	for (i = POWER_LIMIT_2G4; i < POWER_LIMIT_SUBAND_NUM; i++) {
+		if ((ucCentralCh >= g_rRlmSubBand[i].ucStartCh) && (ucCentralCh <= g_rRlmSubBand[i].ucEndCh)) {
+        	ucTemp = (ucCentralCh - g_rRlmSubBand[i].ucStartCh) % g_rRlmSubBand[i].ucInterval ;
+		}
+	}
+
+
+#if 0
+    /*2.4G, ex 1, 2, 3*/
+	if (ucCentralCh >= BAND_2G4_LOWER_BOUND && ucCentralCh <= BAND_2G4_UPPER_BOUND) {
+		ucTemp = 0; 
+	}
+	/*FCC- Spec : Band UNII-1, ex 36, 38, 40....*/
+	else if (ucCentralCh >= UNII1_LOWER_BOUND && ucCentralCh <= UNII1_UPPER_BOUND) {
+		ucTemp = (ucCentralCh - UNII1_LOWER_BOUND) % 2;
+	}
+	/*FCC- Spec : Band UNII-2A, ex 52, 54, 56....*/
+	else if (ucCentralCh >= UNII2A_LOWER_BOUND && ucCentralCh <= UNII2A_UPPER_BOUND) {
+		ucTemp = (ucCentralCh - UNII2A_LOWER_BOUND) % 2;
+	}
+	/*FCC- Spec : Band UNII-2C, ex 100, 102, 104....*/
+	else if (ucCentralCh >= UNII2C_LOWER_BOUND && ucCentralCh <= UNII2C_UPPER_BOUND) {
+		ucTemp = (ucCentralCh - UNII2C_LOWER_BOUND) % 2;
+	}
+	/*FCC- Spec : Band UNII-3, ex 149, 151, 153...*/
+	else if (ucCentralCh >= UNII3_LOWER_BOUND && ucCentralCh <= UNII3_UPPER_BOUND) {
+		ucTemp = (ucCentralCh - UNII3_LOWER_BOUND) % 2; 
+	}
+
+#endif
+	if (ucTemp == 0) {
+		fgValid = TRUE;
+	}
+	return fgValid;
+ 
+}
+
+/*----------------------------------------------------------------------------*/
+/*!
+* \brief
+*
+* \param[in]
+*
+* \return 
+*/
+/*----------------------------------------------------------------------------*/
+UINT_8
+rlmDomainGetCenterChannel (
+    ENUM_BAND_T         eBand,
+    UINT_8              ucPriChannel,
+    ENUM_CHNL_EXT_T     eExtend
+    )
+{
+    UINT_8      ucCenterChannel;
+
+    if (eExtend == CHNL_EXT_SCA) {
+ 
+        ucCenterChannel = ucPriChannel + 2;
+    }
+    else if (eExtend == CHNL_EXT_SCB) {
+  
+        ucCenterChannel = ucPriChannel - 2;
+    }
+    else {
+ 
+        ucCenterChannel = ucPriChannel;
+    }
+
+    return ucCenterChannel;
+}
+ 
+/*----------------------------------------------------------------------------*/
+/*!
+* \brief
+*
+* \param[in]
+*
+* \return 
+*/
+/*----------------------------------------------------------------------------*/
+BOOLEAN
+rlmDomainIsValidRfSetting (
+	P_ADAPTER_T 	     prAdapter,
+    ENUM_BAND_T          eBand,
+    UINT_8               ucPriChannel,
+    ENUM_CHNL_EXT_T      eExtend,
+    ENUM_CHANNEL_WIDTH_T eChannelWidth,
+    UINT_8               ucChannelS1,
+    UINT_8               ucChannelS2
+    )
+{
+	UINT_8  ucCenterChannel;
+	UINT_8  ucUpperChannel;
+	UINT_8  ucLowerChannel;
+	BOOLEAN fgValidChannel = TRUE;
+	BOOLEAN fgUpperChannel = TRUE;
+	BOOLEAN fgLowerChannel = TRUE;
+	BOOLEAN fgValidBW      = TRUE;
+	BOOLEAN fgValidRfSetting = TRUE;
+	UINT_32 u4PrimaryOffset;
+	
+	/*DBG msg for Channel InValid*/
+	if(eChannelWidth == CW_20_40MHZ) {
+		
+		ucCenterChannel = rlmDomainGetCenterChannel(eBand, ucPriChannel, eExtend);
+
+		/* Check Central Channel Valid or Not*/
+		fgValidChannel = rlmDomainCheckChannelEntryValid(prAdapter, ucCenterChannel);
+		if(fgValidChannel == FALSE) {
+			DBGLOG(RLM, WARN, ("Rf: CentralCh=%d\n", ucCenterChannel));
+		}
+
+		/* Check Upper Channel and Lower Channel*/
+		switch(eExtend) {
+			case CHNL_EXT_SCA:
+				ucUpperChannel = ucPriChannel + 4;
+				ucLowerChannel = ucPriChannel;
+				break;
+			case CHNL_EXT_SCB:
+				ucUpperChannel = ucPriChannel;
+				ucLowerChannel = ucPriChannel - 4;
+				break;
+			default:
+				ucUpperChannel = ucPriChannel;
+				ucLowerChannel = ucPriChannel;
+				break;
+		}
+		
+		fgUpperChannel = rlmDomainCheckChannelEntryValid(prAdapter, ucUpperChannel);
+		if(fgUpperChannel == FALSE) {
+			DBGLOG(RLM, WARN, ("Rf: UpperCh=%d\n", ucUpperChannel));
+		}
+		
+		fgLowerChannel = rlmDomainCheckChannelEntryValid(prAdapter, ucLowerChannel);
+		if(fgLowerChannel == FALSE) {
+			DBGLOG(RLM, WARN, ("Rf: LowerCh=%d\n", ucLowerChannel));
+		}
+
+	}
+	else if(eChannelWidth == CW_80MHZ){
+		ucCenterChannel = ucChannelS1;
+
+		/* Check Central Channel Valid or Not*/
+		fgValidChannel = rlmDomainCheckChannelEntryValid(prAdapter, ucCenterChannel);
+		if(fgValidChannel == FALSE) {
+			DBGLOG(RLM, WARN, ("Rf: CentralCh=%d\n", ucCenterChannel));
+		}
+	}
+	else if(eChannelWidth == CW_160MHZ){
+		ucCenterChannel = ucChannelS2;
+		
+		/* Check Central Channel Valid or Not*/
+		/*TODo*/
+	}
+
+    /* Check BW Setting Correct or Not*/
+	if(eBand == BAND_2G4) {
+		if(eChannelWidth != CW_20_40MHZ) {
+			fgValidBW = FALSE;
+			DBGLOG(RLM, WARN, ("Rf: B=%d, W=%d\n", eBand, eChannelWidth));
+		}
+	}
+	else {
+		if(eChannelWidth == CW_80MHZ) {
+			u4PrimaryOffset = CAL_CH_OFFSET_80M(ucPriChannel, ucCenterChannel);
+			if(u4PrimaryOffset > 4) {
+				fgValidBW = FALSE;
+				DBGLOG(RLM, WARN, ("Rf: PriOffSet=%d, W=%d\n", 
+				u4PrimaryOffset, eChannelWidth));
+			}
+		} 
+		else if (eChannelWidth == CW_160MHZ) {
+			u4PrimaryOffset = CAL_CH_OFFSET_160M(ucPriChannel, ucCenterChannel);
+			if(u4PrimaryOffset > 8) {
+				fgValidBW = FALSE;
+				DBGLOG(RLM, WARN, ("Rf: PriOffSet=%d, W=%d\n", 
+				u4PrimaryOffset, eChannelWidth));
+			}
+		}
+	}
+
+	if((fgValidBW == FALSE) || (fgValidChannel == FALSE) || (fgUpperChannel == FALSE) || (fgLowerChannel == FALSE)) {
+		fgValidRfSetting = FALSE;
+	}
+
+	return fgValidRfSetting;
+			
+}
+
 
 #if CFG_SUPPORT_PWR_LIMIT_COUNTRY
 
@@ -1183,63 +1392,6 @@ rlmDomainPwrLimitDefaultTableDecision(
     DBGLOG(RLM, INFO, ("Domain: Default Table Index = %d\n",u2TableIndex));
 	
     return u2TableIndex;
-}
-/*----------------------------------------------------------------------------*/
-/*!
-* @brief
-*
-* @param[in]
-*
-* @return (fgValid) : 0 -> inValid, 1 -> Valid
-*/
-/*----------------------------------------------------------------------------*/
-BOOLEAN
-rlmDomainCheckChannelEntryValid(
-    P_ADAPTER_T     prAdapter,
-    UINT_8          ucCentralCh
-    )
-{
-    BOOLEAN         fgValid = FALSE;
-	UINT_8          ucTemp = 0;
-    UINT_8          i;
-	/*Check Power limit table channel efficient or not*/
-
-	for (i = POWER_LIMIT_2G4; i < POWER_LIMIT_SUBAND_NUM; i++) {
-		if ((ucCentralCh >= g_rRlmSubBand[i].ucStartCh) && (ucCentralCh <= g_rRlmSubBand[i].ucEndCh)) {
-        	ucTemp = (ucCentralCh - g_rRlmSubBand[i].ucStartCh) % g_rRlmSubBand[i].ucInterval ;
-		}
-	}
-
-
-#if 0
-    /*2.4G, ex 1, 2, 3*/
-	if (ucCentralCh >= BAND_2G4_LOWER_BOUND && ucCentralCh <= BAND_2G4_UPPER_BOUND) {
-		ucTemp = 0; 
-	}
-	/*FCC- Spec : Band UNII-1, ex 36, 38, 40....*/
-	else if (ucCentralCh >= UNII1_LOWER_BOUND && ucCentralCh <= UNII1_UPPER_BOUND) {
-		ucTemp = (ucCentralCh - UNII1_LOWER_BOUND) % 2;
-	}
-	/*FCC- Spec : Band UNII-2A, ex 52, 54, 56....*/
-	else if (ucCentralCh >= UNII2A_LOWER_BOUND && ucCentralCh <= UNII2A_UPPER_BOUND) {
-		ucTemp = (ucCentralCh - UNII2A_LOWER_BOUND) % 2;
-	}
-	/*FCC- Spec : Band UNII-2C, ex 100, 102, 104....*/
-	else if (ucCentralCh >= UNII2C_LOWER_BOUND && ucCentralCh <= UNII2C_UPPER_BOUND) {
-		ucTemp = (ucCentralCh - UNII2C_LOWER_BOUND) % 2;
-	}
-	/*FCC- Spec : Band UNII-3, ex 149, 151, 153...*/
-	else if (ucCentralCh >= UNII3_LOWER_BOUND && ucCentralCh <= UNII3_UPPER_BOUND) {
-		ucTemp = (ucCentralCh - UNII3_LOWER_BOUND) % 2; 
-	}
-
-#endif
-	if (ucTemp == 0) {
-		fgValid = TRUE;
-	}
-
-	return fgValid;
- 
 }
 /*----------------------------------------------------------------------------*/
 /*!

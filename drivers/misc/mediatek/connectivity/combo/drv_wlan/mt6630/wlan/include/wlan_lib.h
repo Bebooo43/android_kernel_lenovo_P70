@@ -465,6 +465,9 @@
 
 #define WLAN_TX_THREAD_TASK_PRIORITY        0	/* If not setting the priority, 0 is the default */
 #define WLAN_TX_THREAD_TASK_NICE            (-10)	/* If not setting the nice, -10 is the default */
+
+#define WLAN_TX_STATS_LOG_TIMEOUT                   30000
+#define WLAN_TX_STATS_LOG_DURATION                  1500
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
@@ -835,6 +838,7 @@ typedef struct _NET_INTERFACE_INFO_T {
 	PVOID pvNetInterface;
 } NET_INTERFACE_INFO_T, *P_NET_INTERFACE_INFO_T;
 
+#if 0
 typedef struct _SEC_FRAME_INFO_T {
 	BOOLEAN fgIsProtected;
 #if CFG_SUPPORT_MULTITHREAD
@@ -842,6 +846,7 @@ typedef struct _SEC_FRAME_INFO_T {
 	UINT_8 ucTxDescBuffer[DWORD_TO_BYTE(7)];
 #endif
 } SEC_FRAME_INFO_T, *P_SEC_FRAME_INFO_T;
+#endif
 
 typedef enum _ENUM_TX_RESULT_CODE_T {
 	TX_RESULT_SUCCESS = 0,
@@ -929,10 +934,16 @@ typedef struct _TX_PACKET_INFO {
     UINT_8 ucPriorityParam;
     UINT_32 u4PacketLen;
     UINT_8 aucEthDestAddr[MAC_ADDR_LEN];
+    UINT_16 u2Flag;
+
+#if 0
     BOOLEAN fgIs1X;
     BOOLEAN fgIsPAL;
     BOOLEAN fgIs802_3;
     BOOLEAN fgIsVlanExists;
+    BOOLEAN fgIsDhcp;
+    BOOLEAN fgIsArp;
+#endif
 } TX_PACKET_INFO, *P_TX_PACKET_INFO;
 
 typedef enum _ENUM_TX_PROFILING_TAG_T {
@@ -1330,4 +1341,13 @@ wlanUpdateRxStatistics(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfb
     );
+
+WLAN_STATUS wlanTriggerStatsLog(IN P_ADAPTER_T prAdapter, 
+    IN UINT_32 u4DurationInMs);
+
+WLAN_STATUS wlanDhcpTxDone(IN P_ADAPTER_T prAdapter, 
+    IN P_MSDU_INFO_T prMsduInfo, IN ENUM_TX_RESULT_CODE_T rTxDoneStatus);
+
+WLAN_STATUS wlanArpTxDone(IN P_ADAPTER_T prAdapter, 
+    IN P_MSDU_INFO_T prMsduInfo, IN ENUM_TX_RESULT_CODE_T rTxDoneStatus);
 

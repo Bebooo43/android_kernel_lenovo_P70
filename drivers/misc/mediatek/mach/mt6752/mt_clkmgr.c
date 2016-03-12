@@ -3622,8 +3622,6 @@ static void cg_bootup_pdn(void)
     //MJC
     clk_writel(MJC_CG_SET, MJC_CG);
 }
-
-
 #ifdef MTK_KERNEL_POWER_OFF_CHARGING
 extern BOOTMODE g_boot_mode;
 #endif
@@ -3647,7 +3645,6 @@ static void mt_subsys_init(void)
     for (i = 0; i < NR_SYSS; i++) {
         sys = &syss[i];
         sys->state = sys->ops->get_state(sys);
-
 #ifndef CONFIG_MTK_ECCCI_DRIVER
         if(i==0)
             continue;
@@ -3659,7 +3656,6 @@ static void mt_subsys_init(void)
         }
 #endif
 #endif
-
         if (sys->state != sys->default_sta) {
             clk_info("[%s]%s, change state: (%u->%u)\n", __func__,
                     sys->name, sys->state, sys->default_sta);

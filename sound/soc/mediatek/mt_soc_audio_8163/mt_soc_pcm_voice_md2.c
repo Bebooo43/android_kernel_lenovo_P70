@@ -93,7 +93,7 @@ bool get_voice_md2_status(void)
     return voice_md2_Status;
 }
 EXPORT_SYMBOL(get_voice_md2_status);
-
+//for 6752 internal md 2 bring up
 static AudioDigitalPCM  Voice2IntPcm =
 {
     .mBclkOutInv = false,

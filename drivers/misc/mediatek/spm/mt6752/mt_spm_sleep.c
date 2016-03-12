@@ -971,8 +971,6 @@ static int dt_scan_memory(unsigned long node, const char *uname, int depth, void
             spm_suspend_flag |= SPM_DRAM_RANK1_ADDR_SEL1;		
         else if(dram_info->rank_info[1].start==0xc0000000)
             spm_suspend_flag |= SPM_DRAM_RANK1_ADDR_SEL2;	
-        else if(dram_info->rank_info[1].start==0xa0000000)
-            spm_suspend_flag  |= SPM_DRAM_RANK1_ADDR_SEL3;	
         else if(dram_info->rank_info[1].size!=0x0)
         {
             spm_err("dram rank1_info_error: 0x%llx\n",dram_info->rank_info[1].start);

@@ -621,6 +621,8 @@ typedef struct _QUE_MGT_T {	/* Queue Management Control Info */
 #endif
 
     UINT_32 u4MaxForwardBufferCount;
+
+    OS_SYSTIME rLastTxPktDumpTime;
 } QUE_MGT_T, *P_QUE_MGT_T;
 
 

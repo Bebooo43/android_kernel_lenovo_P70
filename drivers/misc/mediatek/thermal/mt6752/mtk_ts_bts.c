@@ -104,7 +104,7 @@ typedef struct{
 
 #define CH_IN0_NTC (0) //NTC6301
 
-#if 1 //K2
+#if 1
 static int g_RAP_pull_up_R = 390000;//390K,pull up resister
 static int g_TAP_over_critical_low =4251000 ;//base on 100K NTC temp default value -40 deg
 static int g_RAP_pull_up_voltage = 1800;//1.8V ,pull up voltage

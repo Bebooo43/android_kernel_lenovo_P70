@@ -206,26 +206,29 @@ int32_t cmdq_sec_init_session_unlocked(const struct mc_uuid_t *uuid,
 
 		CMDQ_PROF_START("CMDQ_SEC_INIT");
 
-		/* open mobicore device */
-		openRet = cmdq_sec_open_mobicore_impl(deviceId);
-		if (-EEXIST == openRet) {
-			/* mobicore has been opened in this process context */
-			/* it is a ok case, so continue to execute */
-			status = 0;
-			(*openMobicoreByOther) = 1;
-		} else if (0 > openRet) {
-			status = -1;
-			break;
+		if (IWC_MOBICORE_OPENED > (*pIwcState)) {
+			/* open mobicore device */
+			openRet = cmdq_sec_open_mobicore_impl(deviceId);
+			if (-EEXIST == openRet) {
+				/* mobicore has been opened in this process context */
+				/* it is a ok case, so continue to execute */
+				status = 0;
+				(*openMobicoreByOther) = 1;
+			} else if (0 > openRet) {
+				status = -1;
+				break;
+			}
+			(*pIwcState) = IWC_MOBICORE_OPENED;
 		}
-		(*pIwcState) = IWC_MOBICORE_OPENED;
 
-
-		/* allocate world shared memory */
-		if (0 > cmdq_sec_allocate_wsm_impl(deviceId, ppWsm, wsmSize)) {
-			status = -1;
-			break;
+		if (IWC_WSM_ALLOCATED > (*pIwcState)) {
+			/* allocate world shared memory */
+			if (0 > cmdq_sec_allocate_wsm_impl(deviceId, ppWsm, wsmSize)) {
+				status = -1;
+				break;
+			}
+			(*pIwcState) = IWC_WSM_ALLOCATED;
 		}
-		(*pIwcState) = IWC_WSM_ALLOCATED;
 
 		/* open a secure session */
 		if (0 >
@@ -644,7 +647,7 @@ void cmdq_sec_track_task_record(const uint32_t iwcCommand,
 }
 
 int32_t cmdq_sec_submit_to_secure_world_async_unlocked(uint32_t iwcCommand,
-				TaskStruct *pTask, int32_t thread, CmdqSecFillIwcCB iwcFillCB, void *data)
+				TaskStruct *pTask, int32_t thread, CmdqSecFillIwcCB iwcFillCB, void *data, bool throwAEE)
 {
 	const int32_t tgid = current->tgid;
 	const int32_t pid = current->pid;
@@ -701,9 +704,14 @@ int32_t cmdq_sec_submit_to_secure_world_async_unlocked(uint32_t iwcCommand,
 	if (-ETIMEDOUT == status) {
 		/* t-base strange issue, mc_wait_notification false timeout when secure world has done */
 		/* becuase retry may failed, give up retry method */
-		CMDQ_AEE("CMDQ",
-			"[SEC]<--SEC_SUBMIT: err[%d][mc_wait_notification timeout], pTask[0x%p], THR[%d], tgid[%d:%d], config_duration_ms[%d], cmdId[%d]\n",
-			 status, pTask, thread, tgid, pid, duration, iwcCommand);
+		if(throwAEE){
+			CMDQ_AEE("CMDQ",
+				"[SEC]<--SEC_SUBMIT: err[%d][mc_wait_notification timeout], pTask[0x%p], THR[%d], tgid[%d:%d], config_duration_ms[%d], cmdId[%d]\n",
+				 status, pTask, thread, tgid, pid, duration, iwcCommand);
+		}else{
+			CMDQ_ERR("[SEC]<--SEC_SUBMIT: err[%d][mc_wait_notification timeout], pTask[0x%p], THR[%d], tgid[%d:%d], config_duration_ms[%d], cmdId[%d]\n",
+				 status, pTask, thread, tgid, pid, duration, iwcCommand);
+		}
 
 	} else if (0 > status) {
 		/* dump metadata first */
@@ -711,10 +719,16 @@ int32_t cmdq_sec_submit_to_secure_world_async_unlocked(uint32_t iwcCommand,
 			cmdq_core_dump_secure_metadata(&(pTask->secData));
 		}
 
-		/* throw AEE */
-		CMDQ_AEE("CMDQ",
-			 "[SEC]<--SEC_SUBMIT: err[%d], pTask[0x%p], THR[%d], tgid[%d:%d], config_duration_ms[%d], cmdId[%d]\n",
-			 status, pTask, thread, tgid, pid, duration, iwcCommand);
+		if(throwAEE){
+			/* throw AEE */
+			CMDQ_AEE("CMDQ",
+				 "[SEC]<--SEC_SUBMIT: err[%d], pTask[0x%p], THR[%d], tgid[%d:%d], config_duration_ms[%d], cmdId[%d]\n",
+				 status, pTask, thread, tgid, pid, duration, iwcCommand);
+		}else{
+			/* no throw AEE */
+			CMDQ_ERR("[SEC]<--SEC_SUBMIT: err[%d], pTask[0x%p], THR[%d], tgid[%d:%d], config_duration_ms[%d], cmdId[%d]\n",
+				 status, pTask, thread, tgid, pid, duration, iwcCommand);
+		}
 	} else {
 		CMDQ_LOG
 		    ("[SEC]<--SEC_SUBMIT: err[%d], pTask[0x%p], THR[%d], tgid[%d:%d], config_duration_ms[%d], cmdId[%d]\n",
@@ -729,7 +743,7 @@ int32_t cmdq_sec_init_allocate_resource_thread(void *data)
 
 	cmdq_sec_lock_secure_path();
 
-	status = cmdq_sec_allocate_path_resource_unlocked();
+	status = cmdq_sec_allocate_path_resource_unlocked(false);
 	
 	cmdq_sec_unlock_secure_path();
 	
@@ -785,7 +799,7 @@ static int cmdq_sec_sectrace_map(void *va, size_t size)
 	do {
 		/* HACK: submit a dummy message to ensure secure path init done */
 		status = cmdq_sec_submit_to_secure_world_async_unlocked(
-			CMD_CMDQ_TL_TEST_HELLO_TL, NULL, CMDQ_INVALID_THREAD, NULL, NULL);
+			CMD_CMDQ_TL_TEST_HELLO_TL, NULL, CMDQ_INVALID_THREAD, NULL, NULL, true);
 
 		/* map log buffer in NWd */
 		mcRet = mc_map(&(gCmdqSecContextHandle->sessionHandle),
@@ -806,7 +820,7 @@ static int cmdq_sec_sectrace_map(void *va, size_t size)
 					CMD_CMDQ_TL_SECTRACE_MAP,
 					NULL, CMDQ_INVALID_THREAD,
 					cmdq_sec_fill_iwc_command_sectrace_unlocked,
-					NULL);
+					NULL, true);
 		if(0 > status) {
 			CMDQ_ERR("[sectrace]map: failed in SWd: %d\n", status);
 			mc_unmap(&(gCmdqSecContextHandle->sessionHandle), va, &gCmdqSectraceMappedInfo);
@@ -840,7 +854,7 @@ static int cmdq_sec_sectrace_unmap(void *va, size_t size)
 					CMD_CMDQ_TL_SECTRACE_UNMAP,
 					NULL, CMDQ_INVALID_THREAD,
 					cmdq_sec_fill_iwc_command_sectrace_unlocked,
-					NULL);
+					NULL, true);
 		if(0 > status) {
 			CMDQ_ERR("[sectrace]unmap: failed in SWd: %d\n", status);
 			mc_unmap(&(gCmdqSecContextHandle->sessionHandle), va, &gCmdqSectraceMappedInfo);
@@ -868,7 +882,7 @@ static int cmdq_sec_sectrace_transact(void)
 	status = cmdq_sec_submit_to_secure_world_async_unlocked(
 				CMD_CMDQ_TL_SECTRACE_TRANSACT,
 				NULL, CMDQ_INVALID_THREAD,
-				cmdq_sec_fill_iwc_command_sectrace_unlocked, NULL);
+				cmdq_sec_fill_iwc_command_sectrace_unlocked, NULL, true);
 
 	CMDQ_LOG("[sectrace]<--transact: status: %d\n", status);
 
@@ -970,7 +984,7 @@ int32_t cmdq_sec_exec_task_async_unlocked(TaskStruct *pTask, int32_t thread)
 	int32_t status = 0;
 
 	status = cmdq_sec_submit_to_secure_world_async_unlocked(
-				CMD_CMDQ_TL_SUBMIT_TASK, pTask, thread, NULL, NULL);
+				CMD_CMDQ_TL_SUBMIT_TASK, pTask, thread, NULL, NULL, true);
 	if (0 > status) {
 		CMDQ_ERR("%s[%d]\n", __func__, status);
 	}
@@ -998,7 +1012,7 @@ int32_t cmdq_sec_cancel_error_task_unlocked(TaskStruct *pTask, int32_t thread, c
 	}
 
 	status = cmdq_sec_submit_to_secure_world_async_unlocked(CMD_CMDQ_TL_CANCEL_TASK,
-		pTask, thread, NULL ,(void*)pResult);
+		pTask, thread, NULL ,(void*)pResult, true);
 	return status;
 #else
 	CMDQ_ERR("secure path not support\n");
@@ -1010,7 +1024,7 @@ int32_t cmdq_sec_cancel_error_task_unlocked(TaskStruct *pTask, int32_t thread, c
 static atomic_t gCmdqSecPathResource = ATOMIC_INIT(0);
 #endif
 
-int32_t cmdq_sec_allocate_path_resource_unlocked(void)
+int32_t cmdq_sec_allocate_path_resource_unlocked(bool throwAEE)
 {
 #ifdef CMDQ_SECURE_PATH_SUPPORT
 	int32_t status = 0;
@@ -1021,7 +1035,7 @@ int32_t cmdq_sec_allocate_path_resource_unlocked(void)
 	}
 
 	status = cmdq_sec_submit_to_secure_world_async_unlocked(
-				CMD_CMDQ_TL_PATH_RES_ALLOCATE, NULL, CMDQ_INVALID_THREAD, NULL, NULL);
+				CMD_CMDQ_TL_PATH_RES_ALLOCATE, NULL, CMDQ_INVALID_THREAD, NULL, NULL, throwAEE);
 	if (0 > status) {
 		CMDQ_ERR("%s[%d]\n", __func__, status);
 	} else {

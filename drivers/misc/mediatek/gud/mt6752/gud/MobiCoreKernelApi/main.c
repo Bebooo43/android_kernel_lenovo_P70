@@ -32,6 +32,7 @@ struct mc_kernelapi_ctx {
 	struct sock *sk;
 	struct list_head peers;
 	atomic_t counter;
+	struct mutex peers_lock; /* peers lock */
 };
 
 struct mc_kernelapi_ctx *mod_ctx;
@@ -56,29 +57,41 @@ unsigned int mcapi_unique_id(void)
 
 static struct connection *mcapi_find_connection(uint32_t seq)
 {
-	struct connection *tmp;
+	struct connection *tmp, *conn = NULL;
 	struct list_head *pos;
+
+	mutex_lock(&(mod_ctx->peers_lock));
 
 	/* Get session for session_id */
 	list_for_each(pos, &mod_ctx->peers) {
 		tmp = list_entry(pos, struct connection, list);
-		if (tmp->sequence_magic == seq)
-			return tmp;
+		if (tmp->sequence_magic == seq) {
+			conn = tmp;
+			break;
+		}
 	}
 
-	return NULL;
+	mutex_unlock(&(mod_ctx->peers_lock));
+
+	return conn;
 }
 
 void mcapi_insert_connection(struct connection *connection)
 {
+	mutex_lock(&(mod_ctx->peers_lock));
+
 	list_add_tail(&(connection->list), &(mod_ctx->peers));
 	connection->socket_descriptor = mod_ctx->sk;
+
+	mutex_unlock(&(mod_ctx->peers_lock));
 }
 
 void mcapi_remove_connection(uint32_t seq)
 {
 	struct connection *tmp;
 	struct list_head *pos, *q;
+
+	mutex_lock(&(mod_ctx->peers_lock));
 
 	/*
 	 * Delete all session objects. Usually this should not be needed as
@@ -91,6 +104,8 @@ void mcapi_remove_connection(uint32_t seq)
 			break;
 		}
 	}
+
+	mutex_unlock(&(mod_ctx->peers_lock));
 }
 
 static int mcapi_process(struct sk_buff *skb, struct nlmsghdr *nlh)
@@ -174,6 +189,9 @@ static int __init mcapi_init(void)
 	}
 
 	INIT_LIST_HEAD(&mod_ctx->peers);
+
+	mutex_init(&mod_ctx->peers_lock);
+
 	return 0;
 }
 

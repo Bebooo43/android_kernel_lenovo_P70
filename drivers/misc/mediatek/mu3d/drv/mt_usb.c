@@ -22,6 +22,7 @@
 #endif
 
 extern struct musb *_mu3d_musb;
+extern u32 fake_CDP;
 
 #ifdef CONFIG_MTK_UART_USB_SWITCH
 typedef enum
@@ -46,16 +47,22 @@ extern void wake_up_bat(void);
 #endif
 #endif
 
+#ifdef CONFIG_MTK_KERNEL_POWER_OFF_CHARGING
+#include <mach/mt_boot_common.h>
+extern BOOTMODE g_boot_mode;
+#endif
+
+
 #ifdef FOR_BRING_UP
 
 static inline void BATTERY_SetUSBState(int usb_state) {};
-static inline CHARGER_TYPE mt_charger_type_detection(void) { return STANDARD_HOST; };
+static inline CHARGER_TYPE  mt_get_charger_type(void) { return STANDARD_HOST;};
 static inline bool upmu_is_chr_det(void) { return true; };
 static inline u32 upmu_get_rgs_chrdet(void) { return 1; };
 
 #else /* NOT CONFIG_ARM64 */
 
-extern CHARGER_TYPE mt_charger_type_detection(void);
+extern CHARGER_TYPE mt_get_charger_type(void);
 extern bool upmu_is_chr_det(void);
 extern void BATTERY_SetUSBState(int usb_state);
 extern u32 upmu_get_rgs_chrdet(void);
@@ -134,6 +141,26 @@ void connection_work(struct work_struct *data)
 #endif
 	bool is_usb_cable = usb_cable_connected();
 
+	bool cmode_effect_on = false;
+	CHARGER_TYPE chg_type = mt_get_charger_type();
+	if(fake_CDP && chg_type == STANDARD_HOST){
+			os_printk(K_INFO, "%s, fake to type 2\n", __func__);
+			chg_type = CHARGING_HOST;
+	}
+	os_printk(K_NOTICE, "%s type=%d\n", __func__, chg_type);
+	if((musb->usb_mode == CABLE_MODE_HOST_ONLY && chg_type == STANDARD_HOST) || musb->usb_mode == CABLE_MODE_CHRG_ONLY){
+		cmode_effect_on = true;
+	}
+#ifdef CONFIG_MTK_KERNEL_POWER_OFF_CHARGING
+	if(g_boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT || g_boot_mode == LOW_POWER_OFF_CHARGING_BOOT){
+		if(chg_type == STANDARD_HOST){
+			cmode_effect_on = true;
+		}
+	}
+#endif
+	os_printk(K_INFO, "%s type=%d, cmode_effect_on=%d, usb_mode:%d\n", __func__, chg_type, cmode_effect_on, musb->usb_mode);
+
+
 #ifndef CONFIG_MTK_FPGA
 	if(!mt_usb_is_device()){
 		connection_work_dev_status = OFF;
@@ -146,7 +173,7 @@ void connection_work(struct work_struct *data)
 
 	os_printk(K_INFO, "%s musb %s, cable %s\n", __func__, ((connection_work_dev_status==0)?"INIT":((connection_work_dev_status==1)?"ON":"OFF")), (is_usb_cable?"IN":"OUT"));
 
-	if ((is_usb_cable == true) && (connection_work_dev_status != ON) && (musb->usb_mode == CABLE_MODE_NORMAL)) {
+	if ((is_usb_cable == true) && (connection_work_dev_status != ON) && (!cmode_effect_on)) {
 
 		connection_work_dev_status = ON;
 		#ifndef CONFIG_USBIF_COMPLIANCE
@@ -161,7 +188,7 @@ void connection_work(struct work_struct *data)
 		musb_start(musb);
 
 		os_printk(K_INFO, "%s ----Connect----\n", __func__);
-	} else if (((is_usb_cable == false) && (connection_work_dev_status != OFF)) || (musb->usb_mode != CABLE_MODE_NORMAL)) {
+	} else if (((is_usb_cable == false) && (connection_work_dev_status != OFF)) || (cmode_effect_on)) {
 
 		connection_work_dev_status = OFF;
 		#ifndef CONFIG_USBIF_COMPLIANCE
@@ -250,7 +277,7 @@ bool usb_cable_connected(void)
 {
 #ifndef CONFIG_MTK_FPGA
 #ifdef CONFIG_POWER_EXT
-	CHARGER_TYPE chg_type = mt_charger_type_detection();
+	CHARGER_TYPE chg_type = mt_get_charger_type();
 	os_printk(K_INFO, "%s ext-chrdet=%d type=%d\n", __func__, upmu_get_rgs_chrdet(), chg_type);
 	if (upmu_get_rgs_chrdet() && (chg_type == STANDARD_HOST))
 	{
@@ -259,9 +286,9 @@ bool usb_cable_connected(void)
 #else
 	if (upmu_is_chr_det())
 	{
-		CHARGER_TYPE chg_type = mt_charger_type_detection();
+		CHARGER_TYPE chg_type = mt_get_charger_type();
 		os_printk(K_INFO, "%s type=%d\n", __func__, chg_type);
-		if (chg_type == STANDARD_HOST)
+		if (chg_type == STANDARD_HOST || chg_type == CHARGING_HOST)
 			return true;
 	}
 #endif

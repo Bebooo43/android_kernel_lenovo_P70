@@ -54,7 +54,7 @@
  /* ============================================================ // */
  /* define */
  /* ============================================================ // */
-
+ /* cut off to full */
 
  /* ============================================================ // */
  /* global variable */
@@ -66,7 +66,7 @@ CHR_CURRENT_ENUM g_temp_CC_value = CHARGE_CURRENT_0_00_MA;
 CHR_CURRENT_ENUM g_temp_input_CC_value = CHARGE_CURRENT_0_00_MA;
 kal_uint32 g_usb_state = USB_UNCONFIGURED;
 static bool usb_unlimited=false;
-
+BATTERY_VOLTAGE_ENUM cv_voltage;
   /* ///////////////////////////////////////////////////////////////////////////////////////// */
   /* // PUMP EXPRESS */
   /* ///////////////////////////////////////////////////////////////////////////////////////// */
@@ -308,8 +308,6 @@ static void battery_pump_express_algorithm_start(void)
 
 static BATTERY_VOLTAGE_ENUM select_jeita_cv(void)
 {
-	BATTERY_VOLTAGE_ENUM cv_voltage;
-
 	if (g_temp_status == TEMP_ABOVE_POS_60) {
 		cv_voltage = JEITA_TEMP_ABOVE_POS_60_CV_VOLTAGE;
 	} else if (g_temp_status == TEMP_POS_45_TO_POS_60) {
@@ -335,8 +333,6 @@ static BATTERY_VOLTAGE_ENUM select_jeita_cv(void)
 
 PMU_STATUS do_jeita_state_machine(void)
 {
-	BATTERY_VOLTAGE_ENUM cv_voltage;
-
 	/* JEITA battery temp Standard */
 
 	if (BMT_status.temperature >= TEMP_POS_60_THRESHOLD) {
@@ -567,7 +563,7 @@ kal_uint32 set_bat_charging_current_limit(int current_limit)
 	pchr_turn_on_charging();
 
 	return g_bcct_flag;
-}    
+}
 #if defined(BATTERY_TEMP_CHARGING_CURRENT)
 g_tempStatus = E_BAT_T_B_15_45;
 void check_battery_temperature(void)
@@ -588,7 +584,7 @@ void check_battery_temperature(void)
 	else if(BMT_status.temperature > MAX_CHARGE_TEMPERATURE) {
 		g_tempStatus = E_BAT_T_U_50;
 	}
-	
+
 	BMT_status.bat_temp_status = g_tempStatus;
 }
 void set_current_according_to_temperature(void)
@@ -630,7 +626,6 @@ void select_charging_curret(void)
 		if (g_temp_CC_value == CHARGE_CURRENT_450_00_MA) {
 			g_temp_input_CC_value = CHARGE_CURRENT_500_00_MA;
 		} else {
-
             #if defined(BATTERY_TEMP_CHARGING_CURRENT)
 			set_current_according_to_temperature();
 			#else
@@ -674,10 +669,9 @@ void select_charging_curret(void)
         	#if defined(BATTERY_TEMP_CHARGING_CURRENT)
 			set_current_according_to_temperature();
 			#else
-        	g_temp_input_CC_value = AC_CHARGER_CURRENT;
+			g_temp_input_CC_value = AC_CHARGER_CURRENT;
 			g_temp_CC_value = AC_CHARGER_CURRENT;
 			#endif
-
 #if defined(CONFIG_MTK_PUMP_EXPRESS_PLUS_SUPPORT)
         		if(is_ta_connect == KAL_TRUE)
         			set_ta_charging_current();
@@ -740,12 +734,10 @@ static kal_uint32 charging_full_check(void)
 //huangyisong_add_20130926 add
 extern int g_runin_test_enter;
 
+
 // tangqingcai modify for_runin
 void pchr_turn_on_charging (void)
 {
-#if !defined(CONFIG_MTK_JEITA_STANDARD_SUPPORT)
-	BATTERY_VOLTAGE_ENUM cv_voltage;
-#endif	
 #ifdef BATTERY_TEMP_CHARGING_CURRENT
    kal_uint32 cv_value =0;
 #endif

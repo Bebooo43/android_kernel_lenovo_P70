@@ -33,23 +33,12 @@
 
 MODULE_LICENSE("Dual BSD/GPL");
 
-#define BT_DRIVER_NAME "mtk_stp_BT_chrdev"
-#define BT_DEV_MAJOR 192 // never used number
 
 #define PFX                         "[MTK-BT] "
 #define BT_LOG_DBG                  3
 #define BT_LOG_INFO                 2
 #define BT_LOG_WARN                 1
 #define BT_LOG_ERR                  0
-
-#define COMBO_IOC_BT_HWVER           6
-
-#define COMBO_IOC_MAGIC        0xb0
-#define COMBO_IOCTL_FW_ASSERT  _IOWR(COMBO_IOC_MAGIC, 0, void*)
-#if WMT_CREATE_NODE_DYNAMIC
-struct class * bt_class = NULL;
-struct device * bt_dev = NULL;
-#endif
 
 static unsigned int gDbgLevel = BT_LOG_INFO;
 
@@ -60,9 +49,30 @@ static unsigned int gDbgLevel = BT_LOG_INFO;
 #define BT_TRC_FUNC(f)              if(gDbgLevel >= BT_LOG_DBG){printk(PFX "<%s> <%d>\n", __FUNCTION__, __LINE__);}
 
 #define VERSION "1.0"
+#define BT_DRIVER_NAME "mtk_stp_BT_chrdev"
+#define BT_DEV_MAJOR 192 // never used number
 #define BT_NVRAM_CUSTOM_NAME "/data/BT_Addr"
 
-static int BT_devs = 1;        /* device count */
+#if 0
+#define COMBO_IOC_MAGIC        0xb0
+#define COMBO_IOCTL_FW_ASSERT  _IOWR(COMBO_IOC_MAGIC, 0, void*)
+#define COMBO_IOCTL_BT_IC_HW_VER  _IOWR(COMBO_IOC_MAGIC, 1, int)
+#define COMBO_IOCTL_BT_IC_FW_VER  _IOWR(COMBO_IOC_MAGIC, 2, int)
+#define COMBO_IOC_BT_HWVER           6
+#else
+#define COMBO_IOCTL_FW_ASSERT        2
+#define COMBO_IOCTL_BT_IC_HW_VER     3
+#define COMBO_IOCTL_BT_IC_FW_VER     4
+#define COMBO_IOC_BT_HWVER           5
+#define COMBO_IOC_BT_SET_PSM         6
+#endif
+
+#if WMT_CREATE_NODE_DYNAMIC
+struct class * bt_class = NULL;
+struct device * bt_dev = NULL;
+#endif
+
+static int BT_devs = 1;                   /* device count */
 static int BT_major = BT_DEV_MAJOR;       /* dynamic allocation */
 module_param(BT_major, uint, 0);
 static struct cdev BT_cdev;
@@ -383,17 +393,27 @@ long BT_unlocked_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
                 BT_INFO_FUNC("BT Set fw assert OK\n");
                 retval = 0;
             } else {
-                BT_INFO_FUNC("BT Set fw assert Failed\n");
+                BT_ERR_FUNC("BT Set fw assert Failed\n");
                 retval = (-1000);
             }
             break;
         default:
             retval = -EFAULT;
-            BT_DBG_FUNC("BT_ioctl(): unknown cmd (%d)\n", cmd);
+            BT_ERR_FUNC("unknown cmd (%d)\n", cmd);
             break;
     }
 
     return retval;
+}
+
+long BT_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	long ret;
+
+	BT_INFO_FUNC("cmd[0x%x]\n", cmd);
+	ret = BT_unlocked_ioctl(filp, cmd, arg);
+	
+	return ret;
 }
 
 static int BT_open(struct inode *inode, struct file *file)
@@ -407,7 +427,7 @@ static int BT_open(struct inode *inode, struct file *file)
 #if 1 /* GeorgeKuo: turn on function before check stp ready */
      /* turn on BT */
     if (MTK_WCN_BOOL_FALSE == mtk_wcn_wmt_func_on(WMTDRV_TYPE_BT)) {
-        BT_WARN_FUNC("WMT turn on BT fail!\n");
+        BT_ERR_FUNC("WMT turn on BT fail!\n");
         return -ENODEV;
     }else{
         retflag = 0;
@@ -485,6 +505,7 @@ struct file_operations BT_fops = {
     .write = BT_write,
 //    .ioctl = BT_ioctl,
     .unlocked_ioctl = BT_unlocked_ioctl,
+    .compat_ioctl = BT_compat_ioctl,
     .poll = BT_poll
 };
 

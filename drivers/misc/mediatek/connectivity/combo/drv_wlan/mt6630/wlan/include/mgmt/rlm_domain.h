@@ -338,13 +338,7 @@
 #define MIB_REG_DOMAIN_JAPAN            0x40	/* MPHPT (Japan) */
 #define MIB_REG_DOMAIN_OTHER            0x00	/* other */
 
-#if CFG_SUPPORT_PWR_LIMIT_COUNTRY
 
-
-#define POWER_LIMIT_TABLE_NULL 			0xFFFF
-#define MAX_TX_POWER     				63
-#define MIN_TX_POWER     				-64
-#define MAX_CMD_SUPPORT_CHANNEL_NUM  	64
 
 /*2.4G*/
 #define BAND_2G4_LOWER_BOUND 1   
@@ -358,6 +352,14 @@
 #define UNII2C_UPPER_BOUND   144 
 #define UNII3_LOWER_BOUND    149  
 #define UNII3_UPPER_BOUND    173 
+
+
+#if CFG_SUPPORT_PWR_LIMIT_COUNTRY
+
+#define POWER_LIMIT_TABLE_NULL 			0xFFFF
+#define MAX_TX_POWER     				63
+#define MIN_TX_POWER     				-64
+#define MAX_CMD_SUPPORT_CHANNEL_NUM  	64
 
 #endif
 
@@ -377,6 +379,8 @@ typedef enum _ENUM_POWER_LIMIT_T {
 	PWR_LIMIT_NUM
 } ENUM_POWER_LIMIT_T, *P_ENUM_POWER_LIMIT_T;
 
+#endif
+
 typedef enum _ENUM_POWER_LIMIT_SUBBAND_T {
 	POWER_LIMIT_2G4         = 0,
 	POWER_LIMIT_UNII1       = 1,
@@ -386,7 +390,6 @@ typedef enum _ENUM_POWER_LIMIT_SUBBAND_T {
 	POWER_LIMIT_SUBAND_NUM
 } ENUM_POWER_LIMIT_SUBBAND_T, *P_ENUM_POWER_LIMIT_SUBBAND_T;
 
-#endif
 
 
 /* Define channel offset in unit of 5MHz bandwidth */
@@ -579,6 +582,13 @@ typedef struct _SUBBAND_CHANNEL_T {
 *                                 M A C R O S
 ********************************************************************************
 */
+#define CAL_CH_OFFSET_80M(_PRIMARY_CH, _CENTRAL_CH) \
+			(((_PRIMARY_CH - _CENTRAL_CH ) + 6) >> 2)
+			
+#define CAL_CH_OFFSET_160M(_PRIMARY_CH, _CENTRAL_CH) \
+			(((_PRIMARY_CH - _CENTRAL_CH ) + 14) >> 2)
+
+
 
 /*******************************************************************************
 *                   F U N C T I O N   D E C L A R A T I O N S
@@ -601,6 +611,14 @@ BOOLEAN rlmDomainIsLegalChannel(P_ADAPTER_T prAdapter, ENUM_BAND_T eBand, UINT_8
 
 UINT_32 rlmDomainSupOperatingClassIeFill(PUINT_8 pBuf);
 
+BOOLEAN rlmDomainCheckChannelEntryValid(P_ADAPTER_T prAdapter, UINT_8 ucCentralCh);
+
+UINT_8 rlmDomainGetCenterChannel(ENUM_BAND_T eBand, UINT_8 ucPriChannel, ENUM_CHNL_EXT_T eExtend);
+
+BOOLEAN rlmDomainIsValidRfSetting (P_ADAPTER_T prAdapter, ENUM_BAND_T eBand, 
+	UINT_8 ucPriChannel, ENUM_CHNL_EXT_T eExtend, 
+	ENUM_CHANNEL_WIDTH_T eChannelWidth, UINT_8 ucChannelS1, UINT_8 ucChannelS2);
+ 
 #if CFG_SUPPORT_PWR_LIMIT_COUNTRY
 
 BOOLEAN
@@ -609,12 +627,6 @@ rlmDomainCheckPowerLimitValid (
 	COUNTRY_POWER_LIMIT_TABLE_CONFIGURATION         rPowerLimitTableConfiguration,      
 	UINT_8          								ucPwrLimitNum
     );
-BOOLEAN
-rlmDomainCheckChannelEntryValid(
-    P_ADAPTER_T     prAdapter,
-    UINT_8          ucCentralCh
-    );
-
 
 VOID
 rlmDomainCheckCountryPowerLimitTable (

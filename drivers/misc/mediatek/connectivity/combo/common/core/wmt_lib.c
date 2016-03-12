@@ -114,6 +114,16 @@ MTK_WCN_BOOL wmt_lib_hw_state_show(VOID);
 ********************************************************************************
 */
 
+INT32 wmt_lib_idc_lock_aquire(VOID)
+{
+	return osal_lock_sleepable_lock(&gDevWmt.idc_lock);
+}
+
+VOID wmt_lib_idc_lock_release(VOID)
+{
+	osal_unlock_sleepable_lock(&gDevWmt.idc_lock);
+}
+
 INT32 wmt_lib_psm_lock_aquire(VOID)
 {
 	return osal_lock_sleepable_lock(&gDevWmt.psm_lock);
@@ -195,6 +205,7 @@ INT32 wmt_lib_init(VOID)
 	/* Initialize WMTd Thread Information: Thread */
 	osal_event_init(&pDevWmt->rWmtdWq);
 	osal_sleepable_lock_init(&pDevWmt->psm_lock);
+	osal_sleepable_lock_init(&pDevWmt->idc_lock);
 	osal_sleepable_lock_init(&pDevWmt->rActiveOpQ.sLock);
 	osal_sleepable_lock_init(&pDevWmt->rFreeOpQ.sLock);
 	pDevWmt->state.data = 0;
@@ -332,6 +343,7 @@ INT32 wmt_lib_deinit(VOID)
 
 	osal_sleepable_lock_deinit(&pDevWmt->rFreeOpQ.sLock);
 	osal_sleepable_lock_deinit(&pDevWmt->rActiveOpQ.sLock);
+	osal_sleepable_lock_deinit(&pDevWmt->idc_lock);
 	osal_sleepable_lock_deinit(&pDevWmt->psm_lock);
 	osal_event_deinit(&pDevWmt->rWmtdWq);
 
@@ -535,10 +547,25 @@ MTK_WCN_BOOL wmt_lib_handle_idc_msg(ipc_ilm_t *idc_infor)
 	P_OSAL_OP lxop;
 	MTK_WCN_BOOL bRet = MTK_WCN_BOOL_FALSE;
 	P_OSAL_SIGNAL pSignal;
+	INT32 ret = 0;
+	UINT16 msg_len = 0;
+	static UINT8 msg_local_buffer[1300];
+
 #if	CFG_WMT_LTE_ENABLE_MSGID_MAPPING
 	MTK_WCN_BOOL unknow_msgid = MTK_WCN_BOOL_FALSE;
 #endif
 	WMT_INFO_FUNC("idc_infor from conn_md is 0x%p\n", idc_infor);
+
+	ret = wmt_lib_idc_lock_aquire();
+	if (ret) {
+		WMT_ERR_FUNC("--->lock idc_lock failed, ret=%d\n", ret);
+		return MTK_WCN_BOOL_FALSE;
+	}
+	msg_len = idc_infor->local_para_ptr->msg_len - osal_sizeof(local_para_struct);
+	osal_memcpy(&msg_local_buffer[0], &msg_len, osal_sizeof(msg_len));
+	osal_memcpy(&msg_local_buffer[osal_sizeof(msg_len)],
+			&(idc_infor->local_para_ptr->data[0]), msg_len - 1);
+	wmt_lib_idc_lock_release();
 
 	lxop = wmt_lib_get_free_op();
 	if (!lxop) {
@@ -548,7 +575,7 @@ MTK_WCN_BOOL wmt_lib_handle_idc_msg(ipc_ilm_t *idc_infor)
 	pSignal = &lxop->signal;
 	pSignal->timeoutValue = MAX_EACH_WMT_CMD;
 	lxop->op.opId = WMT_OPID_IDC_MSG_HANDLING;
-	lxop->op.au4OpData[0] = (size_t) idc_infor;
+	lxop->op.au4OpData[0] = (size_t) msg_local_buffer;
 
 	/*msg opcode fill rule is still not clrear,need scott comment */
 	/***********************************************************/

@@ -372,7 +372,7 @@ static ssize_t mt_soc_debug_read(struct file *file, char __user *buf,
     n += scnprintf(buffer + n, size - n, "AFE_IRQ1_EN_CNT_MON  = 0x%x\n", Afe_Get_Reg(AFE_IRQ1_MCU_EN_CNT_MON));
     n += scnprintf(buffer + n, size - n, "AFE_MEMIF_MAXLEN  = 0x%x\n", Afe_Get_Reg(AFE_MEMIF_MAXLEN));
     n += scnprintf(buffer + n, size - n, "AFE_MEMIF_PBUF_SIZE  = 0x%x\n", Afe_Get_Reg(AFE_MEMIF_PBUF_SIZE));
-    n += scnprintf(buffer + n, size - n, "AFE_IRQ_MCU_CNT7  = 0x%x\n", Afe_Get_Reg(AFE_IRQ_MCU_CNT7)); //  add
+    n += scnprintf(buffer + n, size - n, "AFE_IRQ_MCU_CNT7  = 0x%x\n", Afe_Get_Reg(AFE_IRQ_MCU_CNT7)); // 6752 add
 
     n += scnprintf(buffer + n, size - n, "AFE_APLL1_TUNER_CFG  = 0x%x\n", Afe_Get_Reg(AFE_APLL1_TUNER_CFG));
     n += scnprintf(buffer + n, size - n, "AFE_APLL2_TUNER_CFG  = 0x%x\n", Afe_Get_Reg(AFE_APLL2_TUNER_CFG));
@@ -440,7 +440,7 @@ static ssize_t mt_soc_debug_read(struct file *file, char __user *buf,
     n += scnprintf(buffer + n, size - n, "AFE_ASRC3_CON5  = 0x%x\n", Afe_Get_Reg(AFE_ASRC3_CON5));
     n += scnprintf(buffer + n, size - n, "AFE_ASRC3_CON6  = 0x%x\n", Afe_Get_Reg(AFE_ASRC3_CON6));
 
-    //  add
+    // 6752 add
     n += scnprintf(buffer + n, size - n, "AFE_ADDA4_TOP_CON0  = 0x%x\n", Afe_Get_Reg(AFE_ADDA4_TOP_CON0));
     n += scnprintf(buffer + n, size - n, "AFE_ADDA4_UL_SRC_CON0  = 0x%x\n", Afe_Get_Reg(AFE_ADDA4_UL_SRC_CON0));
     n += scnprintf(buffer + n, size - n, "AFE_ADDA4_UL_SRC_CON1  = 0x%x\n", Afe_Get_Reg(AFE_ADDA4_UL_SRC_CON1));
@@ -515,7 +515,7 @@ static ssize_t mt_soc_debug_write(struct file *f, const char __user *buf,
         ret = strict_strtoul(token3, 16, &regaddr);
         ret =  strict_strtoul(token5, 16, &regvalue);
         printk("%s regaddr = 0x%lu regvalue = 0x%lu\n", ParSetkeyAna, regaddr, regvalue);
-        //clk_buf_ctrl(CLK_BUF_AUDIO, true); // need?
+        //clk_buf_ctrl(CLK_BUF_AUDIO, true); //6752 need?
         AudDrv_Clk_On();
         audckbufEnable(true);
         Ana_Set_Reg(regaddr,  regvalue, 0xffffffff);
