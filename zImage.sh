@@ -25,15 +25,15 @@ then
 		then
 			if make -j2 O=$OUT ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE
 			then
-				if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_aosp/kernel
+				if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_aosp/boot.img-kernel
 				then
 					if cd unpack/boot_aosp
 					then
-						if ./repack.pl -boot kernel ramdisk/ boot.img
+						if ./repack.sh
 						then
 							if mv boot.img ../boot_aosp.img
 							then
-								if rm -f kernel
+								if rm -f boot.img-kernel
 								then
 									cd $KERNEL_DIR
 								fi
@@ -57,15 +57,15 @@ then
 		then
 			if make -j2 O=$OUT ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE
 			then
-				if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_vdt/kernel
+				if cp out/arch/arm64/boot/Image.gz-dtb unpack/boot_vdt/boot.img-kernel
 				then
 					if cd unpack/boot_vdt
 					then
-						if ./repack.pl -boot kernel ramdisk/ boot.img
+						if ./repack.sh
 						then
 							if mv boot.img ../boot_vdt.img
 							then
-								if rm -f kernel
+								if rm -f boot.img-kernel
 								then
 									cd $KERNEL_DIR
 								fi
@@ -245,8 +245,8 @@ make_cm_zormax_kernel "$CONFIG_8"
 make_zip "$CONFIG_4"
 }
 
-#boot_p70
+boot_p70
 boot_p70_gc
-#boot_p70_g
-#boot_p70_c
+boot_p70_g
+boot_p70_c
 

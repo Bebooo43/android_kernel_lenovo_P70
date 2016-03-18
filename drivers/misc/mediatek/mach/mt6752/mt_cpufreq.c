@@ -1043,7 +1043,7 @@ static struct mt_cpu_dvfs *id_to_cpu_dvfs(enum mt_cpu_dvfs_id id)
 
 /* CPU LEVEL 0, 2GHz segment (useless) */
 static struct mt_cpu_freq_info opp_tbl_e1_0[] = {
-    OP(CPU_DVFS_FREQ0,  110000),
+    OP(CPU_DVFS_FREQ0,  111875),
     OP(CPU_DVFS_FREQ1,  106875),
     OP(CPU_DVFS_FREQ2,  104375),
     OP(CPU_DVFS_FREQ3,  103750),
@@ -1059,7 +1059,7 @@ static struct mt_cpu_freq_info opp_tbl_e1_0[] = {
 
 /* CPU LEVEL 1, 1.7GHz segment */
 static struct mt_cpu_freq_info opp_tbl_e1_1[] = {
-    OP(CPU_DVFS_FREQ0,  110000),
+    OP(CPU_DVFS_FREQ0,  111875),
     OP(CPU_DVFS_FREQ1,  106875),
     OP(CPU_DVFS_FREQ2,  104375),
     OP(CPU_DVFS_FREQ3,  103750),
@@ -1075,7 +1075,7 @@ static struct mt_cpu_freq_info opp_tbl_e1_1[] = {
 
 /* CPU LEVEL 2, 1.5GHz segment */
 static struct mt_cpu_freq_info opp_tbl_e1_2[] = {
-    OP(CPU_DVFS_FREQ0,  110000),
+    OP(CPU_DVFS_FREQ0,  111875),
     OP(CPU_DVFS_FREQ1,  106875),
     OP(CPU_DVFS_FREQ2,  104375),
     OP(CPU_DVFS_FREQ3,  103750),
@@ -1091,7 +1091,7 @@ static struct mt_cpu_freq_info opp_tbl_e1_2[] = {
 
 /* CPU LEVEL 3, 1.3GHz segment */
 static struct mt_cpu_freq_info opp_tbl_e1_3[] = {
-    OP(CPU_DVFS_FREQ0,  110000),
+    OP(CPU_DVFS_FREQ0,  111875),
     OP(CPU_DVFS_FREQ1,  106875),
     OP(CPU_DVFS_FREQ2,  104375),
     OP(CPU_DVFS_FREQ3,  103750),
