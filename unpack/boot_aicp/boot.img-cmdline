@@ -1,1 +1,1 @@
-bootopt=64S3,32N2,64N2 androidboot.hardware=mt6752 androidboot.selinux=permissive
+bootopt=64S3,32N2,64N2 androidboot.hardware=mt6752 androidboot.selinux=disabled
