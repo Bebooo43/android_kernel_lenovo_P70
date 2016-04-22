@@ -54,7 +54,7 @@
 
 /* battery meter parameter */
 #define CHANGE_TRACKING_POINT
-#define CUST_TRACKING_POINT  1
+#define CUST_TRACKING_POINT  20
 #define CUST_R_SENSE         68
 #define CUST_HW_CC 		    0
 #define AGING_TUNING_VALUE   103
@@ -63,7 +63,7 @@
 #define OCV_BOARD_COMPESATE	0 //mV 
 #define R_FG_BOARD_BASE		1000
 #define R_FG_BOARD_SLOPE	1000 //slope
-#define CAR_TUNE_VALUE		97 //1.00
+#define CAR_TUNE_VALUE		100 //1.00
 
 
 /* HW Fuel gague  */
