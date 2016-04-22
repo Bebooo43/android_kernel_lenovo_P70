@@ -176,16 +176,16 @@ if cd $KERNEL_DIR/unpack
 then
 	if [ "$1" == "$CONFIG_1" ]
 	then
-		zip -r Boot_P70_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r -1 Boot_P70_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	elif [ "$1" == "$CONFIG_2" ]
 	then
-		zip -r Boot_P70_GC_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r -1 Boot_P70_GC_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	elif [ "$1" == "$CONFIG_3" ]
 	then
-		zip -r Boot_P70_G_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r -1 Boot_P70_G_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	elif [ "$1" == "$CONFIG_4" ]
 	then
-		zip -r Boot_P70_C_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r -1 Boot_P70_C_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	fi
 		if rm -f boot_aosp.img
 		then
