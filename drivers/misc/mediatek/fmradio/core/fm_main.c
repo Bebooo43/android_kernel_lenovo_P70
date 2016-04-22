@@ -173,21 +173,21 @@ fm_s32 fm_set_stat(struct fm *fmp, int which, bool stat)
 		ret = -1;
 		WCN_DBG(FM_ERR | MAIN, "fm set stat error, object=%d, stat=%d\n", which, stat);
 	}
-
+	
     FM_UNLOCK(fm_ops_lock);
 	return ret;
 }
 
 fm_s32 fm_get_stat(struct fm *fmp, int which, bool *stat)
-{
+{	
     fm_s32 ret = 0;
     FMR_ASSERT(fmp);
-    FMR_ASSERT(stat);
+    FMR_ASSERT(stat);	
     if (FM_LOCK(fm_ops_lock)) return (-FM_ELOCK);
 
 	if(which < (sizeof(g_fm_stat)/sizeof(g_fm_stat[0])))
 	{
-		*stat = g_fm_stat[which];
+		*stat = g_fm_stat[which];		
         WCN_DBG(FM_DBG | MAIN, "fm get stat object=%d, stat=%d\n", which, *stat);
 	}
 	else
@@ -195,8 +195,8 @@ fm_s32 fm_get_stat(struct fm *fmp, int which, bool *stat)
 		ret = -1;
 		WCN_DBG(FM_ERR | MAIN, "fm get stat error, object=%d\n", which);
 	}
-
-    FM_UNLOCK(fm_ops_lock);
+	
+    FM_UNLOCK(fm_ops_lock);	
 	return ret;
 }
 
@@ -538,7 +538,7 @@ fm_s32 fm_powerup_tx(struct fm *fm, struct fm_tune_parm *parm)
 	if (ret) {
 		parm->err = FM_FAILED;
 		fm_pwr_state_set(fm, FM_PWR_OFF);
-		WCN_DBG(FM_ERR | MAIN,"FM pwr up Tx fail!\n");
+		WCN_DBG(FM_ERR | MAIN,"FM pwr up Tx fail!\n"); 
 	} else {
 		parm->err = FM_SUCCESS;
 	}
@@ -692,7 +692,7 @@ fm_s32 fm_seek(struct fm *fm, struct fm_seek_parm *parm)
 	} else if (parm->band == FM_BAND_SPECIAL) {
 		fm->min_freq = FM_RX_BAND_FREQ_L;
 		fm->max_freq = FM_RX_BAND_FREQ_H;
-	}
+	} 
 #else
 	if (parm->band == FM_BAND_UE) {
 		fm->min_freq = FM_UE_FREQ_MIN * 10;
@@ -703,7 +703,7 @@ fm_s32 fm_seek(struct fm *fm, struct fm_seek_parm *parm)
 	} else if (parm->band == FM_BAND_SPECIAL) {
 		fm->min_freq = FM_RX_BAND_FREQ_L * 10;
 		fm->max_freq = FM_RX_BAND_FREQ_H * 10;
-	}
+	} 
 #endif
 	else {
 		WCN_DBG(FM_ALT | MAIN, "band:%d out of range\n", parm->band);
@@ -805,7 +805,7 @@ fm_s32 fm_tx_scan(struct fm *fm, struct fm_tx_scan_parm *parm)
 	} else if (parm->band == FM_BAND_SPECIAL) {
 		fm->min_freq = FM_FREQ_MIN * 10;
 		fm->max_freq = FM_FREQ_MAX * 10;
-	}
+	}	
 #else
 	if (parm->band == FM_BAND_UE) {
 		fm->min_freq = FM_UE_FREQ_MIN;
@@ -816,7 +816,7 @@ fm_s32 fm_tx_scan(struct fm *fm, struct fm_tx_scan_parm *parm)
 	} else if (parm->band == FM_BAND_SPECIAL) {
  		fm->min_freq = FM_FREQ_MIN;
 		fm->max_freq = FM_FREQ_MAX;
-	}
+	} 	
 #endif
 	else {
 		WCN_DBG(FM_ERR | MAIN, "band:%d out of range\n", parm->band);
@@ -892,7 +892,7 @@ fm_s32 fm_scan(struct fm *fm, struct fm_scan_parm *parm)
 		} else if (parm->band == FM_BAND_SPECIAL) {
 			fm->min_freq = FM_FREQ_MIN * 10;
 			fm->max_freq = FM_FREQ_MAX * 10;
-		}
+		}	
 #else
 	if (parm->band == FM_BAND_UE) {
 		fm->min_freq = FM_UE_FREQ_MIN;
@@ -903,7 +903,7 @@ fm_s32 fm_scan(struct fm *fm, struct fm_scan_parm *parm)
 	} else if (parm->band == FM_BAND_SPECIAL) {
 		fm->min_freq = FM_RX_BAND_FREQ_L;
 		fm->max_freq = FM_RX_BAND_FREQ_H;
-	}
+	} 
 #endif
 	else {
 		WCN_DBG(FM_ALT | MAIN, "band:%d out of range\n", parm->band);
@@ -1869,14 +1869,7 @@ fm_s32 fm_i2s_set(struct fm *fm, fm_s32 onoff, fm_s32 mode, fm_s32 sample)
 	if (FM_LOCK(fm_ops_lock))
 		return (-FM_ELOCK);
 
-	if((FM_PWR_RX_ON == fm_pwr_state_get(fm)) || (FM_PWR_TX_ON == fm_pwr_state_get(fm))) {
-		ret = fm_low_ops.bi.i2s_set(onoff, mode, sample);
-	     	if (ret)
-	     		WCN_DBG(FM_ALT | MAIN, "i2s_set Failed\n");
-	     	else
-	     		WCN_DBG(FM_DBG | MAIN, "i2s_set OK!\n");
-	} else
-		WCN_DBG(FM_ALT | MAIN, "FM power off, not support i2s setting\n");
+	ret = fm_low_ops.bi.i2s_set(onoff, mode, sample);
 
 	FM_UNLOCK(fm_ops_lock);
 	return ret;
@@ -1940,7 +1933,7 @@ fm_s32 fm_tune(struct fm *fm, struct fm_tune_parm *parm)
 	if (ret) {
 		WCN_DBG(FM_ALT | MAIN, "FM ramp down failed\n");
 		goto out;
-	}
+	}		
 
 	if (fm_cur_freq_get() != parm->freq) {
 		fm_memset(fm->pstRDSData, 0, sizeof(rds_t));
@@ -2480,7 +2473,7 @@ void fm_subsys_reset_work_func(unsigned long data)
 			goto out;
 		}
 	}
-
+	
 	/* prepare to reset */
 
 	/* wait 3s */

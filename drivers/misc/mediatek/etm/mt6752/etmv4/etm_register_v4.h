@@ -466,8 +466,5 @@
 
 /** bits mask which indicates the current effective value of programming bit */
 #define ETMSR_PROGRAM	(1<<1)
-/*ETM Use this register to know if ETM is permitted to run.*/
-#define DBGAUTHSTATUS_EL1 0xFB8
-#define NSNID_SHIFT 2
-#define SNID_SHIFT 6
+
 #endif

@@ -111,17 +111,17 @@ int __cpuinit __cpu_up(unsigned int cpu, struct task_struct *idle)
 					    msecs_to_jiffies(1000));
 
 		if (!cpu_online(cpu)) {
-                   pr_crit("CPU%u: failed to come online\n", cpu);
-                #if 1
+			pr_crit("CPU%u: failed to come online\n", cpu);
+            #if 1
 	        pr_crit("Trigger WDT RESET\n");
-                res = get_wd_api(&wd_api);
-                if(res) 
-                {
-                  pr_crit("get wd api error !!\n");
-                }else {
-                  wd_api -> wd_sw_reset(3);  //=> this action will ask system to reboot
-                }
-                #endif
+            res = get_wd_api(&wd_api);
+            if(res) 
+            {
+              pr_crit("get wd api error !!\n");
+            }else {
+              wd_api -> wd_sw_reset(3);  //=> this action will ask system to reboot
+            }
+            #endif
                         
             ret = -EIO;
 	        }
@@ -180,11 +180,6 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	if (cpu_ops[cpu]->cpu_postboot)
 		cpu_ops[cpu]->cpu_postboot();
     aee_rr_rec_hoplug(cpu, 8, 0);
-
-	/*
-	 * Log the CPU info before it is marked online and might get read.
-	 */
-	cpuinfo_store_cpu();
 
 	/*
 	 * OK, now it's safe to let the boot CPU continue.  Wait for

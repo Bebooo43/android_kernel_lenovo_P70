@@ -790,7 +790,7 @@ static const struct snd_kcontrol_new Audio_snd_routing_controls[] =
 void EnAble_Anc_Path(int state)
 {
     // todo?
-    printk("%s not supported now!!!\n ", __func__);
+    printk("%s not supported!!!\n ", __func__);
 
 }
 

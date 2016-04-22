@@ -21,7 +21,7 @@
  *
  * Project:
  * --------
- *   MT6583  Audio Driver Afe Register setting
+ *   Audio Driver Afe Register setting
  *
  * Description:
  * ------------
@@ -514,7 +514,6 @@ typedef struct
 #define AFE_MEMIF_MON4 (AFE_BASE + 0x00E0)
 
 
-//6582 Add
 #define AFE_ADDA_DL_SRC2_CON0   (AFE_BASE+0x00108)
 #define AFE_ADDA_DL_SRC2_CON1   (AFE_BASE+0x0010C)
 #define AFE_ADDA_UL_SRC_CON0    (AFE_BASE+0x00114)
@@ -708,7 +707,6 @@ typedef struct
 #define PCM_INTF_CON2   (AFE_BASE + 0x538)
 #define PCM2_INTF_CON   (AFE_BASE + 0x53C)
 
-//6582 Add
 #define AFE_ASRC_CON13  (AFE_BASE+0x00550)
 #define AFE_ASRC_CON14  (AFE_BASE+0x00554)
 #define AFE_ASRC_CON15  (AFE_BASE+0x00558)

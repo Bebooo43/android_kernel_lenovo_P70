@@ -902,8 +902,6 @@ VOID qmInit(IN P_ADAPTER_T prAdapter)
 
     prQM->u4TxAllowedStaCount = 0;
 
-    prQM->rLastTxPktDumpTime = (OS_SYSTIME)kalGetTimeTick();
-
 }
 
 #if QM_TEST_MODE

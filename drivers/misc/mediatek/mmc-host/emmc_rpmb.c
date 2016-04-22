@@ -1087,8 +1087,6 @@ static int emmc_rpmb_open_session()
         MSG(INFO, "uuid[0]=%d, uuid[1]=%d, uuid[2]=%d, uuid[3]=%d\n", rpmb_uuid.value[0],rpmb_uuid.value[1],rpmb_uuid.value[2],rpmb_uuid.value[3]);
         
         rpmb_session.device_id = rpmb_devid;  
-        msleep(1000);
-        MSG(INFO, "%s, wait for 1 second and then open session\n", __func__);
 
         /* open session */
         mc_ret = mc_open_session(&rpmb_session, 
@@ -1099,11 +1097,6 @@ static int emmc_rpmb_open_session()
         if (mc_ret != MC_DRV_OK) {
             MSG(ERR, "%s, mc_open_session failed.(%d)\n", __func__, cnt);
             cnt++;
-            MSG(ERR, "%s, try free wsm and close device\n", __func__);
-            mc_ret = mc_free_wsm(rpmb_devid, rpmb_dci);
-            MSG(ERR, "%s, free wsm result (%d)\n", __func__, mc_ret);
-            mc_ret = mc_close_device(rpmb_devid);
-            MSG(ERR, "%s, close device result (%d)\n", __func__, mc_ret);
             continue;
         }
  

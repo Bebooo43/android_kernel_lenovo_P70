@@ -356,7 +356,7 @@ void AudDrv_ADC2_Clk_On(void)
     if (Aud_ADC2_Clk_cntr == 0)
     {
         PRINTK_AUDDRV("+%s  enable_clock ADC clk(%x)\n", __func__, Aud_ADC2_Clk_cntr);
-#if 0 //6752 removed
+#if 0 // removed
 #ifdef PM_MANAGER_API
         if (enable_clock(MT_CG_AUDIO_ADDA2, "AUDIO"))
         {
@@ -379,7 +379,7 @@ void AudDrv_ADC2_Clk_Off(void)
     if (Aud_ADC2_Clk_cntr == 0)
     {
         PRINTK_AUDDRV("+%s disable_clock ADC clk(%x)\n", __func__, Aud_ADC2_Clk_cntr);
-#if 0 //6752 removed
+#if 0 // removed
 #ifdef PM_MANAGER_API
         if (disable_clock(MT_CG_AUDIO_ADDA2, "AUDIO"))
         {
@@ -417,7 +417,7 @@ void AudDrv_ADC3_Clk_On(void)
     if (Aud_ADC3_Clk_cntr == 0)
     {
         PRINTK_AUDDRV("+%s  enable_clock ADC clk(%x)\n", __func__, Aud_ADC3_Clk_cntr);
-#if 0 //6752 removed
+#if 0 // removed
 #ifdef PM_MANAGER_API
         if (enable_clock(MT_CG_AUDIO_ADDA3, "AUDIO"))
         {
@@ -438,7 +438,7 @@ void AudDrv_ADC3_Clk_Off(void)
     if (Aud_ADC3_Clk_cntr == 0)
     {
         PRINTK_AUDDRV("+%s disable_clock ADC clk(%x)\n", __func__, Aud_ADC3_Clk_cntr);
-#if 0 //6752 removed
+#if 0 // removed
 #ifdef PM_MANAGER_API
         if (disable_clock(MT_CG_AUDIO_ADDA3, "AUDIO"))
         {
@@ -871,7 +871,7 @@ void AudDrv_Suspend_Clk_Off(void)
         }
         if (Aud_ADC2_Clk_cntr > 0)
         {
-        	#if 0 //6752 removed
+        	#if 0 // removed
             if (disable_clock(MT_CG_AUDIO_ADDA2, "AUDIO"))
             {
                 PRINTK_AUD_CLK("%s fail", __func__);
@@ -880,7 +880,7 @@ void AudDrv_Suspend_Clk_Off(void)
         }
         if (Aud_ADC3_Clk_cntr > 0)
         {
-            #if 0 //6752 removed
+            #if 0 // removed
             if (disable_clock(MT_CG_AUDIO_ADDA3, "AUDIO"))
             {
                 PRINTK_AUD_CLK("%s fail", __func__);
@@ -953,7 +953,7 @@ void AudDrv_Suspend_Clk_On(void)
         }
         if (Aud_ADC2_Clk_cntr > 0)
         {
-        	#if 0 //6752 removed
+        	#if 0 // removed
             if (enable_clock(MT_CG_AUDIO_ADDA2, "AUDIO"))
             {
                 PRINTK_AUD_CLK("%s fail", __func__);
@@ -962,7 +962,7 @@ void AudDrv_Suspend_Clk_On(void)
         }
         if (Aud_ADC3_Clk_cntr > 0)
         {
-        	#if 0 //6752 removed
+        	#if 0 // removed
             if (enable_clock(MT_CG_AUDIO_ADDA3, "AUDIO"))
             {
                 PRINTK_AUD_CLK("%s fail", __func__);

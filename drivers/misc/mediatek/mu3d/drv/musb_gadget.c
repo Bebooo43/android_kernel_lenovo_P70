@@ -107,9 +107,6 @@ static inline void map_dma_buffer(struct musb_request *request,
 	struct dma_controller *dma = musb->dma_controller;
 #endif
 
-	unsigned length;
-	length = ALIGN(request->request.length ,dma_get_cache_alignment());
-
 	request->map_state = UN_MAPPED;
 
 #ifndef USE_SSUSB_QMU
@@ -132,7 +129,7 @@ static inline void map_dma_buffer(struct musb_request *request,
 		request->request.dma = dma_map_single(
 				musb->controller,
 				request->request.buf,
-				length,
+				request->request.length,
 				request->tx
 					? DMA_TO_DEVICE
 					: DMA_FROM_DEVICE);
@@ -140,7 +137,7 @@ static inline void map_dma_buffer(struct musb_request *request,
 	} else {
 		dma_sync_single_for_device(musb->controller,
 			request->request.dma,
-			length,
+			request->request.length,
 			request->tx
 				? DMA_TO_DEVICE
 				: DMA_FROM_DEVICE);
@@ -152,9 +149,6 @@ static inline void map_dma_buffer(struct musb_request *request,
 static inline void unmap_dma_buffer(struct musb_request *request,
 				struct musb *musb)
 {
-	unsigned length;
-	length = ALIGN(request->request.length ,dma_get_cache_alignment());
-
 	if (!is_buffer_mapped(request))
 		return;
 
@@ -166,7 +160,7 @@ static inline void unmap_dma_buffer(struct musb_request *request,
 	if (request->map_state == MUSB_MAPPED) {
 		dma_unmap_single(musb->controller,
 			request->request.dma,
-			length,
+			request->request.length,
 			request->tx
 				? DMA_TO_DEVICE
 				: DMA_FROM_DEVICE);
@@ -174,7 +168,7 @@ static inline void unmap_dma_buffer(struct musb_request *request,
 	} else { /* PRE_MAPPED */
 		dma_sync_single_for_cpu(musb->controller,
 			request->request.dma,
-			length,
+			request->request.length,
 			request->tx
 				? DMA_TO_DEVICE
 				: DMA_FROM_DEVICE);
@@ -930,6 +924,8 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
 
 	os_printk(K_DEBUG, "%s %s, req=%p, len#%d\n", __func__, ep->name, req, request->request.length);
 
+	dev_dbg(musb->controller, "<== to %s request=%p\n", ep->name, req);
+
 	/* request is mine now... */
 	request->request.actual = 0;
 	request->request.status = -EINPROGRESS;
@@ -1454,26 +1450,6 @@ static int musb_gadget_vbus_draw(struct usb_gadget *gadget, unsigned mA)
 	return usb_phy_set_power(musb->xceiv, mA);
 }
 
-static int usb_rdy;         /* default value 0 */
-static struct delayed_work mu3d_clk_off_work;
-static struct musb *mu3d_clk_off_musb;
-extern void wake_up_bat(void);
-static void do_mu3d_clk_off_work(struct work_struct *work)
-{
-	os_printk(K_NOTICE, "do_mu3d_clk_off_work, issue connection work\n");
-	schedule_delayed_work_on(0, &mu3d_clk_off_musb->connection_work, 0);
-}
-void set_usb_rdy(void){
-	os_printk(K_NOTICE, "set usb_rdy, wake up bat\n");
-	usb_rdy = 1;
-	wake_up_bat();
-}
-kal_bool is_usb_rdy(void){
-	if (usb_rdy)
-		return KAL_TRUE;
-	else
-		return KAL_FALSE;
-}
 static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
 {
 	struct musb	*musb = gadget_to_musb(gadget);
@@ -1494,17 +1470,6 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
 	spin_unlock_irqrestore(&musb->lock, flags);
 
 	pm_runtime_put(musb->controller);
-	if(is_usb_rdy() == KAL_FALSE && is_on){
-		set_usb_rdy();
-		if (!is_otg_enabled(musb)){
-#define MY_DELAY 2000
-			INIT_DELAYED_WORK(&mu3d_clk_off_work, do_mu3d_clk_off_work);
-			mu3d_clk_off_musb = musb;
-			os_printk(K_NOTICE, "queue mu3d_clk_off_work, %d ms delayed\n", MY_DELAY);
-			schedule_delayed_work(&mu3d_clk_off_work, msecs_to_jiffies(MY_DELAY));
-		}
-	}
-
 
 	return 0;
 }
@@ -1708,12 +1673,7 @@ static int musb_gadget_start(struct usb_gadget *g,
 	musb->gadget_driver = driver;
 
 	spin_lock_irqsave(&musb->lock, flags);
-	if(is_usb_rdy() == KAL_TRUE){
-		musb->is_active = 1;
-	}else{
-		os_printk(K_NOTICE, "skip set is_active to 1, leave it to connection_work\n");
-	}
-
+	musb->is_active = 1;
 
 	otg_set_peripheral(otg, &musb->g);
 	musb->xceiv->state = OTG_STATE_B_IDLE;
@@ -1724,6 +1684,9 @@ static int musb_gadget_start(struct usb_gadget *g,
 	 * userspace hooks up printer hardware or DSP codecs, so
 	 * hosts only see fully functional devices.
 	 */
+
+	if (!is_otg_enabled(musb))
+		schedule_delayed_work_on(0, &musb->connection_work, 0);
 
 	spin_unlock_irqrestore(&musb->lock, flags);
 

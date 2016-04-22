@@ -5,11 +5,6 @@ CONFIG_2=P70_GC_defconfig #OC CPU & GPU
 CONFIG_3=P70_G_defconfig #OC only GPU
 CONFIG_4=P70_C_defconfig #OC only CPU
 
-CONFIG_5=P70_cyanogenmod_defconfig #No OC
-CONFIG_6=P70_GC_cyanogenmod_defconfig #OC CPU & GPU
-CONFIG_7=P70_G_cyanogenmod_defconfig #OC only GPU
-CONFIG_8=P70_C_cyanogenmod_defconfig #OC only CPU
-
 KERNEL_DIR=~/kernel-3.10
 CROSS_COMPILE=~/gcc/gcc-linaro-5.2-aarch64-linux-gnu/bin/aarch64-linux-gnu-
 OUT=out
@@ -212,36 +207,36 @@ fi
 boot_p70() {
 make_aosp_kernel "$CONFIG_1"
 make_vdt_kernel "$CONFIG_1"
-make_cm_kernel "$CONFIG_5"
+make_cm_kernel "$CONFIG_1"
 make_aicp_kernel "$CONFIG_1"
-make_cm_zormax_kernel "$CONFIG_5"
+make_cm_zormax_kernel "$CONFIG_1"
 make_zip "$CONFIG_1"
 }
 
 boot_p70_gc() {
 make_aosp_kernel "$CONFIG_2"
 make_vdt_kernel "$CONFIG_2"
-make_cm_kernel "$CONFIG_6"
+make_cm_kernel "$CONFIG_2"
 make_aicp_kernel "$CONFIG_2"
-make_cm_zormax_kernel "$CONFIG_6"
+make_cm_zormax_kernel "$CONFIG_2"
 make_zip "$CONFIG_2"
 }
 
 boot_p70_g() {
 make_aosp_kernel "$CONFIG_3"
 make_vdt_kernel "$CONFIG_3"
-make_cm_kernel "$CONFIG_7"
+make_cm_kernel "$CONFIG_3"
 make_aicp_kernel "$CONFIG_3"
-make_cm_zormax_kernel "$CONFIG_7"
+make_cm_zormax_kernel "$CONFIG_3"
 make_zip "$CONFIG_3"
 }
 
 boot_p70_c() {
 make_aosp_kernel "$CONFIG_4"
 make_vdt_kernel "$CONFIG_4"
-make_cm_kernel "$CONFIG_8"
+make_cm_kernel "$CONFIG_4"
 make_aicp_kernel "$CONFIG_4"
-make_cm_zormax_kernel "$CONFIG_8"
+make_cm_zormax_kernel "$CONFIG_4"
 make_zip "$CONFIG_4"
 }
 

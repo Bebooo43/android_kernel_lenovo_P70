@@ -1,8 +1,37 @@
-#ifndef __HW_BREAKPOINT_32_H
-#define __HW_BREAKPOINT_32_H
+#ifndef __HW_BREAKPOINT_H
+#define __HW_BREAKPOINT_H
 #include <mach/sync_write.h>
 #include <asm/io.h>
-#include <mach/hw_watchpoint.h>
+typedef int (*wp_handler)(unsigned int addr);
+
+struct wp_event
+{
+    unsigned int virt;
+    unsigned int phys;
+    int type;
+    wp_handler handler;
+    int in_use;
+    int auto_disable;
+};
+
+#define WP_EVENT_TYPE_READ 1
+#define WP_EVENT_TYPE_WRITE 2
+#define WP_EVENT_TYPE_ALL 3
+
+#define init_wp_event(__e, __v, __p, __t, __h)   \
+        do {    \
+            (__e)->virt = (__v);    \
+            (__e)->phys = (__p);    \
+            (__e)->type = (__t);    \
+            (__e)->handler = (__h);    \
+            (__e)->auto_disable = 0;    \
+        } while (0)
+
+#define auto_disable_wp(__e)   \
+        do {    \
+            (__e)->auto_disable = 1;    \
+        } while (0)
+
 
 #define MAX_NR_WATCH_POINT 4  
 struct wp_trace_context_t
@@ -51,7 +80,6 @@ struct dbgreg_set {
 
 #define DBGLAR 0xFB0
 #define DBGLSR 0xFB4
-#define DBGAUTHSTATUS_EL1 0xFB8
 #define DBGOSLAR 0x300
 //#define NUM_CPU    4 // max cpu# per cluster
 
@@ -65,8 +93,6 @@ struct dbgreg_set {
 #define LSC_STR (2 << 3)
 #define LSC_ALL (3 << 3)
 
-#define NSNID_SHIFT 2
-#define SNID_SHIFT 6
 //#define WATCHPOINT_TEST_SUIT
 
 #define ARM_DBG_READ(N, M, OP2, VAL) do {\
@@ -103,9 +129,11 @@ void smp_read_dbgdscr_callback(void *info);
 void smp_write_dbgdscr_callback(void *info);
 void smp_read_dbgoslsr_callback(void *info);
 void smp_write_dbgoslsr_callback(void *info);
-void smp_read_dbgvcr_callback(void *info);
+ void smp_read_dbgvcr_callback(void *info);
 void smp_write_dbgvcr_callback(void *info);
 int register_wp_context(struct wp_trace_context_t **wp_tracer_context );
+extern int add_hw_watchpoint(struct wp_event *wp_event);
+extern int del_hw_watchpoint(struct wp_event *wp_event);
 void __iomem* get_wp_base(void);
 void smp_read_dbgdscr_callback(void *info);
 void smp_write_dbgdscr_callback(void *info);
@@ -113,4 +141,4 @@ void smp_read_dbgoslsr_callback(void *info);
 void smp_write_dbgoslsr_callback(void *info);
 
 
-#endif  /* !__HW_BREAKPOINT_32_H */
+#endif  /* !__HW_BREAKPOINT_H */

@@ -369,11 +369,8 @@ int exec_ccci_kern_func_by_md_id(int md_id, unsigned int id, char *buf, unsigned
 		 */
 		if(md->md_state != READY)
 			ret = 1;
-		else {
+		else
 			ret = ccci_send_msg_to_md(md, CCCI_SYSTEM_TX, MD_PAUSE_LTE, *((int *)buf), 1);
-			if (ret == -CCCI_ERR_MD_NOT_READY || ret == -CCCI_ERR_HIF_NOT_POWER_ON)
-				ret = 1;
-		}
 		break;
    	case ID_STORE_SIM_SWITCH_MODE:
         {

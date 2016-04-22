@@ -1,4 +1,5 @@
-/* ST LSM6DS3 Accelerometer and Gyroscope sensor driver
+/* ST LSM6DS3 Accelerometer and Gyroscope sensor driver 
+ *
  *
  *
  * This software is licensed under the terms of the GNU General Public

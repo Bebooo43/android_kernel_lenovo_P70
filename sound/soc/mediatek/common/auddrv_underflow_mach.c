@@ -83,7 +83,7 @@ void Auddrv_Aee_Dump(void)
     printk("+%s\n", __func__);
     if(bEnableDump == true)
     {
-        //aee_kernel_exception_api(__FILE__, __LINE__, DB_OPT_FTRACE, "Audio is blocked", "audio blocked dump ftrace");
+        aee_kernel_exception_api(__FILE__, __LINE__, DB_OPT_FTRACE, "Audio is blocked", "audio blocked dump ftrace");
     }
     Auddrv_Reset_Dump_State();
     printk("-%s\n", __func__);

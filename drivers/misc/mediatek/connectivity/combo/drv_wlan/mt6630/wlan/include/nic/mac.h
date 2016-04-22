@@ -177,7 +177,6 @@
 #define MAC_ADDR_LOCAL_ADMIN                    BIT(1)
 
 #define ETH_P_IPV4                              0x0800
-#define ETH_P_ARP                               0x0806
 #define ETH_P_IPX                               0x8137	/* Novell IPX */
 #define ETH_P_AARP                              0x80F3	/* AppleTalk Address Resolution Protocol (AARP) */
 #define ETH_P_IPV6                              0x86DD
@@ -243,16 +242,9 @@
 
 #define TCP_HDR_TCP_CSUM_OFFSET                 16
 
-#define UDP_HDR_LEN                             8
-
 #define UDP_HDR_SRC_PORT_OFFSET                 0
 #define UDP_HDR_DST_PORT_OFFSET                 2
 #define UDP_HDR_UDP_CSUM_OFFSET                 6
-
-#define IP_PORT_BOOTP_SERVER                    67
-#define IP_PORT_BOOTP_CLIENT                    68
-
-#define DHCP_MAGIC_NUMBER                       0x63825363
 
 #define ARP_OPERATION_OFFSET                    6
 #define ARP_SNEDER_MAC_OFFSET                   8
@@ -1450,23 +1442,6 @@ typedef struct _ETH_FRAME_T {
 	UINT_8 aucData[1];
 } __KAL_ATTRIB_PACKED__ ETH_FRAME_T, *P_ETH_FRAME_T;
 
-typedef struct _BOOTP_PROTOCOL_T {
-    UINT_8 ucOperation;
-    UINT_8 ucHdrType;
-    UINT_8 ucHdrLen;
-    UINT_8 ucHops;
-    UINT_32 u4TransId;
-    UINT_16 u2Seconds;
-    UINT_16 u2Flags;
-    UINT_32 u4CIAddr;
-    UINT_32 u4YIAddr;
-    UINT_32 u4SIAddr;
-    UINT_32 u4GIAddr;
-    UINT_8 aucCHAddr[16];
-    UINT_8 aucServerName[64];
-    UINT_8 aucFileName[128];
-    UINT_8 aucOptions[0];
-} __KAL_ATTRIB_PACKED__ BOOTP_PROTOCOL_T, *P_BOOTP_PROTOCOL_T;
 
 /* IEEE 802.11 WLAN Frame Structure */
 /* WLAN MAC Header (without Address 4 and QoS Control fields) */

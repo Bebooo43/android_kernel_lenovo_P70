@@ -47,15 +47,15 @@
 /****************************   Modify end    *******************************************/
 
 #if DBG
-#define LOG_DBG(format, args...)    pr_debug( PFX "[%s] " format, __FUNCTION__, ##args)
-#define LOG_INF(format, args...)    pr_info( PFX "[%s] " format, __FUNCTION__, ##args)
-#define LOG_WRN(format, args...)    pr_warn( PFX "[%s] " format, __FUNCTION__, ##args)
-#define LOG_ERR(format, args...)    pr_err( PFX "[%s] " format, __FUNCTION__, ##args)
+#define LOG_DBG(format, args...)    xlog_printk(ANDROID_LOG_DEBUG   , PFX, "[%s] " format, __FUNCTION__, ##args)
+#define LOG_INF(format, args...)    xlog_printk(ANDROID_LOG_INFO   , PFX, "[%s] " format, __FUNCTION__, ##args)
+#define LOG_WRN(format, args...)    xlog_printk(ANDROID_LOG_WARN, PFX, "[%s] " format, __FUNCTION__, ##args)
+#define LOG_ERR(format, args...)    xlog_printk(ANDROID_LOG_ERROR   , PFX, "[%s] " format, __FUNCTION__, ##args)
 #else
 #define LOG_DBG(format, args...) 
 #define LOG_INF(format, args...)
-#define LOG_WRN(format, args...)    pr_warn( PFX "[%s] " format, __FUNCTION__, ##args)
-#define LOG_ERR(format, args...)    pr_err( PFX "[%s] " format, __FUNCTION__, ##args)
+#define LOG_WRN(format, args...)    xlog_printk(ANDROID_LOG_WARN, PFX, "[%s] " format, __FUNCTION__, ##args)
+#define LOG_ERR(format, args...)    xlog_printk(ANDROID_LOG_ERROR   , PFX, "[%s] " format, __FUNCTION__, ##args)
 
 #endif
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
@@ -64,12 +64,12 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 int ov13850_chip_ver = OV13850_R2A;
 //sensor otp
-//extern void otp_cali(unsigned char writeid);
+extern void otp_cali(unsigned char writeid);
 
 static imgsensor_info_struct imgsensor_info = {
     .sensor_id = OV13850_SENSOR_ID,        //record sensor id defined in Kd_imgsensor.h
 
-    .checksum_value = 0xbde6b5f8,//0xf86cfdf4,        //checksum value for Camera Auto Test
+    .checksum_value = 0xa261a12b,//0xf86cfdf4,        //checksum value for Camera Auto Test
 
     .pre = {
         .pclk = 240000000,                //record different mode's pclk
@@ -212,231 +212,7 @@ static kal_uint16 read_cmos_sensor(kal_uint32 addr)
 static void write_cmos_sensor(kal_uint32 addr, kal_uint32 para)
 {
     char pu_send_cmd[3] = {(char)(addr >> 8), (char)(addr & 0xFF), (char)(para & 0xFF)};
-    iWriteRegI2C(pu_send_cmd, 3, imgsensor.i2c_write_id);
-}
-static kal_uint16 OV13850_read_cmos_sensor(kal_uint32 addr)
-{
-	kal_uint16 get_byte=0;
-
-	char pu_send_cmd[2] = {(char)(addr >> 8), (char)(addr & 0xFF) };
-	iReadRegI2C(pu_send_cmd, 2, (u8*)&get_byte, 1, imgsensor.i2c_write_id);
-
-	return get_byte;
-}
-
-static void OV13850_write_cmos_sensor(kal_uint32 addr, kal_uint32 para)
-{
-	char pu_send_cmd[3] = {(char)(addr >> 8), (char)(addr & 0xFF), (char)(para & 0xFF)};
-	iWriteRegI2C(pu_send_cmd, 3, imgsensor.i2c_write_id);
-}
-
-//int ReadSensorReg(u16 i2cId, u16 addr, u8 * puBuff);
-
-kal_uint16 OV13850_EEProm_read(kal_uint32 addr)
-
-{
-       kal_uint16 get_byte=0;
-
-	char pu_send_cmd[2] = {(char)(addr >> 8), (char)(addr & 0xFF) };
-	iReadRegI2C(pu_send_cmd, 2, (u8*)&get_byte, 1, 0xb0);  //0xb0 is driver ic id
-	
-	return get_byte;
-}
-
-void OV13850_ApplyAWB(kal_uint16 rg,kal_uint16 bg,kal_uint16 RG_Ratio_Typical,kal_uint16 BG_Ratio_Typical)
-
-{
-	kal_uint16 nR_G_gain,nB_G_gain,nG_G_gain;
-	kal_uint16 nBase_gain;
-	kal_uint16 R_gain,B_gain,G_gain;
-	USHORT temp1,temp2,temp3,temp4,temp5,temp6;//shenan
-	
-	nR_G_gain=(RG_Ratio_Typical*1000)/rg;
-	nB_G_gain=(BG_Ratio_Typical*1000)/bg;
-	nG_G_gain=1000;
-	
-	if(nR_G_gain<1000 || nB_G_gain<1000)
-	{
-		if(nR_G_gain < nB_G_gain)
-			nBase_gain=nR_G_gain;
-		else
-			nBase_gain=nB_G_gain;
-	}
-	else
-	{
-		nBase_gain=nG_G_gain;
-	}
-	
-	R_gain=0x400*nR_G_gain/(nBase_gain);
-	B_gain=0x400*nB_G_gain/(nBase_gain);
-	G_gain=0x400*nG_G_gain/(nBase_gain);
-	
-	if(R_gain>0x400)
-	{
-		OV13850_write_cmos_sensor(0x5056,R_gain>>8);
-		OV13850_write_cmos_sensor(0x5057,R_gain&0x00ff);
-	}
-	if(G_gain>0x400)
-	{
-		OV13850_write_cmos_sensor(0x5058,G_gain>>8);
-		OV13850_write_cmos_sensor(0x5059,G_gain&0x00ff);
-	}
-	if(B_gain>0x400)
-	{
-		OV13850_write_cmos_sensor(0x505A,B_gain>>8);
-		OV13850_write_cmos_sensor(0x505B,B_gain&0x00ff);
-	}
-	//shenan,
-	temp1=OV13850_read_cmos_sensor(0x5056);
-	temp2=OV13850_read_cmos_sensor(0x5057);
-	temp3=OV13850_read_cmos_sensor(0x5058);
-	temp4=OV13850_read_cmos_sensor(0x5059);
-	temp5=OV13850_read_cmos_sensor(0x505A);
-	temp6=OV13850_read_cmos_sensor(0x505B);
-	
-	LOG_INF("OTP AWB info From Sensor 0x5056: 0x%x\n",temp1);
-	LOG_INF("OTP AWB info From Sensor 0x5057: 0x%x\n",temp2);
-	LOG_INF("OTP AWB info From Sensor 0x5058: 0x%x\n",temp3);
-	LOG_INF("OTP AWB info From Sensor 0x5059: 0x%x\n",temp4);
-	LOG_INF("OTP AWB info From Sensor 0x505a: 0x%x\n",temp5);
-	LOG_INF("OTP AWB info From Sensor 0x505b: 0x%x\n",temp6);
-	//shenan
-}
-
-kal_uint16 OV13850_checkOTP()
-{
-     kal_uint16 otp_flag;
-     kal_uint16 * otp_info_data = (kal_uint16 *)kmalloc(sizeof(kal_uint16)*32,GFP_KERNEL);
-     USHORT * otp_wb_data = (USHORT * )kmalloc(sizeof(USHORT)*64,GFP_KERNEL);
-     USHORT * otp_lsc_data= (USHORT *)kmalloc(sizeof(USHORT)*360,GFP_KERNEL);
-     USHORT flag,temp;
-     kal_uint16 i,sum;
-     kal_uint16 rg,bg,RG_Ratio_Typical,BG_Ratio_Typical;
-
-     //check EEProm flag
-      otp_flag = OV13850_EEProm_read(0x0400);
-      mdelay(10);
-
-      LOG_INF("otpdebug:otp_flag = %x", otp_flag);
-	  
-    if(otp_flag&0x01==1)
-    {
-     	LOG_INF("OV13850 EEProm read success");
-    }
-   else
-    {
-     	LOG_INF("OV13850 EEProm read wrong");
-	return;
-    }
-
-     //read basic info from EEProm
-      for(i=0x0401;i<=0x0412;i++)
-      {
-       otp_info_data[i-0x0401] = OV13850_EEProm_read(i);
-      }
-      
-      mdelay(10);
-
-	USHORT module_id = otp_info_data[0];
-	USHORT sensor_versoin = otp_info_data[1];
-	USHORT otp_calibration_version = otp_info_data[2];
-	USHORT dll_version = otp_info_data[3];
-	USHORT production_year = otp_info_data[4];
-	USHORT production_month = otp_info_data[5];
-	USHORT production_day = otp_info_data[6];
-	USHORT sensor_id = otp_info_data[7];
-	USHORT lens_id = otp_info_data[8];
-	USHORT vcm_id = otp_info_data[9];
-	USHORT driver_ic_id = otp_info_data[10];
-	USHORT IR_BG_id = otp_info_data[11];
-	USHORT color_temperature_id = otp_info_data[12];
-	USHORT AF_FF_flag = otp_info_data[13];
-	USHORT light_source_flag = otp_info_data[14]; 
-
-	LOG_INF("otpdebug:module_id = %x",module_id);
-	LOG_INF("otpdebug:dll_version = %x",dll_version);
-     
-	//if(module_id != 0x07 || dll_version != 0x03)
-	//{
-       //  LOG_INF("otpdebug:The module is not made by ofilm or Dll version is wrong");
-	//  return;
-	//}
-       //read LSC data from EEProm
-       for(i=0x042f;i<=0x0596;i++)
-       {
-       	  otp_lsc_data[i-0x042f] = OV13850_EEProm_read(i);
-	  LOG_INF("OTP LSC info From Epprom 0x%x: 0x%x\n",i,otp_lsc_data[i-0x042f]); //shenan
-       }
-       
-	 mdelay(10);
-
-	 //update LSC data from EEProm
-	  i = 0;
-	  temp = 0;
-	  temp=OV13850_read_cmos_sensor(0x5000);
-	  temp =temp | 0x01;
-	  OV13850_write_cmos_sensor(0x5000,temp);
-
-	  for(i=0;i<360;i++)
-	   {
-	   	OV13850_write_cmos_sensor(0x5200+i,otp_lsc_data[i]);
-		LOG_INF("OTP LSC info From Sensor 0x%x: 0x%x\n",0x5200+i,OV13850_read_cmos_sensor(0x5200+i)); //shenan
-	   }
-	
-	//read wb data from EEProm 
-	for(i=0x0413;i<=0x042e;i++)
-	{
-	  otp_wb_data[i-0x0413] = OV13850_EEProm_read(i);
-	  LOG_INF("OTP AWB info From Epprom 0x%x: 0x%x\n",i,otp_wb_data[i-0x0413]); //shenan
-	}
-	
-       mdelay(10);
-	
-	rg = (otp_wb_data[0]<<2) + ((otp_wb_data[1]>>6)&0x03);
-	bg = (otp_wb_data[2]<<2) + ((otp_wb_data[3]>>6)&0x03);
-	RG_Ratio_Typical = (otp_wb_data[6]<<2) + ((otp_wb_data[7]>>6)&0x03);
-	BG_Ratio_Typical = (otp_wb_data[8]<<2) + ((otp_wb_data[9]>>6)&0x03);
-
-	LOG_INF("otpdebug:rg = %x\n",rg);
-	LOG_INF("otpdebug:bg = %x\n",bg);
-	LOG_INF("otpdebug:RG_Ratio_Typical = %x\n",RG_Ratio_Typical);
-	LOG_INF("otpdebug:BG_Ratio_Typical = %x\n",BG_Ratio_Typical);
-	
-       //update wb data from EEProm
-        if((rg != 0) && (bg != 0) && (RG_Ratio_Typical != 0) && (BG_Ratio_Typical != 0))
-      {
-	OV13850_ApplyAWB(rg,bg,RG_Ratio_Typical,BG_Ratio_Typical);
-	}
-	
-	//EEProm checksum
-	sum = 0;
-	kal_uint16 TotalCheckSumValue =0;
-	USHORT * BufferCheckSum= (USHORT *)kmalloc(sizeof(USHORT)*420,GFP_KERNEL);
-
-	for(i=0x0401;i<=0x059e;i++)
-	{
-		BufferCheckSum[i-0x0401]=OV13850_EEProm_read(i);
-	}
-	
-	mdelay(10);
-   
-	for(i=0x0401;i<=0x059d;i++)
-	{
-	   sum+= BufferCheckSum[i-0x0401];
-	}
-	mdelay(10);
-	TotalCheckSumValue = (sum%0xff + 1);
-	mdelay(10);
-	if(BufferCheckSum[413]==TotalCheckSumValue)
-	{
-		LOG_INF("OV13850 EEProm read data success");
-	}
-	else
-	{
-	    LOG_INF("OV13850 EEProm read data failed");		
-	}
-	
-	
+    iWriteRegI2C(pu_send_cmd, 3, imgsensor.i2c_write_id);		
 }
 
 static void set_dummy()
@@ -527,8 +303,11 @@ static void set_shutter(kal_uint16 shutter)
     spin_unlock(&imgsensor_drv_lock);
     shutter = (shutter < imgsensor_info.min_shutter) ? imgsensor_info.min_shutter : shutter;
     shutter = (shutter > (imgsensor_info.max_frame_length - imgsensor_info.margin)) ? (imgsensor_info.max_frame_length - imgsensor_info.margin) : shutter;
+    // Framelength should be an even number
+    shutter = (shutter >> 1) << 1;
+    imgsensor.frame_length = (imgsensor.frame_length >> 1) << 1;
 
-    if (imgsensor.autoflicker_en) {
+	if (imgsensor.autoflicker_en) {
         realtime_fps = imgsensor.pclk / imgsensor.line_length * 10 / imgsensor.frame_length;
         if(realtime_fps >= 297 && realtime_fps <= 305)
             set_max_framerate(296,0);
@@ -856,7 +635,7 @@ static void sensor_init(void)
 		write_cmos_sensor(0x3609, 0x40);
 		write_cmos_sensor(0x360a, 0x30);
 		write_cmos_sensor(0x360b, 0x91);
-		write_cmos_sensor(0x360c, 0x09);//shenan
+		write_cmos_sensor(0x360c, 0x49);
 		write_cmos_sensor(0x360f, 0x02);
 		write_cmos_sensor(0x3611, 0x10);
 		write_cmos_sensor(0x3612, 0x27);
@@ -893,7 +672,7 @@ static void sensor_init(void)
 		write_cmos_sensor(0x3710, 0x28);
 		write_cmos_sensor(0x3716, 0x03);
 		write_cmos_sensor(0x3718, 0x10);
-		write_cmos_sensor(0x3719, 0x0c);  //shenan
+		write_cmos_sensor(0x3719, 0x08);
 		write_cmos_sensor(0x371a, 0x08);
 		write_cmos_sensor(0x371c, 0xfc);
 		write_cmos_sensor(0x3748, 0x00);
@@ -987,7 +766,7 @@ static void sensor_init(void)
 		write_cmos_sensor(0x4d05, 0x65);
 		write_cmos_sensor(0x4d0b, 0x00);
 		write_cmos_sensor(0x5000, 0x0e);//0e
-		write_cmos_sensor(0x5001, 0x03); //shenan,01
+		write_cmos_sensor(0x5001, 0x01);
 		write_cmos_sensor(0x5002, 0x07);
 		write_cmos_sensor(0x5013, 0x40);
 		write_cmos_sensor(0x501c, 0x00);
@@ -1017,11 +796,6 @@ static void sensor_init(void)
 		write_cmos_sensor(0x5b09, 0x02);
 		write_cmos_sensor(0x5e00, 0x00);
 		write_cmos_sensor(0x5e10, 0x1c);		
-		write_cmos_sensor(0x5368, 0x70); //max gain  //shenan
-		write_cmos_sensor(0x5369, 0x40); //min gain
-		write_cmos_sensor(0x536a, 0x40); //max Q
-		write_cmos_sensor(0x536b, 0x08); //min Q
-		write_cmos_sensor(0x536c, 0x32); //enable min Q bit 2
 		if (ov13850_chip_ver == OV13850_R1A)
 		{
 			write_cmos_sensor(0x351b, 0x00);
@@ -1083,7 +857,6 @@ static void sensor_init(void)
 static void preview_setting(void)
 {
     write_cmos_sensor(0x0100, 0x00);//
-    mdelay(50);
 		write_cmos_sensor(0x0300, 0x01);
 		write_cmos_sensor(0x0302, 0x28);
 		write_cmos_sensor(0x0303, 0x00);
@@ -1137,7 +910,7 @@ static void preview_setting(void)
 		write_cmos_sensor(0x5401, 0x61);
 		write_cmos_sensor(0x5405, 0x40);
 		write_cmos_sensor(0x0100, 0x01);//
-		mdelay(15);
+		mdelay(10);	
 }    /*    preview_setting  */
 
 int capture_first_flag = 0;
@@ -1160,11 +933,10 @@ if (capture_first_flag == 0)
 
     if (currefps == 240) { //24fps for PIP
         //@@full_132PCLK_24.75
-                write_cmos_sensor(0x0100, 0x00);//
       		write_cmos_sensor(0x0300, 0x00);//
-			write_cmos_sensor(0x0302, 0x28);//
+			write_cmos_sensor(0x0302, 0x28);//0x32
 			write_cmos_sensor(0x0303, 0x00);//
-			write_cmos_sensor(0x3612, 0x33);//
+			write_cmos_sensor(0x3612, 0x33);//0x07
 			write_cmos_sensor(0x3501, 0xc0);//   
 			write_cmos_sensor(0x3702, 0x40);// ;add for VGA differences
 			write_cmos_sensor(0x370a, 0x24);//
@@ -1210,16 +982,15 @@ if (capture_first_flag == 0)
 			write_cmos_sensor(0x4501, 0x38);//
 			write_cmos_sensor(0x4601, 0x04);//
 			write_cmos_sensor(0x4603, 0x00);//
-			write_cmos_sensor(0x4837, 0x11);//
+			write_cmos_sensor(0x4837, 0x11);//0x0d
 			write_cmos_sensor(0x5401, 0x71);//
 			write_cmos_sensor(0x5405, 0x80);//
 			write_cmos_sensor(0x0100, 0x01);//
 
     } else {   //30fps            //30fps for Normal capture & ZSD
  
-      write_cmos_sensor(0x0100, 0x00);//
-      mdelay(50);
-      		write_cmos_sensor(0x0300, 0x00);//
+
+     		write_cmos_sensor(0x0300, 0x00);//
 			write_cmos_sensor(0x0302, 0x32);//
 			write_cmos_sensor(0x0303, 0x00);//
 			write_cmos_sensor(0x3612, 0x07);//
@@ -1360,25 +1131,11 @@ static void hs_video_setting()
 		write_cmos_sensor(0x0302, 0x28);
 		write_cmos_sensor(0x0303, 0x00);
 		write_cmos_sensor(0x3612, 0x27);
-		write_cmos_sensor(0x3614, 0x28); //neil add 20150113
 		write_cmos_sensor(0x3501, 0x20);
 		write_cmos_sensor(0x3702, 0x5a);
 		write_cmos_sensor(0x370a, 0xa9);
-		write_cmos_sensor(0x3718, 0x1c);//add new20140801
-                write_cmos_sensor(0x371b, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3748, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3730, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3731, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3732, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3733, 0x00); // neil add 20150113
-		write_cmos_sensor(0x372a, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3749, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3738, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3739, 0x00); // neil add 20150113
-                write_cmos_sensor(0x373a, 0x00); // neil add 20150113
-                write_cmos_sensor(0x373b, 0x00); // neil add 20150113
+		write_cmos_sensor(0x372a, 0x00);
 		write_cmos_sensor(0x372f, 0x88);
-		write_cmos_sensor(0x3780, 0x10); //neil add 20150108
 		write_cmos_sensor(0x3801, 0x00);
 		write_cmos_sensor(0x3802, 0x01);
 		write_cmos_sensor(0x3803, 0x78);
@@ -1499,21 +1256,7 @@ static void slim_video_setting()
 		write_cmos_sensor(0x3614, 0x28);
 		write_cmos_sensor(0x370a, 0x27);
 		write_cmos_sensor(0x372a, 0x00);
-		write_cmos_sensor(0x3718, 0x1c);//add new20140801
-                write_cmos_sensor(0x371b, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3748, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3730, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3731, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3732, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3733, 0x00); // neil add 20150113
-		write_cmos_sensor(0x372a, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3749, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3738, 0x00); // neil add 20150113
-                write_cmos_sensor(0x3739, 0x00); // neil add 20150113
-                write_cmos_sensor(0x373a, 0x00); // neil add 20150113
-                write_cmos_sensor(0x373b, 0x00); // neil add 20150113
-		write_cmos_sensor(0x372f, 0xa0);//0x90
-		write_cmos_sensor(0x3780, 0x10); //neil add 20150108
+		write_cmos_sensor(0x372f, 0x90);
 		write_cmos_sensor(0x3718, 0x10);
 		write_cmos_sensor(0x3767, 0x24);
 		write_cmos_sensor(0x3801, 0x38);
@@ -1609,7 +1352,8 @@ static kal_uint32 set_test_pattern_mode(kal_bool enable)
 static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 {
     kal_uint8 i = 0;
-    kal_uint8 retry = 2;
+    kal_uint8 retry_total_cnt = 10; 
+    kal_uint8 retry = retry_total_cnt;
     //sensor have two i2c address 0x6c 0x6d & 0x21 0x20, we should detect the module used i2c address
     while (imgsensor_info.i2c_addr_table[i] != 0xff) {
         spin_lock(&imgsensor_drv_lock);
@@ -1625,7 +1369,7 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
             retry--;
         } while(retry > 0);
         i++;
-        retry = 2;
+        retry = retry_total_cnt;
     }
     if (*sensor_id != imgsensor_info.sensor_id) {
         // if Sensor ID is not correct, Must set *sensor_id to 0xFFFFFFFF
@@ -1693,16 +1437,8 @@ static kal_uint32 open(void)
     /* initail sequence write in  */
     sensor_init();
 	  //for OTP
-	//if (!OV13850AC_OTP_combination_read())
-	//{
-		//ov13850r2a_update_eeprom();
-		//LOG_INF("otpdebug:moudle id = 0x01");
-	//}
-	//else
-	{
-		OV13850_checkOTP();
-		LOG_INF("otpdebug:moudle id = 0x01");
-	}
+	  //otp_cali(imgsensor.i2c_write_id);
+
 	  write_cmos_sensor(0x0100, 0x00);
 	  
     spin_lock(&imgsensor_drv_lock);
@@ -2112,7 +1848,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
             imgsensor.frame_length = imgsensor_info.pre.framelength + imgsensor.dummy_line;
             imgsensor.min_frame_length = imgsensor.frame_length;
             spin_unlock(&imgsensor_drv_lock);
-            set_dummy();
+            //set_dummy();
             break;
         case MSDK_SCENARIO_ID_VIDEO_PREVIEW:
             if(framerate == 0)
@@ -2123,7 +1859,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
             imgsensor.frame_length = imgsensor_info.normal_video.framelength + imgsensor.dummy_line;
             imgsensor.min_frame_length = imgsensor.frame_length;
             spin_unlock(&imgsensor_drv_lock);
-            set_dummy();
+            //set_dummy();
             break;
         case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:
         	  if (imgsensor.current_fps == imgsensor_info.cap1.max_framerate) {
@@ -2143,7 +1879,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
 		            imgsensor.min_frame_length = imgsensor.frame_length;
 		            spin_unlock(&imgsensor_drv_lock);
             }
-            set_dummy();
+            //set_dummy();
             break;
         case MSDK_SCENARIO_ID_HIGH_SPEED_VIDEO:
             frame_length = imgsensor_info.hs_video.pclk / framerate * 10 / imgsensor_info.hs_video.linelength;
@@ -2152,7 +1888,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
             imgsensor.frame_length = imgsensor_info.hs_video.framelength + imgsensor.dummy_line;
             imgsensor.min_frame_length = imgsensor.frame_length;
             spin_unlock(&imgsensor_drv_lock);
-            set_dummy();
+            //set_dummy();
             break;
         case MSDK_SCENARIO_ID_SLIM_VIDEO:
             frame_length = imgsensor_info.slim_video.pclk / framerate * 10 / imgsensor_info.slim_video.linelength;
@@ -2161,7 +1897,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
             imgsensor.frame_length = imgsensor_info.slim_video.framelength + imgsensor.dummy_line;
             imgsensor.min_frame_length = imgsensor.frame_length;
             spin_unlock(&imgsensor_drv_lock);
-            set_dummy();
+            //set_dummy();
             break;
         default:  //coding with  preview scenario by default
             frame_length = imgsensor_info.pre.pclk / framerate * 10 / imgsensor_info.pre.linelength;
@@ -2170,7 +1906,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
             imgsensor.frame_length = imgsensor_info.pre.framelength + imgsensor.dummy_line;
             imgsensor.min_frame_length = imgsensor.frame_length;
             spin_unlock(&imgsensor_drv_lock);
-            set_dummy();
+            //set_dummy();
             LOG_ERR("error scenario_id = %d, we use preview scenario \n", scenario_id);
             break;
     }
@@ -2269,7 +2005,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
             set_max_framerate_by_scenario((MSDK_SCENARIO_ID_ENUM)*feature_data, *(feature_data+1));
             break;
         case SENSOR_FEATURE_GET_DEFAULT_FRAME_RATE_BY_SCENARIO:
-            get_default_framerate_by_scenario((MSDK_SCENARIO_ID_ENUM)*feature_data, (MUINT32 *)(uintptr_t)(*(feature_data+1)));
+            get_default_framerate_by_scenario((MSDK_SCENARIO_ID_ENUM)*(feature_data), (MUINT32 *)(uintptr_t)(*(feature_data+1)));
             break;
         case SENSOR_FEATURE_SET_TEST_PATTERN:
             set_test_pattern_mode((BOOL)*feature_data);

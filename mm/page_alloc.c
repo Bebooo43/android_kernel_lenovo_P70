@@ -745,20 +745,10 @@ static bool free_pages_prepare(struct page *page, unsigned int order)
 	return true;
 }
 
-#ifdef CONFIG_MT_ENG_BUILD
-#define EXTFRAG_PAGE_ORDER	3
-#define EXTFRAG_MAX_PAGE_ORDER	6
-#endif
-
 static void __free_pages_ok(struct page *page, unsigned int order)
 {
 	unsigned long flags;
 	int migratetype;
-
-#ifdef CONFIG_MT_ENG_BUILD 	
- 	if (order >= EXTFRAG_PAGE_ORDER && order < EXTFRAG_MAX_PAGE_ORDER)
- 		printk("F[EXTFRAG](%lx)\n", (unsigned long)page);
-#endif
 
 	if (!free_pages_prepare(page, order))
 		return;
@@ -990,11 +980,8 @@ int move_freepages(struct zone *zone,
 	 * anyway as we check zone boundaries in move_freepages_block().
 	 * Remove at a later date when no bug reports exist related to
 	 * grouping pages by mobility
-	 * BUG_ON(page_zone(start_page) != page_zone(end_page)); 
 	 */
-	if (page_zone(start_page) != page_zone(end_page))
-		pr_warn("%s: page_zone check fail(%lu, %lu): mt:0x%x\n", 
-			current->comm, page_to_pfn(start_page), page_to_pfn(end_page), migratetype);
+	BUG_ON(page_zone(start_page) != page_zone(end_page));
 #endif
 
 	for (page = start_page; page <= end_page;) {
@@ -2834,7 +2821,6 @@ retry_cpuset:
                                 goto out;
                 }
 
-#ifdef CONFIG_MTKPASR
 		/* Check whether we should release PASR reserved page */
 		if (gfp_mask & __GFP_NOMTKPASR) {
 			/* Do nothing, just go ahead */
@@ -2848,7 +2834,6 @@ retry_cpuset:
 			}
 #endif
 		}
-#endif
 
 		page = __alloc_pages_slowpath(gfp_mask, order,
 				zonelist, high_zoneidx, nodemask,
@@ -2881,11 +2866,6 @@ retry_cpuset:
 	
 #endif // __LOG_PAGE_ALLOC_ORDER__
 	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
-
-#ifdef CONFIG_MT_ENG_BUILD
-	if (order >= EXTFRAG_PAGE_ORDER)
- 		printk("A[EXTFRAG](%lx)gfp=0x%x\n", (unsigned long)page, gfp_mask);
-#endif
 
 out:
 	/*
@@ -6071,65 +6051,53 @@ static inline int pfn_to_bitidx(struct zone *zone, unsigned long pfn)
  * @end_bitidx: The last bit of interest
  * returns pageblock_bits flags
  */
-unsigned long get_pageblock_flags_mask(struct page *page,
-					unsigned long end_bitidx,
-					unsigned long mask)
+unsigned long get_pageblock_flags_group(struct page *page,
+					int start_bitidx, int end_bitidx)
 {
 	struct zone *zone;
 	unsigned long *bitmap;
-	unsigned long pfn, bitidx, word_bitidx;
-	unsigned long word;
+	unsigned long pfn, bitidx;
+	unsigned long flags = 0;
+	unsigned long value = 1;
 
 	zone = page_zone(page);
 	pfn = page_to_pfn(page);
 	bitmap = get_pageblock_bitmap(zone, pfn);
 	bitidx = pfn_to_bitidx(zone, pfn);
-	word_bitidx = bitidx / BITS_PER_LONG;
-	bitidx &= (BITS_PER_LONG-1);
 
-	word = bitmap[word_bitidx];
-	bitidx += end_bitidx;
-	return (word >> (BITS_PER_LONG - bitidx - 1)) & mask;
+	for (; start_bitidx <= end_bitidx; start_bitidx++, value <<= 1)
+		if (test_bit(bitidx + start_bitidx, bitmap))
+			flags |= value;
+
+	return flags;
 }
 
 /**
- * set_pageblock_flags_mask - Set the requested group of flags for a pageblock_nr_pages block of pages
+ * set_pageblock_flags_group - Set the requested group of flags for a pageblock_nr_pages block of pages
  * @page: The page within the block of interest
  * @start_bitidx: The first bit of interest
  * @end_bitidx: The last bit of interest
  * @flags: The flags to set
  */
-void set_pageblock_flags_mask(struct page *page, unsigned long flags,
-					unsigned long end_bitidx,
-					unsigned long mask)
+void set_pageblock_flags_group(struct page *page, unsigned long flags,
+					int start_bitidx, int end_bitidx)
 {
 	struct zone *zone;
 	unsigned long *bitmap;
-	unsigned long pfn, bitidx, word_bitidx;
-	unsigned long old_word, word;
-
-	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
+	unsigned long pfn, bitidx;
+	unsigned long value = 1;
 
 	zone = page_zone(page);
 	pfn = page_to_pfn(page);
 	bitmap = get_pageblock_bitmap(zone, pfn);
 	bitidx = pfn_to_bitidx(zone, pfn);
-	word_bitidx = bitidx / BITS_PER_LONG;
-	bitidx &= (BITS_PER_LONG-1);
-
 	VM_BUG_ON(!zone_spans_pfn(zone, pfn));
 
-	bitidx += end_bitidx;
-	mask <<= (BITS_PER_LONG - bitidx - 1);
-	flags <<= (BITS_PER_LONG - bitidx - 1);
-
-	word = ACCESS_ONCE(bitmap[word_bitidx]);
-	for (;;) {
-		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
-		if (word == old_word)
-			break;
-		word = old_word;
-	}
+	for (; start_bitidx <= end_bitidx; start_bitidx++, value <<= 1)
+		if (flags & value)
+			__set_bit(bitidx + start_bitidx, bitmap);
+		else
+			__clear_bit(bitidx + start_bitidx, bitmap);
 }
 
 /*
@@ -6688,7 +6656,7 @@ EXPORT_SYMBOL(pasr_acquire_inuse_page);
 /* Compute maximum safe order for page allocation */
 int pasr_compute_safe_order(void)
 {
-	struct zone *z = MTKPASR_ZONE;
+	struct zone *z = &NODE_DATA(0)->node_zones[ZONE_NORMAL];
 	int order;
 	unsigned long watermark = low_wmark_pages(z);
 	long free_pages = zone_page_state(z, NR_FREE_PAGES);

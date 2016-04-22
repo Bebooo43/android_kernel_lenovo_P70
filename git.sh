@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ -z "$1" ]
 then
-    echo "Usage: git.sh 'your commi'"
+    echo "Usage: git.sh 'your commit'"
 else
     if git add -A
     then

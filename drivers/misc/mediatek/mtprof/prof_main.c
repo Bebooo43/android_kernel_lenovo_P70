@@ -136,11 +136,11 @@ static ssize_t mt_sched_debug_write(struct file *filp, const char *ubuf, size_t 
 	return cnt;
 }
 
-#ifdef CONFIG_MTPROF_CPUTIME
 /* 2. cputime */
 MT_DEBUG_ENTRY(cputime);
 static int mt_cputime_show(struct seq_file *m, void *v)
 {
+#ifdef CONFIG_MTPROF_CPUTIME
 	struct mt_proc_struct *mtproc = mt_proc_head;
 	int i = 0;
 	unsigned long long end_ts;
@@ -320,11 +320,13 @@ static int mt_cputime_show(struct seq_file *m, void *v)
 			   SPLIT_NS(total_excul_time));
 	}
 
+#endif
 	return 0;
 }
 
 static ssize_t mt_cputime_write(struct file *filp, const char *ubuf, size_t cnt, loff_t *data)
 {
+#ifdef CONFIG_MTPROF_CPUTIME
 	char buf[64];
 	unsigned long val;
 	int ret;
@@ -346,10 +348,10 @@ static ssize_t mt_cputime_write(struct file *filp, const char *ubuf, size_t cnt,
 /* val = !!val; */
 	/* 0: off, 1:on */
 	mt_cputime_switch(val);
+#endif
 	return cnt;
 
 }
-#endif
 
 /* 4. prof status*/
 MT_DEBUG_ENTRY(status);
@@ -640,11 +642,9 @@ static int __init init_mtsched_prof(void)
 	pe = proc_create("mtprof/sched", 0444, NULL, &mt_sched_debug_fops);
 	if (!pe)
 		return -ENOMEM;
-#ifdef CONFIG_MTPROF_CPUTIME
 	pe = proc_create("mtprof/cputime", 0664, NULL, &mt_cputime_fops);
     if (!pe)
-        return -ENOMEM;
-#endif
+	return -ENOMEM;
 	pe = proc_create("mtprof/reboot_pid", 0660, NULL, &mt_pid_fops);
 	if (!pe)
 		return -ENOMEM;

@@ -392,7 +392,7 @@ static int ps_enable_data(int enable)
     	{
        	ALSPS_LOG("PS enable data\n");
 	   	cxt->is_ps_active_data =true;
-      	 	cxt->is_ps_first_data_after_enable = true;
+      	cxt->is_ps_first_data_after_enable = true;
 	   	cxt->ps_ctl.open_report_data(1);
 		ps_real_enable(enable);
 	   	if(false == cxt->is_ps_polling_run && cxt->is_ps_batch_enable == false)

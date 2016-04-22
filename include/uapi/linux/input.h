@@ -725,8 +725,8 @@ struct input_keymap_entry {
 #define BTN_DPAD_RIGHT		0x223
 
 // zormax
-//#define KEY_GESTURE_U  		0x224  /*by wangyang 2014.08.12*/
-//#define KEY_GESTURE_H   		0x225
+#define KEY_GESTURE_U  		0x224  /*by wangyang 2014.08.12*/
+#define KEY_GESTURE_H   		0x225
 
 #define KEY_ALS_TOGGLE		0x230	/* Ambient light sensor */
 

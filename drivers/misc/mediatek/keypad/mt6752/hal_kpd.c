@@ -350,7 +350,7 @@ static void kpd_factory_mode_handler(void)
 	memcpy(kpd_keymap_state, new_state, sizeof(new_state));
 	kpd_print("save new keymap state\n");
 }
-
+ 
 /********************************************************************/
 void kpd_auto_test_for_factorymode(void)
 {

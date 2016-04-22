@@ -1,8 +1,37 @@
-#ifndef __HW_BREAKPOINT_64_H
-#define __HW_BREAKPOINT_64_H
+#ifndef __HW_BREAKPOINT_H
+#define __HW_BREAKPOINT_H
 #include <mach/sync_write.h>
 #include <asm/io.h>
-#include <mach/hw_watchpoint.h>
+typedef int (*wp_handler)(unsigned long addr);
+
+struct wp_event
+{
+    unsigned long virt;
+    unsigned long phys;
+    int type;
+    wp_handler handler;
+    int in_use;
+    int auto_disable;
+};
+
+#define WP_EVENT_TYPE_READ 1
+#define WP_EVENT_TYPE_WRITE 2
+#define WP_EVENT_TYPE_ALL 3
+
+#define init_wp_event(__e, __v, __p, __t, __h)   \
+        do {    \
+            (__e)->virt = (__v);    \
+            (__e)->phys = (__p);    \
+            (__e)->type = (__t);    \
+            (__e)->handler = (__h);    \
+            (__e)->auto_disable = 0;    \
+        } while (0)
+
+#define auto_disable_wp(__e)   \
+        do {    \
+            (__e)->auto_disable = 1;    \
+        } while (0)
+
 
 #define MAX_NR_WATCH_POINT 4  
 struct wp_trace_context_t
@@ -52,7 +81,6 @@ struct dbgreg_set {
 
 #define EDLAR 0xFB0
 #define EDLSR 0xFB4
-#define DBGAUTHSTATUS_EL1 0xFB8
 #define OSLAR_EL1 0x300
 
 #define UNLOCK_KEY 0xC5ACCE55
@@ -65,9 +93,6 @@ struct dbgreg_set {
 #define LSC_LDR (1 << 3)
 #define LSC_STR (2 << 3)
 #define LSC_ALL (3 << 3)
-
-#define NSNID_SHIFT 2
-#define SNID_SHIFT 6
 
 //#define WATCHPOINT_TEST_SUIT
 
@@ -133,6 +158,8 @@ void smp_read_MDSCR_EL1_callback(void *info);
 void smp_write_MDSCR_EL1_callback(void *info);
 void smp_read_OSLSR_EL1_callback(void *info);
 int register_wp_context(struct wp_trace_context_t **wp_tracer_context );
+extern int add_hw_watchpoint(struct wp_event *wp_event);
+extern int del_hw_watchpoint(struct wp_event *wp_event);
 void __iomem* get_wp_base(void);
 
 

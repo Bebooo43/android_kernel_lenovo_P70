@@ -39,7 +39,7 @@ extern void __iomem *INFRACFG_AO_base;
 /*******************************************************************************
  * AUXADC Register Definition
  ******************************************************************************/
-//K2 AUXADC_BASE: 0xF1001000 from Vincent Liang 2014.5.8
+// AUXADC_BASE: 0xF1001000 from Vincent Liang 2014.5.8
 
 #define AUXADC_CON0_V       (AUXADC_BASE_2 + 0x000)	//yes, 0x11003000
 #define AUXADC_CON1_V       (AUXADC_BASE_2 + 0x004)
@@ -116,7 +116,7 @@ extern void __iomem *INFRACFG_AO_base;
 /*******************************************************************************
  * APMixedSys Configuration Register Definition
  ******************************************************************************/
-//K2 APMIXED_BASE: 0x1000C000 from KJ 2014.5.8 // TODO: FIXME
+//APMIXED_BASE: 0x1000C000 from KJ 2014.5.8 // TODO: FIXME
 #define TS_CON0             (APMIXED_BASE_2 + 0x600) //yes 0x10209000
 #define TS_CON1             (APMIXED_BASE_2 + 0x604)
 #define TS_CON0_P           (apmixed_phy_base + 0x600)

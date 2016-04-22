@@ -93,8 +93,7 @@ struct _CMD_INFO_T {
 
 	UINT_16 u2InfoBufLen;	/* This is actual CMD buffer length */
 	PUINT_8 pucInfoBuffer;	/* May pointer to structure in prAdapter */
-	P_MSDU_INFO_T prMsduInfo; /* only valid when it's a security/MGMT frame */
-	P_NATIVE_PACKET prPacket; /* only valid when it's a security frame */
+	P_NATIVE_PACKET prPacket;	/* only valid when it's a security frame */
 
 	UINT_8 ucBssIndex;
 	UINT_8 ucStaRecIndex;	/* only valid when it's a security frame */

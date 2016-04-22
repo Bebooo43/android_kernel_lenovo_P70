@@ -1446,16 +1446,6 @@ static void TurnOnDacPower(void)
 static void TurnOffDacPower(void)
 {
     printk("TurnOffDacPower\n");
-
-    Ana_Set_Reg(AFE_DL_SRC2_CON0_L , 0x0000 , 0xffff); //bit0, Turn off down-link
-    if (GetAdcStatus() == false)
-    {
-        Ana_Set_Reg(AFE_UL_DL_CON0, 0x0000, 0xffff);   //turn off afe
-    }
-    udelay(250);
-
-    Ana_Set_Reg(AFE_AUDIO_TOP_CON0, 0x0040, 0x0040); //down-link power down
-
     Ana_Set_Reg(AFE_CLASSH_CFG1, 0x24, 0xffff);
     Ana_Set_Reg(AFE_CLASSH_CFG0, 0xd518, 0xffff); // ClassH off
     Ana_Set_Reg(AUDLDO_NVREG_CFG0, 0x0, 0xffff); // NCP off

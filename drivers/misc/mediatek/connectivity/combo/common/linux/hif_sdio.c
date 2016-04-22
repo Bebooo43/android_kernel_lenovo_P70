@@ -1995,7 +1995,6 @@ INT32 hif_sdio_stp_on(VOID)
 	struct sdio_func *func;
 	UINT32 chip_id = 0;
 	UINT16 func_num = 0;
-	INT32 sdio_autok_flag = 0;
 	const MTK_WCN_HIF_SDIO_FUNCINFO *func_info = NULL;
 
 	HIF_SDIO_INFO_FUNC("start!\n");
@@ -2018,7 +2017,6 @@ INT32 hif_sdio_stp_on(VOID)
 	if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x6630, 2)) >= 0) {
 		chip_id = 0x6630;
 		func_num = 2;
-		sdio_autok_flag = 1;
 		goto stp_on_exist;
 	}
 
@@ -2051,11 +2049,7 @@ INT32 hif_sdio_stp_on(VOID)
 
 	if ((clt_index = g_hif_sdio_probed_func_list[probe_index].clt_idx) >= 0) {	/* the function has been registered */
 
-		if (sdio_autok_flag) {
-			_hif_sdio_do_autok(g_hif_sdio_probed_func_list[probe_index].func);
-		} else {
-			HIF_SDIO_INFO_FUNC("sdio_autok_flag is not set\n", ret);
-		}
+
 		g_hif_sdio_probed_func_list[probe_index].sdio_irq_enabled = MTK_WCN_BOOL_FALSE;
 		/* 4 <4> claim irq for this function */
 		func = g_hif_sdio_probed_func_list[probe_index].func;
@@ -2133,7 +2127,6 @@ INT32 hif_sdio_stp_off(VOID)
 	struct sdio_func *func;
 	UINT32 chip_id = 0;
 	UINT16 func_num = 0;
-	INT32 sdio_autok_flag = 0;
 	const MTK_WCN_HIF_SDIO_FUNCINFO *func_info = NULL;
 
 	HIF_SDIO_INFO_FUNC("start!\n");
@@ -2259,7 +2252,6 @@ INT32 hif_sdio_wifi_on(VOID)
 	struct sdio_func *func;
 	UINT32 chip_id = 0;
 	UINT16 func_num = 0;
-	INT32 sdio_autok_flag = 0;
 	const MTK_WCN_HIF_SDIO_FUNCINFO *func_info = NULL;
 
 	HIF_SDIO_INFO_FUNC("start!\n");

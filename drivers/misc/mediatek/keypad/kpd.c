@@ -19,9 +19,6 @@
 
 /*kpd.h file path: ALPS/mediatek/kernel/include/linux */
 #include <linux/kpd.h>
-#ifdef CONFIG_MTK_TC1_FM_AT_SUSPEND
-#include <linux/wakelock.h>
-#endif
 #ifdef CONFIG_OF
 #include <linux/of.h>
 #include <linux/of_address.h>
@@ -38,25 +35,25 @@
 #endif
 
 #define KPD_NAME	"mtk-kpd"
-//#define MTK_KP_WAKESOURCE	/* this is for auto set wake up source */
+//#define USE_EARLY_SUSPEND
+#define MTK_KP_WAKESOURCE	/* this is for auto set wake up source */
 
 #ifdef CONFIG_OF
 void __iomem *kp_base;
 static unsigned int kp_irqnr;
 #endif	
+
 #define FORCE_POWERKEY
 #define FORCE_POWERKEY_SECONDS   8
 struct timer_list timer;
 //extern void arch_reset(char mode, const char *cmd);
 extern void mt_power_off(void);
+
 struct input_dev *kpd_input_dev;
 static bool kpd_suspend = false;
 static int kpd_show_hw_keycode = 1;
 static int kpd_show_register = 1;
 static volatile int call_status = 0;
-#ifdef CONFIG_MTK_TC1_FM_AT_SUSPEND
-struct wake_lock kpd_suspend_lock; /* For suspend usage */
-#endif
 
 /*for kpd_memory_setting() function*/
 static u16 kpd_keymap[KPD_NUM_KEYS];
@@ -86,7 +83,7 @@ static void kpd_memory_setting(void);
 /*********************************************************************/
 static int kpd_pdrv_probe(struct platform_device *pdev);
 static int kpd_pdrv_remove(struct platform_device *pdev);
-#ifndef USE_EARLY_SUSPEND
+#if !defined(CONFIG_HAS_EARLYSUSPEND) || !defined(USE_EARLY_SUSPEND)
 static int kpd_pdrv_suspend(struct platform_device *pdev, pm_message_t state);
 static int kpd_pdrv_resume(struct platform_device *pdev);
 #endif
@@ -97,11 +94,10 @@ static const struct of_device_id kpd_of_match[] = {
 	{},
 };
 #endif
-
 static struct platform_driver kpd_pdrv = {
 	.probe = kpd_pdrv_probe,
 	.remove = kpd_pdrv_remove,
-#ifndef USE_EARLY_SUSPEND
+#if !defined(CONFIG_HAS_EARLYSUSPEND) || !defined(USE_EARLY_SUSPEND)
 	.suspend = kpd_pdrv_suspend,
 	.resume = kpd_pdrv_resume,
 #endif
@@ -136,6 +132,7 @@ static int timer_init()
     printk(KPD_SAY "add_timer for FORCE_POWERKEY\n"); 
     return 0; 
 }
+
 /********************************************************************/
 static void kpd_memory_setting(void)
 {
@@ -440,10 +437,6 @@ static void kpd_keymap_handler(unsigned long data)
 	u16 new_state[KPD_NUM_MEMS], change, mask;
 	u16 hw_keycode, linux_keycode;
 	kpd_get_keymap_state(new_state);
-
-#ifdef CONFIG_MTK_TC1_FM_AT_SUSPEND
-	wake_lock_timeout(&kpd_suspend_lock, HZ / 2);
-#endif
 
 	for (i = 0; i < KPD_NUM_MEMS; i++) {
 		change = new_state[i] ^ kpd_keymap_state[i];
@@ -839,7 +832,6 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	}
 	pr_warn(KPD_SAY "kp base: 0x%p, addr:0x%p,  kp irq: %d\n", kp_base,&kp_base, kp_irqnr);
 #endif
-
 	kpd_ldvt_test_init();	/* API 2 for kpd LFVT test enviroment settings */
 
 	/* initialize and register input device (/dev/input/eventX) */
@@ -873,7 +865,7 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 		if (kpd_keymap[i] != 0)
 			__set_bit(kpd_keymap[i], kpd_input_dev->keybit);
 	}
-
+	
 #if KPD_AUTOTEST
 	for (i = 0; i < ARRAY_SIZE(kpd_auto_keymap); i++)
 		__set_bit(kpd_auto_keymap[i], kpd_input_dev->keybit);
@@ -918,10 +910,6 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 		return r;
 	}
 
-#ifdef CONFIG_MTK_TC1_FM_AT_SUSPEND
-	wake_lock_init(&kpd_suspend_lock, WAKE_LOCK_SUSPEND, "kpd wakelock");
-#endif
-
 	/* register IRQ and EINT */
 	kpd_set_debounce(KPD_KEY_DEBOUNCE);
 #ifdef CONFIG_OF
@@ -935,7 +923,9 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 		input_unregister_device(kpd_input_dev);
 		return r;
 	}
+#if KPD_PWRKEY_USE_EINT
 	mt_eint_register();
+#endif
 
 #ifndef KPD_EARLY_PORTING	/*add for avoid early porting build err the macro is defined in custom file */
 	long_press_reboot_function_setting();	/* /API 4 for kpd long press reboot function setting */
@@ -953,6 +943,7 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 		kpd_delete_attr(&kpd_pdrv.driver);
 		return err;
 	}
+
     pr_warn(KPD_SAY "%s Done\n", __FUNCTION__);
 	return 0;
 }
@@ -963,7 +954,7 @@ static int kpd_pdrv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-#ifndef USE_EARLY_SUSPEND
+#if !defined(CONFIG_HAS_EARLYSUSPEND) || !defined(USE_EARLY_SUSPEND)
 static int kpd_pdrv_suspend(struct platform_device *pdev, pm_message_t state)
 {
 	kpd_suspend = true;
@@ -971,11 +962,12 @@ static int kpd_pdrv_suspend(struct platform_device *pdev, pm_message_t state)
 	if (call_status == 2) {
 		kpd_print("kpd_early_suspend wake up source enable!! (%d)\n", kpd_suspend);
 	} else {
+
 		kpd_wakeup_src_setting(0);
 		kpd_print("kpd_early_suspend wake up source disable!! (%d)\n", kpd_suspend);
 	}
 #else	
-mt6325_upmu_set_k_control_smps(0x01);
+//mt6325_upmu_set_k_control_smps(0x01);
 //mt6325_upmu_set_rg_homekey_rst_en(0x01);
 //mt6325_upmu_set_rg_int_en_bif(0x01);
 #endif
@@ -1004,7 +996,7 @@ static int kpd_pdrv_resume(struct platform_device *pdev)
 #endif
 
 
-#ifdef USE_EARLY_SUSPEND
+#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(USE_EARLY_SUSPEND)
 static void kpd_early_suspend(struct early_suspend *h)
 {
 	kpd_suspend = true;
@@ -1060,7 +1052,7 @@ static int __init kpd_mod_init(void)
 		printk(KPD_SAY "register driver failed (%d)\n", r);
 		return r;
 	}
-#ifdef USE_EARLY_SUSPEND
+#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(USE_EARLY_SUSPEND)
 	register_early_suspend(&kpd_early_suspend_desc);
 #endif
 

@@ -581,20 +581,14 @@ P_MSDU_INFO_T cnmPktAlloc(P_ADAPTER_T prAdapter, UINT_32 u4Length)
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
 
     if (prMsduInfo) {
-        if(u4Length) {
-            prMsduInfo->prPacket = 
-                cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
-            prMsduInfo->eSrc = TX_PACKET_MGMT;
+        prMsduInfo->prPacket = cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
+        prMsduInfo->eSrc = TX_PACKET_MGMT;
 
-            if (prMsduInfo->prPacket == NULL) {
-                KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-                QUEUE_INSERT_TAIL(prQueList, &prMsduInfo->rQueEntry);
-                KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-                prMsduInfo = NULL;
-            }
-        } 
-        else {
-            prMsduInfo->prPacket = NULL;
+        if (prMsduInfo->prPacket == NULL) {
+            KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+            QUEUE_INSERT_TAIL(prQueList, &prMsduInfo->rQueEntry);
+            KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+            prMsduInfo = NULL;
         }
     }
 #if DBG

@@ -101,6 +101,9 @@ static void StopAudioCaptureHardware(struct snd_pcm_substream *substream)
 {
     printk("StopAudioCaptureHardware \n");
 
+    // here to set interrupt
+    SetIrqEnable(Soc_Aud_IRQ_MCU_MODE_IRQ2_MCU_MODE, false);
+
     SetMemoryPathEnable(Soc_Aud_Digital_Block_I2S_IN_ADC, false);
     if (GetMemoryPathEnable(Soc_Aud_Digital_Block_I2S_IN_ADC) == false)
     {
@@ -108,9 +111,6 @@ static void StopAudioCaptureHardware(struct snd_pcm_substream *substream)
     }
 
     SetMemoryPathEnable(Soc_Aud_Digital_Block_MEM_VUL, false);
-
-    // here to set interrupt
-    SetIrqEnable(Soc_Aud_IRQ_MCU_MODE_IRQ2_MCU_MODE, false);
 
     // here to turn off digital part
     SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I03, Soc_Aud_InterConnectionOutput_O09);
@@ -190,20 +190,16 @@ static snd_pcm_uframes_t mtk_capture_pcm_pointer(struct snd_pcm_substream *subst
     kal_int32 HW_Cur_ReadIdx = 0;
     //kal_uint32 Frameidx = 0;
     kal_int32 Hw_Get_bytes = 0;
-    bool bIsOverflow = false;
-    unsigned long flags;
     AFE_BLOCK_T *UL1_Block = &(VUL_Control_context->rBlock);
+    PRINTK_AUD_UL1("mtk_capture_pcm_pointer Awb_Block->u4WriteIdx;= 0x%x \n", UL1_Block->u4WriteIdx);
     Auddrv_UL1_Spinlock_lock();
-	spin_lock_irqsave(&VUL_Control_context->substream_lock, flags);
-    PRINTK_AUD_UL1("mtk_capture_pcm_pointer UL1_Block->u4WriteIdx= 0x%x, u4DataRemained=0x%x \n", UL1_Block->u4WriteIdx,UL1_Block->u4DataRemained);
-    
     if (GetMemoryPathEnable(Soc_Aud_Digital_Block_MEM_VUL) == true)
     {
 
         HW_Cur_ReadIdx = Align64ByteSize(Afe_Get_Reg(AFE_VUL_CUR));
         if (HW_Cur_ReadIdx == 0)
         {
-            PRINTK_AUD_UL1("[Auddrv] mtk_capture_pcm_pointer  HW_Cur_ReadIdx ==0 \n");
+            PRINTK_AUD_UL1("[Auddrv] mtk_awb_pcm_pointer  HW_Cur_ReadIdx ==0 \n");
             HW_Cur_ReadIdx = UL1_Block->pucPhysBufAddr;
         }
         HW_memory_index = (HW_Cur_ReadIdx - UL1_Block->pucPhysBufAddr);
@@ -217,30 +213,11 @@ static snd_pcm_uframes_t mtk_capture_pcm_pointer(struct snd_pcm_substream *subst
         UL1_Block->u4WriteIdx	+= Hw_Get_bytes;
         UL1_Block->u4WriteIdx	%= UL1_Block->u4BufferSize;
         UL1_Block->u4DataRemained += Hw_Get_bytes;
-
-        printk("mtk_capture_pcm_pointer u4DMAReadIdx=0x%x u4WriteIdx = 0x%x u4DataRemained = 0x%x u4BufferSize= 0x%x,Hw_Get_bytes= 0x%x\n", UL1_Block->u4DMAReadIdx, UL1_Block->u4WriteIdx,UL1_Block->u4DataRemained,UL1_Block->u4BufferSize,Hw_Get_bytes);
-        if (UL1_Block->u4DataRemained > UL1_Block->u4BufferSize)
-        {
-            bIsOverflow = true;
-            printk("[Auddrv] overflow!? mtk_capture_pcm_pointer u4DMAReadIdx=0x%x u4WriteIdx = 0x%x u4DataRemained = 0x%x u4BufferSize= 0x%x,Hw_Get_bytes= 0x%x\n", UL1_Block->u4DMAReadIdx, UL1_Block->u4WriteIdx,UL1_Block->u4DataRemained,UL1_Block->u4BufferSize,Hw_Get_bytes);
-
-            // reset pointer info
-            UL1_Block->u4DataRemained = 0;
-            UL1_Block->u4DMAReadIdx   = UL1_Block->u4WriteIdx;
-        }
-        
         PRINTK_AUD_UL1("[Auddrv] mtk_capture_pcm_pointer =0x%x HW_memory_index = 0x%x\n", HW_Cur_ReadIdx, HW_memory_index);
-        
-        spin_unlock_irqrestore(&VUL_Control_context->substream_lock, flags);
         Auddrv_UL1_Spinlock_unlock();
 
-        if (bIsOverflow == true)
-        {
-            return -1;
-        }
         return audio_bytes_to_frame(substream, HW_memory_index);
     }
-    spin_unlock_irqrestore(&VUL_Control_context->substream_lock, flags);
     Auddrv_UL1_Spinlock_unlock();
     return 0;
 

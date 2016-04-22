@@ -6,6 +6,7 @@ typedef enum
 	ACCDET_MIC_MODE_LOW_COST_WITH_IN_BIAS = 6,
 } ACCDET_MIC_MODE;
 #define ACCDET_MIC_MODE	(1)
+
 // use accdet + EINT solution
 #define ACCDET_EINT
 #ifndef ACCDET_EINT
@@ -23,4 +24,5 @@ typedef enum
 //#define FOUR_KEY_HEADSET
 #define ACCDET_SHORT_PLUGOUT_DEBOUNCE
 #define ACCDET_SHORT_PLUGOUT_DEBOUNCE_CN 20
+
 

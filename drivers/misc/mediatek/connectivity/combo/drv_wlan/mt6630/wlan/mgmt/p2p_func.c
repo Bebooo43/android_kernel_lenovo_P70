@@ -539,9 +539,7 @@ p2pFuncTxMgmtFrame(IN P_ADAPTER_T prAdapter,
 
     			break;
             }
-			prMgmtTxMsdu->ucStaRecIndex = 
-                           (prStaRec != NULL)?(prStaRec->ucIndex) : (STA_REC_INDEX_NOT_FOUND);
-                        prMgmtTxMsdu =
+			prMgmtTxMsdu =
 			    p2pFuncProcessP2pProbeRsp(prAdapter, ucBssIndex, prMgmtTxMsdu);
 			ucRetryLimit = 2;
 			break;
@@ -2956,7 +2954,6 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 		bssBuildBeaconProbeRespFrameCommonIEs(prRetMsduInfo,
 						      prP2pBssInfo, prProbeRspFrame->aucDestAddr);
 
-                prRetMsduInfo->ucStaRecIndex = prMgmtTxMsdu->ucStaRecIndex;
 
 		for (u4Idx = 0; u4Idx < u4IeArraySize; u4Idx++) {
 			if (txProbeRspIETable[u4Idx].pfnAppendIE) {

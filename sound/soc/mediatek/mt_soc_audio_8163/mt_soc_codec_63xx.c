@@ -3030,22 +3030,26 @@ static int Audio_ADC2_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
 static int Audio_ADC3_Get(struct snd_kcontrol *kcontrol,
                           struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_ADC3_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_ADC4_Get(struct snd_kcontrol *kcontrol,
                           struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_ADC4_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
@@ -3132,22 +3136,26 @@ static int Audio_ADC2_Sel_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 static int Audio_ADC3_Sel_Get(struct snd_kcontrol *kcontrol,
                               struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_ADC3_Sel_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_ADC4_Sel_Get(struct snd_kcontrol *kcontrol,
                               struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_ADC4_Sel_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
@@ -3331,22 +3339,26 @@ static int Audio_PGA2_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
 static int Audio_PGA3_Get(struct snd_kcontrol *kcontrol,
                           struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_PGA3_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_PGA4_Get(struct snd_kcontrol *kcontrol,
                           struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_PGA4_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
@@ -3402,11 +3414,13 @@ static int Audio_MicSource2_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 static int Audio_MicSource3_Get(struct snd_kcontrol *kcontrol,
                                 struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_MicSource3_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
@@ -3414,11 +3428,13 @@ static int Audio_MicSource3_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 static int Audio_MicSource4_Get(struct snd_kcontrol *kcontrol,
                                 struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
 static int Audio_MicSource4_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // removed
     return 0;
 }
 
@@ -3781,6 +3797,7 @@ static int SineTable_DAC_HP_Get(struct snd_kcontrol *kcontrol,
 
 static int SineTable_DAC_HP_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
+    // TODO?
     printk("%s()\n", __func__);
     return 0;
 }

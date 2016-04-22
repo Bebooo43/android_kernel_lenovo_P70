@@ -61,9 +61,9 @@
 #include "mt_soc_pcm_common.h"
 
 #include <mach/mtk_wcn_cmb_stub.h>
-#ifndef DENALI_FPGA_EARLYPORTING            
+          
 extern  int mtk_wcn_cmb_stub_audio_ctrl(CMB_STUB_AIF_X state);
-#endif
+
 
 //static DEFINE_SPINLOCK(auddrv_mrgrx_lock);
 
@@ -120,9 +120,9 @@ static int Audio_Wcn_Cmb_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_
 {
     mAudio_Wcn_Cmb = ucontrol->value.integer.value[0];
     printk("%s mAudio_Wcn_Cmb = 0x%x \n", __func__, mAudio_Wcn_Cmb);
-#ifndef DENALI_FPGA_EARLYPORTING                   
+              
     mtk_wcn_cmb_stub_audio_ctrl((CMB_STUB_AIF_X)mAudio_Wcn_Cmb);
-#endif
+
     return 0;
 }
 
@@ -231,9 +231,9 @@ static int mtk_pcm_mrgrx_close(struct snd_pcm_substream *substream)
     struct snd_pcm_runtime *runtime = substream->runtime;
     printk("%s \n", __func__);
 
-#ifndef DENALI_FPGA_EARLYPORTING            
+        
     mtk_wcn_cmb_stub_audio_ctrl((CMB_STUB_AIF_X)CMB_STUB_AIF_0);
-#endif
+
     SetMemoryPathEnable(Soc_Aud_Digital_Block_MRG_I2S_OUT, false);
     if (GetMemoryPathEnable(Soc_Aud_Digital_Block_MRG_I2S_OUT) == false)
     {
@@ -270,9 +270,9 @@ static int mtk_pcm_mrgrx_prepare(struct snd_pcm_substream *substream)
 
     if (mPrepareDone == false)
     {
-#ifndef DENALI_FPGA_EARLYPORTING               
+             
         mtk_wcn_cmb_stub_audio_ctrl((CMB_STUB_AIF_X)CMB_STUB_AIF_3);
-#endif
+
         // interconnection setting
         SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I15, Soc_Aud_InterConnectionOutput_O13);
         SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I16, Soc_Aud_InterConnectionOutput_O14);

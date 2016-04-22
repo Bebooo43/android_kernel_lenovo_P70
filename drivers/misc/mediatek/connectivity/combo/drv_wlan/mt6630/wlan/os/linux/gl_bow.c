@@ -1235,7 +1235,7 @@ static int bowHardStartXmit(IN struct sk_buff *prSkb, IN struct net_device *prDe
 	}
 
 	if (fgIs1x) {
-        GLUE_SET_PKT_FLAG(prSkb, ENUM_PKT_1X);
+		GLUE_SET_PKT_FLAG_1X(prSkb);
 	}
 
 	if (kalHardStartXmit(prSkb, prDev, prGlueInfo, ucBssIndex) == WLAN_STATUS_SUCCESS) {

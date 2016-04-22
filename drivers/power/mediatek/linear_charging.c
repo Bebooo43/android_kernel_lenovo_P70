@@ -79,7 +79,7 @@ kal_uint32 		v_cc2topoff_threshold = V_CC2TOPOFF_THRES;
  CHR_CURRENT_ENUM	ulc_cv_charging_current = AC_CHARGER_CURRENT;	
  kal_bool 		ulc_cv_charging_current_flag = KAL_FALSE;
 static bool 		usb_unlimited=false;
-BATTERY_VOLTAGE_ENUM cv_voltage;
+
   /* ///////////////////////////////////////////////////////////////////////////////////////// */
   /* // JEITA */
   /* ///////////////////////////////////////////////////////////////////////////////////////// */
@@ -529,6 +529,8 @@ static void battery_pump_express_algorithm_start(void)
 
 static BATTERY_VOLTAGE_ENUM select_jeita_cv(void)
 {
+	BATTERY_VOLTAGE_ENUM cv_voltage;
+
 	if (g_temp_status == TEMP_ABOVE_POS_60) {
 		cv_voltage = JEITA_TEMP_ABOVE_POS_60_CV_VOLTAGE;
 	} else if (g_temp_status == TEMP_POS_45_TO_POS_60) {
@@ -555,6 +557,7 @@ static BATTERY_VOLTAGE_ENUM select_jeita_cv(void)
 PMU_STATUS do_jeita_state_machine(void)
 {
 	int previous_g_temp_status;
+	BATTERY_VOLTAGE_ENUM cv_voltage;
 
 	previous_g_temp_status = g_temp_status;
 	/* JEITA battery temp Standard */
@@ -956,6 +959,9 @@ static void pchr_sw_cv_charing_current_check(void)
 
 static void pchr_turn_on_charging(void)
 {
+#if !defined(CONFIG_MTK_JEITA_STANDARD_SUPPORT)
+	BATTERY_VOLTAGE_ENUM cv_voltage;
+#endif
 	kal_uint32 charging_enable = KAL_TRUE;
 
 	battery_log(BAT_LOG_FULL, "[BATTERY] pchr_turn_on_charging()!\r\n");

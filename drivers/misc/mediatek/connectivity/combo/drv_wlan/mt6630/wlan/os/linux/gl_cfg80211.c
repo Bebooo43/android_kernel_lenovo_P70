@@ -487,63 +487,35 @@ mtk_cfg80211_get_station(struct wiphy *wiphy,
 			MAC2STR(mac), MAC2STR(arBssid)));
 		return -ENOENT;
 	}
-	
-    /* 2. fill TX rate */
-    if(prGlueInfo->eParamMediaStateIndicated != PARAM_MEDIA_STATE_CONNECTED) {
-        /* not connected */
-        DBGLOG(REQ, WARN, ("not yet connected\n"));
-    }
-    else {
-        rStatus = kalIoctl(prGlueInfo,
-            wlanoidQueryLinkSpeed,
-            &u4Rate,
-            sizeof(u4Rate),
-            TRUE,
-            FALSE,
-            FALSE,
-            &u4BufLen);
 
-        sinfo->filled |= STATION_INFO_TX_BITRATE;
+	/* 2. fill TX rate */
+	rStatus = kalIoctl(prGlueInfo,
+			   wlanoidQueryLinkSpeed,
+			   &u4Rate, sizeof(u4Rate), TRUE, FALSE, FALSE, &u4BufLen);
 
-        if ((rStatus != WLAN_STATUS_SUCCESS) || (u4Rate == 0)) {
-            //DBGLOG(REQ, WARN, ("unable to retrieve link speed\n"));
-            DBGLOG(REQ, WARN, ("last link speed\n"));
-            sinfo->txrate.legacy = prGlueInfo->u4LinkSpeedCache;
-        }
-        else {
-            //sinfo->filled |= STATION_INFO_TX_BITRATE;
-            sinfo->txrate.legacy = u4Rate / 1000; /* convert from 100bps to 100kbps */
-            prGlueInfo->u4LinkSpeedCache = u4Rate / 1000;
-            
-        }
-    }
-    
-    /* 3. fill RSSI */
-    if(prGlueInfo->eParamMediaStateIndicated != PARAM_MEDIA_STATE_CONNECTED) {
-        /* not connected */
-        DBGLOG(REQ, WARN, ("not yet connected\n"));
-    }
-    else {
-        rStatus = kalIoctl(prGlueInfo,
-                wlanoidQueryRssi,
-                &i4Rssi,
-                sizeof(i4Rssi),
-                TRUE,
-                FALSE,
-                FALSE,
-                &u4BufLen);
-                
-        sinfo->filled |= STATION_INFO_SIGNAL;
-        
-        if ((rStatus != WLAN_STATUS_SUCCESS) || (i4Rssi == PARAM_WHQL_RSSI_MIN_DBM) || (i4Rssi == PARAM_WHQL_RSSI_MAX_DBM)) {
-            DBGLOG(REQ, WARN, ("last rssi\n"));
-            sinfo->signal = prGlueInfo->i4RssiCache;
-        }
-        else {
-                sinfo->signal = i4Rssi; /* dBm */
-                prGlueInfo->i4RssiCache = i4Rssi;       
-        }
-    }
+	if (rStatus != WLAN_STATUS_SUCCESS) {
+		DBGLOG(REQ, WARN, ("unable to retrieve link speed\n"));
+	} else {
+		sinfo->filled |= STATION_INFO_TX_BITRATE;
+		sinfo->txrate.legacy = u4Rate / 1000;	/* convert from 100bps to 100kbps */
+	}
+
+	if (prGlueInfo->eParamMediaStateIndicated != PARAM_MEDIA_STATE_CONNECTED) {
+		/* not connected */
+		DBGLOG(REQ, WARN, ("not yet connected\n"));
+	} else {
+		/* 3. fill RSSI */
+		rStatus = kalIoctl(prGlueInfo,
+				   wlanoidQueryRssi,
+				   &i4Rssi, sizeof(i4Rssi), TRUE, FALSE, FALSE, &u4BufLen);
+
+		if (rStatus != WLAN_STATUS_SUCCESS) {
+			DBGLOG(REQ, WARN, ("unable to retrieve link speed\n"));
+		} else {
+			sinfo->filled |= STATION_INFO_SIGNAL;
+			sinfo->signal = i4Rssi;	/* dBm */
+		}
+	}
 
 	/* Get statistics from net_dev */
 	prDevStats = (struct net_device_stats *)kalGetStats(ndev);
@@ -769,7 +741,7 @@ mtk_cfg80211_connect(struct wiphy *wiphy,
 	ENUM_PARAM_ENCRYPTION_STATUS_T eEncStatus;
 	ENUM_PARAM_AUTH_MODE_T eAuthMode;
 	UINT_32 cipher;
-	PARAM_CONNECT_T rNewSsid;
+	PARAM_SSID_T rNewSsid;
 	BOOLEAN fgCarryWPSIE = FALSE;
 	ENUM_PARAM_OP_MODE_T eOpMode;
 	UINT_32 i, u4AkmSuite = 0;
@@ -1096,17 +1068,30 @@ mtk_cfg80211_connect(struct wiphy *wiphy,
 		}
 	}
 
-	rNewSsid.u4CenterFreq = sme->channel ? sme->channel->center_freq:0;
-	rNewSsid.pucBssid = sme->bssid;
-	rNewSsid.pucSsid = sme->ssid;
-	rNewSsid.u4SsidLen = sme->ssid_len;
-	rStatus = kalIoctl(prGlueInfo, wlanoidSetConnect,  (PVOID) &rNewSsid, sizeof(PARAM_CONNECT_T),
-	       				 FALSE, FALSE, TRUE, &u4BufLen);
+	if (sme->ssid_len > 0) {
+		/* connect by SSID */
+		COPY_SSID(rNewSsid.aucSsid, rNewSsid.u4SsidLen, sme->ssid, sme->ssid_len);
 
-    if (rStatus != WLAN_STATUS_SUCCESS) {
-        DBGLOG(REQ, WARN, ("set SSID:%x\n", rStatus));
-        return -EINVAL;
-    }
+		rStatus = kalIoctl(prGlueInfo,
+				   wlanoidSetSsid,
+				   (PVOID) & rNewSsid,
+				   sizeof(PARAM_SSID_T), FALSE, FALSE, TRUE, &u4BufLen);
+
+		if (rStatus != WLAN_STATUS_SUCCESS) {
+			DBGLOG(REQ, WARN, ("set SSID:%lx\n", rStatus));
+			return -EINVAL;
+		}
+	} else {
+		/* connect by BSSID */
+		rStatus = kalIoctl(prGlueInfo,
+				   wlanoidSetBssid,
+				   (PVOID) sme->bssid, MAC_ADDR_LEN, FALSE, FALSE, TRUE, &u4BufLen);
+
+		if (rStatus != WLAN_STATUS_SUCCESS) {
+			DBGLOG(REQ, WARN, ("set BSSID:%lx\n", rStatus));
+			return -EINVAL;
+		}
+	}
 #if 0
 	if (sme->bssid != NULL && 1 /* prGlueInfo->fgIsBSSIDSet */) {
 		/* connect by BSSID */
@@ -2827,7 +2812,7 @@ mtk_cfg80211_testmode_get_lte_channel(IN struct wiphy *wiphy,
 #define CHN_DIRTY_WEIGHT_UPPERBOUND 4
 
 
-	BOOLEAN fgIsReady = FALSE;
+	BOOLEAN fgIsReady = FALSE, fgIsFistRecord = TRUE;
 	BOOLEAN fgIsPureAP;
 
 
@@ -2962,17 +2947,13 @@ mtk_cfg80211_testmode_get_lte_channel(IN struct wiphy *wiphy,
 		}
 
 		fgIsReady = prGlueInfo->prAdapter->rWifiVar.rChnLoadInfo.fgDataReadyBit;
-		PreferChannels[0].ucChannel = 0;  	// default channel : ch1 
-		PreferChannels[1].ucChannel = 0;  	// default channel : ch1 
-		PreferChannels[0].u2APNum = 0xFFFF; // default channel score  : 0xFFFF
-		PreferChannels[1].u2APNum = 0xFFFF; // default channel score  : 0xFFFF
+		PreferChannels[0].u2APNum = 0xFFFF;
+		PreferChannels[1].u2APNum = 0xFFFF;
 
 		/* (u4TempSafeChannelBitmask & BIT(1) == 1) -> 2G Ch1 is valid */
-		if (u4TempSafeChannelBitmask == 0) {
-			DBGLOG(P2P, WARN, ("  Can't get any safe channel from fw!?\n"));
+		if (u4TempSafeChannelBitmask == 0)
 			u4TempSafeChannelBitmask = BITS(1, (ucMax_24G_Chn_List));
-		}
-		DBGLOG(P2P, INFO, ("   SafeChannelBitmask=%08x\n", u4TempSafeChannelBitmask));
+		DBGLOG(P2P, INFO, ("   u4TempSafeChannelBitmask=%08x\n", u4TempSafeChannelBitmask));
 
 		ucChValidCnt = 0;
 		for (ucIdx = ucDefaultIdx; ucIdx < ucMax_24G_Chn_List; ucIdx++) {
@@ -2985,7 +2966,8 @@ mtk_cfg80211_testmode_get_lte_channel(IN struct wiphy *wiphy,
 				PreferChannels[0].ucChannel = ucIdx;
 				PreferChannels[0].u2APNum = ar2_4G_ChannelLoadingWeightScore[ucIdx].u2APNum;
 			} else {
-				if (PreferChannels[1].u2APNum >= ar2_4G_ChannelLoadingWeightScore[ucIdx].u2APNum) {
+				if ((PreferChannels[1].u2APNum >= ar2_4G_ChannelLoadingWeightScore[ucIdx].u2APNum) || (fgIsFistRecord == 1)) {
+					fgIsFistRecord = FALSE;
 					PreferChannels[1].ucChannel = ucIdx;
 					PreferChannels[1].u2APNum = ar2_4G_ChannelLoadingWeightScore[ucIdx].u2APNum;
 				}

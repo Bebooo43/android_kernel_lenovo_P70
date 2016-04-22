@@ -722,7 +722,7 @@ static long st480d_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             break;
 			
 		//add by sen.luo
-              case MSENSOR_IOCTL_READ_FACTORY_SENSORDATA:			
+              case CKT_MSENSOR_IOCTL_READ_FACTORY_SENSORDATA:			
 			st480_work_func();
 			sprintf(buff, "%04x %04x %04x", mag.mag_x, mag.mag_y, mag.mag_z);
 			if(copy_to_user(argp, buff, strlen(buff)+1))
@@ -857,17 +857,17 @@ static long st480d_compat_ioctl(struct file *file, unsigned int cmd, unsigned lo
             break;
 			
 		//add by sen.luo
-        case COMPAT_MSENSOR_IOCTL_READ_FACTORY_SENSORDATA:			
+        case COMPAT_CKT_MSENSOR_IOCTL_READ_FACTORY_SENSORDATA:			
 			if(arg64 == NULL)
 			 {
 				 MSE_ERR("invalid argument.");
 				 return -EINVAL;
 			 }
 			 
-			 ret = file->f_op->unlocked_ioctl(file, MSENSOR_IOCTL_READ_FACTORY_SENSORDATA,
+			 ret = file->f_op->unlocked_ioctl(file, CKT_MSENSOR_IOCTL_READ_FACTORY_SENSORDATA,
 							(unsigned long)(arg64));
 			 if (ret){
-			 	MSE_ERR("COMPAT_MSENSOR_IOCTL_READ_FACTORY_SENSORDATA unlocked_ioctl failed.");
+			 	MSE_ERR("COMPAT_CKT_MSENSOR_IOCTL_READ_FACTORY_SENSORDATA unlocked_ioctl failed.");
 				return ret;
 			 }	
             break;

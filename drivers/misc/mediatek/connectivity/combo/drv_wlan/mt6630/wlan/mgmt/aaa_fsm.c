@@ -775,11 +775,6 @@ aaaFsmRunEventTxDone(IN P_ADAPTER_T prAdapter,
 
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prStaRec->ucBssIndex);
 
-    /* Trigger statistics log if Auth/Assoc Tx failed */
-    if(rTxDoneStatus != TX_RESULT_SUCCESS) {
-        wlanTriggerStatsLog(prAdapter, prAdapter->rWifiVar.u4StatsLogDuration);
-    }
-
 	switch (prStaRec->eAuthAssocState) {
 	case AAA_STATE_SEND_AUTH2:
 		{

@@ -893,7 +893,7 @@ static unsigned long shrink_page_list(struct list_head *page_list,
 
 			/* Case 2 above */
 			} else if (global_reclaim(sc) ||
-			    !PageReclaim(page) || !may_enter_fs) {
+			    !PageReclaim(page) || !(sc->gfp_mask & __GFP_IO)) {
 				/*
 				 * This is slightly racy - end_page_writeback()
 				 * might have just cleared PageReclaim, then
@@ -3949,9 +3949,6 @@ void scan_unevictable_unregister_node(struct node *node)
 #endif
 
 #ifdef CONFIG_MTKPASR
-#ifdef CONFIG_64BIT
-#define SHRINKER_IGNORE_TAG 0xffffffc008000000UL
-#endif
 void try_to_shrink_slab(void)
 {
 	struct shrinker *shrinker;
@@ -3971,11 +3968,6 @@ void try_to_shrink_slab(void)
 		num_objs = do_shrinker_shrink(shrinker, &shrink, 0);
 		if (num_objs <= 0)
 			continue;
-
-#ifdef CONFIG_64BIT
-		if ((unsigned long)shrinker < SHRINKER_IGNORE_TAG)
-			continue;
-#endif
 
 		do {
 			/* To shrink */
@@ -4092,7 +4084,6 @@ int mtkpasr_drop_page(struct page *page)
 	 * Try to allocate it some swap space here.
 	 */
 	if (PageAnon(page) && !PageSwapCache(page)) {
-#ifndef CONFIG_64BIT
 		/* Check whether we have enough free memory */
 		if (vm_swap_full()) {
 			goto unlock;
@@ -4102,9 +4093,6 @@ int mtkpasr_drop_page(struct page *page)
 		if (!add_to_swap(page, NULL)){
 			goto unlock;
 		}
-#else
-		goto unlock;
-#endif
 	}
 	
 	/* We don't handle dirty file cache here (Related devices may be suspended) */
@@ -4116,7 +4104,7 @@ int mtkpasr_drop_page(struct page *page)
 		/* We don't handle dirty file pages! */
 		if (PageDirty(page)) {
 #ifdef CONFIG_MTKPASR_DEBUG 
-			/*printk(KERN_ALERT "\n\n\n\n\n\n [%s][%d]\n\n\n\n\n\n",__FUNCTION__,__LINE__);*/
+			printk(KERN_ALERT "\n\n\n\n\n\n [%s][%d]\n\n\n\n\n\n",__FUNCTION__,__LINE__);
 #endif
 			goto unlock;
 		}

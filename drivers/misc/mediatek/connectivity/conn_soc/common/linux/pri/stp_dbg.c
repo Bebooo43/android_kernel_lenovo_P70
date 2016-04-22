@@ -409,22 +409,7 @@ INT32 wcn_core_dump_reset(P_WCN_CORE_DUMP_T dmp, UINT32 timeout)
 
     return 0;
 }
-/* wcn_psm_flag_trigger_collect_ftrace - wmtd timeout ,this func can collect SYS_FTRACE
- *
- * Retunr 0 if success
- */
-#define PSM_ABNORMAL_FLAG_INFO_HEAD "Abnormal PSM flag be set ,just collect SYS_FTRACE to DB"
-INT32 wcn_psm_flag_trigger_collect_ftrace(void)
-{
-	PUINT8 pbuf;
-	INT32 len;
 
-	pbuf = "Abnormal PSM flag be set";
-	len = osal_strlen("Abnormal PSM flag be set");
-	osal_strcpy(&g_core_dump->info[0], PSM_ABNORMAL_FLAG_INFO_HEAD);
-	aed_combo_exception(NULL, 0, (const int *)pbuf, len, (const char *)g_core_dump->info);
-	return 0;
-}
 /* wcn_core_dump_timeout - wait for FW assert info timeout ,this func can collect SYS_FTRACE
  *
  * Retunr 0 if success

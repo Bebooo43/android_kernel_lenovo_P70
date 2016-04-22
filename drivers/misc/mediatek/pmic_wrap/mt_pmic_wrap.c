@@ -33,14 +33,6 @@ struct mt_pmic_wrap_driver *get_mt_pmic_wrap_drv(void)
 {
 	return &mt_wrp;
 }
-/*this function only used for ROME plus*/
-int check_pmic_wrap_init(void)
-{
-	if(mt_wrp.wacs2_hal == NULL)
-		return -1;
-	else
-		return 0;
-}
 
 /* ****************************************************************************** */
 /* --external API for pmic_wrap user------------------------------------------------- */

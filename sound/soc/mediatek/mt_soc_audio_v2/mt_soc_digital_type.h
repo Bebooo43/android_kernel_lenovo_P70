@@ -836,6 +836,7 @@ typedef struct
     uint32 REG_PCM_INTF_CON;
     uint32 REG_PCM_INTF_CON2;
     uint32 REG_PCM2_INTF_CON;
+
     uint32 REG_AUDIO_CLK_AUDDIV_0;
     uint32 REG_AUDIO_CLK_AUDDIV_1;
     uint32 REG_AUDIO_CLK_AUDDIV_2;
@@ -855,6 +856,7 @@ typedef struct
     uint32 REG_AFE_ASRC4_CON12;
     uint32 REG_AFE_ASRC4_CON13;
     uint32 REG_AFE_ASRC4_CON14;
+
     uint32 REG_AFE_TDM_CON1;
     uint32 REG_AFE_TDM_CON2;
     uint32 REG_AFE_ASRC_CON13;
@@ -938,6 +940,7 @@ typedef struct
     uint32 REG_AFE_ASRC3_CON12;
     uint32 REG_AFE_ASRC3_CON13;
     uint32 REG_AFE_ASRC3_CON14;
+
     uint32 REG_AFE_ADDA4_TOP_CON0;
     uint32 REG_AFE_ADDA4_UL_SRC_CON0;
     uint32 REG_AFE_ADDA4_UL_SRC_CON1;
@@ -958,6 +961,7 @@ typedef struct
     uint32 REG_AFE_ADDA4_ULCF_CFG_26_25;
     uint32 REG_AFE_ADDA4_ULCF_CFG_28_27;
     uint32 REG_AFE_ADDA4_ULCF_CFG_30_29;
+
 } AudioAfeRegCache;
 
 #endif

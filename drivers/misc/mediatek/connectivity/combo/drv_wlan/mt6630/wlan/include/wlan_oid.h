@@ -405,13 +405,6 @@ typedef struct _PARAM_SSID_T {
 	UINT_8 aucSsid[PARAM_MAX_LEN_SSID];
 } PARAM_SSID_T, *P_PARAM_SSID_T;
 
-typedef struct _PARAM_CONNECT_T {
-	UINT_32  u4SsidLen;      /*!< SSID length in bytes. Zero length is broadcast(any) SSID */
-	UINT_8   *pucSsid;
-	UINT_8	 *pucBssid;
-	UINT_32  u4CenterFreq;
-} PARAM_CONNECT_T, *P_PARAM_CONNECT_T;
-
 /* This is enum defined for user to select an AdHoc Mode */
 typedef enum _ENUM_PARAM_AD_HOC_MODE_T {
 	AD_HOC_MODE_11B = 0,	/*!< Create 11b IBSS if we support 802.11abg/802.11bg. */
@@ -1188,10 +1181,6 @@ wlanoidQueryBssidList(IN P_ADAPTER_T prAdapter,
 WLAN_STATUS
 wlanoidSetBssid(IN P_ADAPTER_T prAdapter,
 		IN PVOID pvSetBuffer, IN UINT_32 u4SetBufferLen, OUT PUINT_32 pu4SetInfoLen);
-
-WLAN_STATUS
-wlanoidSetConnect(IN  P_ADAPTER_T prAdapter,
-		IN  PVOID pvSetBuffer, IN  UINT_32 u4SetBufferLen, OUT PUINT_32 pu4SetInfoLen );
 
 WLAN_STATUS
 wlanoidSetSsid(IN P_ADAPTER_T prAdapter,

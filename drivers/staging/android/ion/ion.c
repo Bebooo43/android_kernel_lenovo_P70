@@ -812,8 +812,6 @@ static int ion_debug_client_show(struct seq_file *s, void *unused)
 	const char *names[ION_NUM_HEAP_IDS] = {NULL};
 	int i;
 
-        seq_printf(s, "%16.s %8.s %8.s %8.s %8.s %8.s\n", "heap_name","pid", "size", "handle_count","handle","buffer");
-
 	mutex_lock(&client->lock);
 	for (n = rb_first(&client->handles); n; n = rb_next(n)) {
 		struct ion_handle *handle = rb_entry(n, struct ion_handle,
@@ -823,14 +821,8 @@ static int ion_debug_client_show(struct seq_file *s, void *unused)
 		if (!names[id])
 			names[id] = handle->buffer->heap->name;
 		sizes[id] += handle->buffer->size;
-
-	        struct ion_buffer *buffer = handle->buffer;
-	        seq_printf(s, "%16.s %3d %8zu %3d %p %p.\n", buffer->heap->name, 
-                               client->pid, buffer->size, buffer->handle_count, handle, buffer);
 	}
 	mutex_unlock(&client->lock);
-
-        seq_printf(s, "----------------------------------------------------\n");
 
 	seq_printf(s, "%16.16s: %16.16s\n", "heap_name", "size_in_bytes");
 	for (i = 0; i < ION_NUM_HEAP_IDS; i++) {
@@ -1653,7 +1645,6 @@ static int ion_debug_heap_show(struct seq_file *s, void *unused)
 		}
 	}
 	up_read(&dev->lock);
-
 	seq_printf(s, "----------------------------------------------------\n");
 	seq_printf(s, "orphaned allocations (info is from last known client):"
 		   "\n");
@@ -1695,30 +1686,6 @@ static int ion_debug_heap_open(struct inode *inode, struct file *file)
 
 static const struct file_operations debug_heap_fops = {
 	.open = ion_debug_heap_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = single_release,
-};
-
-static int ion_debug_heap_pool_show(struct seq_file *s, void *unused)
-{
-	struct ion_heap *heap = s->private;
-	struct ion_device *dev = heap->dev;
-	struct rb_node *n;
-	size_t total_size = heap->ops->page_pool_total(heap);
-
-	seq_printf(s, "%16.s %16zu\n", "total_in_pool ", total_size);
-
-	return 0;
-}
-
-static int ion_debug_heap_pool_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, ion_debug_heap_pool_show, inode->i_private);
-}
-
-static const struct file_operations debug_heap_pool_fops = {
-	.open = ion_debug_heap_pool_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
@@ -1812,19 +1779,6 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
 		}
 	}
 #endif
-
-        char tmp_name[64];
-
-	snprintf(tmp_name, 64, "%s_total_in_pool", heap->name);
-	debug_file = debugfs_create_file(
-			tmp_name, 0644, dev->heaps_debug_root, heap,
-				     &debug_heap_pool_fops);
-	if (!debug_file) {
-		char buf[256], *path;
-		path = dentry_path(dev->heaps_debug_root, buf, 256);
-		pr_err("Failed to create heap page pool debugfs at %s/%s\n", path, tmp_name);
-	}
-
 	up_write(&dev->lock);
 }
 

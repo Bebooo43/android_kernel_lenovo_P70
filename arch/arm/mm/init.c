@@ -21,6 +21,7 @@
 #include <linux/gfp.h>
 #include <linux/memblock.h>
 #include <linux/dma-contiguous.h>
+#include <linux/mrdump.h>
 #include <linux/sizes.h>
 
 #include <asm/mach-types.h>
@@ -386,6 +387,14 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
 	if (mdesc->reserve)
 		mdesc->reserve();
 
+#if defined(CONFIG_MTK_RAM_CONSOLE_USING_DRAM)
+    memblock_reserve(CONFIG_MTK_RAM_CONSOLE_DRAM_ADDR, CONFIG_MTK_RAM_CONSOLE_DRAM_SIZE);
+#endif
+
+    mrdump_reserve_memory();
+
+    mrdump_mini_reserve_memory();
+	
 	early_init_fdt_scan_reserved_mem();
 
     //reserve for ion_carveout_heap

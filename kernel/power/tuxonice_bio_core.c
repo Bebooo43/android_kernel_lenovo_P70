@@ -712,8 +712,10 @@ static int toi_start_one_readahead(int dedicated_thread)
 	int oom = 0, result;
 
 	result = throttle_if_needed(dedicated_thread ? THROTTLE_WAIT : 0);
-	if (result)
+	if (result) {
+		printk("%s: throttle_if_needed returned %d.\n", __func__, result);
 		return result;
+	}
 
 	mutex_lock(&toi_bio_readahead_mutex);
 
@@ -726,6 +728,7 @@ static int toi_start_one_readahead(int dedicated_thread)
 		if (!buffer) {
 			if (oom && !dedicated_thread) {
 				mutex_unlock(&toi_bio_readahead_mutex);
+				printk("%s: oom and !dedicated thread %d.\n", __func__, result);
 				return -ENOMEM;
 			}
 
@@ -739,6 +742,9 @@ static int toi_start_one_readahead(int dedicated_thread)
 	}
 
 	result = toi_bio_rw_page(READ, virt_to_page(buffer), 1, 0);
+	if (result) {
+		printk("%s: toi_bio_rw_page returned %d.\n", __func__, result);
+	}
 	if (result == -ENOSPC)
 		toi__free_page(12, virt_to_page(buffer));
 	mutex_unlock(&toi_bio_readahead_mutex);
@@ -1358,11 +1364,7 @@ static void toi_bio_cleanup(int finishing_cycle)
 
 	header_block_device = NULL;
 
-#ifdef CONFIG_TOI_FIXUP
-	close_resume_dev_t(1);
-#else
 	close_resume_dev_t(0);
-#endif
 }
 
 static int toi_bio_write_header_init(void)
@@ -1413,10 +1415,6 @@ static int toi_bio_write_header_cleanup(void)
 	if (!result)
 		result = toi_bio_mark_have_image();
 
-#ifdef CONFIG_MTK_MTD_NAND
-	/* FIXME: mtdblock doesn't sync without this */
-	blkdev_ioctl(resume_block_device, 0, BLKFLSBUF, 0);
-#endif
 	return result;
 }
 

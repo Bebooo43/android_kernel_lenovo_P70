@@ -871,6 +871,7 @@ static void power_switch(int level)
 }
 
 #endif
+
 #ifndef GPIO_CAMERA_FLASH_EN_PIN 
 #define GPIO_CAMERA_FLASH_EN_PIN GPIO143
 #define GPIO_CAMERA_FLASH_EN_PIN_M_GPIO GPIO_MODE_00

@@ -122,6 +122,14 @@ UINT32 T8EV5_YUV_SensorInit(PSENSOR_FUNCTION_STRUCT *pfFunc);
 //! 2. This file should be the same as mediatek\custom\common\hal\imgsensor\src\sensorlist.cpp
 ACDK_KD_SENSOR_INIT_FUNCTION_STRUCT kdSensorList[MAX_NUM_OF_SUPPORT_SENSOR+1] =
 {
+#if 1// tangqingcai
+#if defined(OV13850_MIPI_RAW)
+    {OV13850_SENSOR_ID, SENSOR_DRVNAME_OV13850_MIPI_RAW, OV13850_MIPI_RAW_SensorInit}, 
+#endif
+#if defined(OV5670_MIPI_RAW)
+    {OV5670MIPI_SENSOR_ID, SENSOR_DRVNAME_OV5670_MIPI_RAW, OV5670_MIPI_RAW_SensorInit}, 
+#endif 
+#else // tangqingcai
 /*IMX*/
 #if defined(IMX220_MIPI_RAW)
     {IMX220_SENSOR_ID, SENSOR_DRVNAME_IMX220_MIPI_RAW, IMX220_MIPI_RAW_SensorInit},
@@ -433,7 +441,7 @@ ACDK_KD_SENSOR_INIT_FUNCTION_STRUCT kdSensorList[MAX_NUM_OF_SUPPORT_SENSOR+1] =
 #if defined(T8EV5_YUV)
     {T8EV5_SENSOR_ID, SENSOR_DRVNAME_T8EV5_YUV, T8EV5_YUV_SensorInit},
 #endif
-
+#endif // tangqingcai
 /*  ADD sensor driver before this line */
     {0,{0},NULL}, //end of list
 };

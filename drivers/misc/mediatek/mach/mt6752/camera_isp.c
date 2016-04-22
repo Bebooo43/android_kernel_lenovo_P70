@@ -9089,13 +9089,11 @@ static __tcmfunc irqreturn_t ISP_Irq_CAM(
 	    /* LOG_INF("warning: fifo may overrun"); */
 	    /* } */
 	    if (IrqStatus[ISP_IRQ_TYPE_INT_STATUSX] & (~STATUSX_WARNING)) {
-		//LOG_ERR("ISP INT ERR_P1 0x%x\n", IrqStatus[ISP_IRQ_TYPE_INT_STATUSX]);
-		IRQ_LOG_KEEPER(_IRQ,m_CurrentPPB,_LOG_ERR,"ISP INT ERR_P1 0x%x\n", IrqStatus[ISP_IRQ_TYPE_INT_STATUSX]);
+		LOG_ERR("ISP INT ERR_P1 0x%x\n", IrqStatus[ISP_IRQ_TYPE_INT_STATUSX]);
 		g_ISPIntErr[_IRQ] |= IrqStatus[ISP_IRQ_TYPE_INT_STATUSX];
 	    }
 	    if (IrqStatus[ISP_IRQ_TYPE_INT_STATUS2X] & (~STATUSX_WARNING)) {
-		//LOG_ERR("ISP INT ERR_P1_D 0x%x\n", IrqStatus[ISP_IRQ_TYPE_INT_STATUS2X]);
-		IRQ_LOG_KEEPER(_IRQ,m_CurrentPPB,_LOG_ERR,"ISP INT ERR_P1_D 0x%x\n", IrqStatus[ISP_IRQ_TYPE_INT_STATUS2X]);
+		LOG_ERR("ISP INT ERR_P1_D 0x%x\n", IrqStatus[ISP_IRQ_TYPE_INT_STATUS2X]);
 		g_ISPIntErr[_IRQ_D] |= IrqStatus[ISP_IRQ_TYPE_INT_STATUS2X];
 	    }
 	}
@@ -9108,8 +9106,7 @@ static __tcmfunc irqreturn_t ISP_Irq_CAM(
 	    d_cur_v_cnt = ((ISP_RD32(ISP_REG_ADDR_TG2_INTER_ST)&0x00FF0000)>>16);
 	if ((IrqStatus[ISP_IRQ_TYPE_INT_P1_ST] & ISP_IRQ_P1_STATUS_PASS1_DON_ST) && (IrqStatus[ISP_IRQ_TYPE_INT_P1_ST] & ISP_IRQ_P1_STATUS_SOF1_INT_ST)) {
 	    if (cur_v_cnt != sof_count[_PASS1])
-		IRQ_LOG_KEEPER(_IRQ,m_CurrentPPB,_LOG_ERR,"isp sof_don block, %d_%d\n", cur_v_cnt, sof_count[_PASS1]);
-		//LOG_ERR("isp sof_don block, %d_%d\n", cur_v_cnt, sof_count[_PASS1]);
+		LOG_ERR("isp sof_don block, %d_%d\n", cur_v_cnt, sof_count[_PASS1]);
 	}
 #endif
 
@@ -9569,14 +9566,12 @@ static void ISP_TaskletFunc(unsigned long data)
 	{
 	    LOG_INF("tks_%d", (sof_count[_PASS1])?(sof_count[_PASS1]-1):(sof_count[_PASS1]));
 	    IRQ_LOG_PRINTER(_IRQ, m_CurrentPPB, _LOG_INF);
-	    IRQ_LOG_PRINTER(_IRQ,m_CurrentPPB,_LOG_ERR);
 	    LOG_INF("tke_%d", (sof_count[_PASS1])?(sof_count[_PASS1]-1):(sof_count[_PASS1]));
 	}
 	if (MTRUE == bRawDEn)
 	{
 	    LOG_INF("dtks_%d", (sof_count[_PASS1_D])?(sof_count[_PASS1_D]-1):(sof_count[_PASS1_D]));
 	    IRQ_LOG_PRINTER(_IRQ_D, m_CurrentPPB, _LOG_INF);
-	    IRQ_LOG_PRINTER(_IRQ_D,m_CurrentPPB,_LOG_ERR);
 	    LOG_INF("dtke_%d", (sof_count[_PASS1_D])?(sof_count[_PASS1_D]-1):(sof_count[_PASS1_D]));
 	}
     }

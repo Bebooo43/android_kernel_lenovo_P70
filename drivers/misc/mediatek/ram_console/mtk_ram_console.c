@@ -26,8 +26,6 @@
 
 static int mtk_cpu_num;
 
-static int ram_console_init_done;
-
 /*
    This group of API call by sub-driver module to report reboot reasons
    aee_rr_* stand for previous reboot reason
@@ -469,7 +467,6 @@ static int __init ram_console_init(struct ram_console_buffer *buffer, size_t buf
 #if 1
 	register_console(&ram_console);
 #endif
-    ram_console_init_done = 1;
 	return 0;
 }
 
@@ -698,8 +695,6 @@ unsigned int aee_rr_curr_exp_type(void)
 /* composite api */
 void aee_rr_rec_last_irq_enter(int cpu, int irq, u64 jiffies)
 {
-    if (!ram_console_init_done)
-        return;
 	if (cpu >= 0 && cpu < NR_CPUS) {
 		LAST_RR_SET_WITH_ID(last_irq_enter, cpu, irq);
 		LAST_RR_SET_WITH_ID(jiffies_last_irq_enter, cpu, jiffies);
@@ -709,8 +704,6 @@ void aee_rr_rec_last_irq_enter(int cpu, int irq, u64 jiffies)
 
 void aee_rr_rec_last_irq_exit(int cpu, int irq, u64 jiffies)
 {
-    if (!ram_console_init_done)
-        return;
 	if (cpu >=0 && cpu < NR_CPUS) {
 		LAST_RR_SET_WITH_ID(last_irq_exit, cpu, irq);
 		LAST_RR_SET_WITH_ID(jiffies_last_irq_exit, cpu, jiffies);
@@ -720,8 +713,6 @@ void aee_rr_rec_last_irq_exit(int cpu, int irq, u64 jiffies)
 
 void aee_rr_rec_last_sched_jiffies(int cpu, u64 jiffies, const char *comm)
 {
-    if (!ram_console_init_done)
-        return;
 	if (cpu >=0 && cpu < NR_CPUS) {
 		LAST_RR_SET_WITH_ID(jiffies_last_sched, cpu, jiffies);
 		LAST_RR_MEMCPY_WITH_ID(last_sched_comm, cpu, comm, TASK_COMM_LEN);

@@ -1,12 +1,12 @@
 #ifndef __HW_BREAKPOINT_H
 #define __HW_BREAKPOINT_H
 
-typedef int (*wp_handler)(unsigned long addr);
+typedef int (*wp_handler)(unsigned int addr);
 
 struct wp_event
 {
-    unsigned long virt;
-    unsigned long phys;
+    unsigned int virt;
+    unsigned int phys;
     int type;
     wp_handler handler;
     int in_use;

@@ -10799,8 +10799,12 @@ static int msdc_drv_probe(struct platform_device *pdev)
 #ifndef FPGA_PLATFORM
     msdc_set_host_power_control(host);
     if ((host->hw->host_function == MSDC_SD) && (host->hw->flags & MSDC_CD_PIN_EN)) {
-        msdc_sd_power(host, 1); //work around : hot-plug project SD card LDO alway on if no SD card insert
-        msdc_sd_power(host, 0);
+		if (host->hw->flags & MSDC_SD_NEED_POWER)
+			host->sd_keep_pwr = false;
+        msdc_sd_power(host, 0); //work around : hot-plug project SD card LDO alway on if no SD card insert
+        msdc_sd_power(host, 1);
+		if (host->hw->flags & MSDC_SD_NEED_POWER)
+			host->sd_keep_pwr = true;
     }
 #endif
     if(host->hw->host_function == MSDC_EMMC && !(host->hw->flags & MSDC_UHS1))

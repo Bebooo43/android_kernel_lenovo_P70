@@ -1110,7 +1110,7 @@
 #define AIS_ROAMING_CONNECTION_TRIAL_LIMIT  2
 #define AIS_JOIN_TIMEOUT                    15
 
-#define CTIA_MAGIC_SSID                     "no_use_ctia_ssid"//"ctia_test_only_*#*#3646633#*#*"
+#define CTIA_MAGIC_SSID                     "ctia_test_only_*#*#3646633#*#*"
 #define CTIA_MAGIC_SSID_LEN                 30
 
 #define AIS_FSM_STATE_SEARCH_ACTION_PHASE_0	0
@@ -2008,7 +2008,7 @@ VOID aisFsmSteps(IN P_ADAPTER_T prAdapter, ENUM_AIS_STATE_T eNextState)
 #if CFG_SUPPORT_PNO
                                 prAisBssInfo->fgIsNetRequestInActive = TRUE;
                                 if(prAisBssInfo->fgIsPNOEnable){
-                                    DBGLOG(BSS, INFO, ("[wlan index][Network]=%d fgIsPNOEnable && OP_MODE_INFRASTRUCTURE, KEEP ACTIVE \n", prAisBssInfo->ucBssIndex));
+                                    DBGLOG(BSS, INFO, ("[wlan index][Network]=%d fgIsPNOEnable && OP_MODE_INFRASTRUCTURE, KEEP ACTIVE \n", prAisBssInfo->ucBssIndex, 1));
                                 }
                                 else
 #endif                                           
@@ -3090,9 +3090,7 @@ aisFsmJoinCompleteAction(IN struct _ADAPTER_T *prAdapter, IN struct _MSG_HDR_T *
 			}
 
 #if CFG_SUPPORT_ROAMING
-			/* if bssid is given, it means we no need fw roaming */
-			if (prAdapter->rWifiVar.rConnSettings.eConnectionPolicy != CONNECT_BY_BSSID)
-				roamingFsmRunEventStart(prAdapter);
+			roamingFsmRunEventStart(prAdapter);
 #endif				/* CFG_SUPPORT_ROAMING */
 
 			/* 4 <1.7> Set the Next State of AIS FSM */
@@ -4952,12 +4950,11 @@ aisUpdateBssInfoForRoamingAP(IN P_ADAPTER_T prAdapter,
 		/* cnmStaRecChangeState(prAdapter, prAisBssInfo->prStaRecOfAP, STA_STATE_1); */
 		cnmStaRecFree(prAdapter, prAisBssInfo->prStaRecOfAP);
 	}
+	/* 4 <1.3> Activate current AP's STA_RECORD_T in Driver. */
+	cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_3);
 
 	/* 4 <1.4> Update BSS_INFO_T */
 	aisUpdateBssInfoForJOIN(prAdapter, prStaRec, prAssocRspSwRfb);
-
-	/* 4 <1.3> Activate current AP's STA_RECORD_T in Driver. */
-	cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_3);
 
 	/* 4 <1.6> Indicate Connected Event to Host immediately. */
 	/* Require BSSID, Association ID, Beacon Interval.. from AIS_BSS_INFO_T */

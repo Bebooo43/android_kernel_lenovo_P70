@@ -434,15 +434,41 @@ static void usb_phy_savecurrent_internal(void){
 void usb_phy_savecurrent(void){
 
     usb_phy_savecurrent_internal();
+    //to avoid hw access during clock-off
+    unsigned long flags;
+    int do_lock = 0;
+    extern int musb_is_shutting;
+
+    // to avoid deadlock, musb_shutdown will hold this clock too
+    if(mtk_musb && !musb_is_shutting){
+        spin_lock_irqsave(&mtk_musb->lock, flags);
+        do_lock = 1;
+    }
     //4 14. turn off internal 48Mhz PLL.
     usb_enable_clock(false);
+
+    if(do_lock){
+        spin_unlock_irqrestore(&mtk_musb->lock, flags);
+    }
+
     printk("usb save current success\n");
 }
 
 void usb_phy_recover(void){
 
+    unsigned long flags;
+    int do_lock = 0;
+    dump_stack();
+    if(mtk_musb){
+        spin_lock_irqsave(&mtk_musb->lock, flags);
+        do_lock = 1;
+    }
     //4 1. turn on USB reference clock.
     usb_enable_clock(true);
+
+    if(do_lock){
+        spin_unlock_irqrestore(&mtk_musb->lock, flags);
+    }
     //4 2. wait 50 usec.
     udelay(50);
 
@@ -526,6 +552,8 @@ void usb_phy_recover(void){
     #endif
     hs_slew_rate_cal();
 
+	// adjust TERM_VREF_SEL to 440mv
+     USBPHY_SET8(0x05, 0x70);
     printk("usb recovery success\n");
     return;
 }

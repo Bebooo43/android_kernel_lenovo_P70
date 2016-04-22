@@ -681,7 +681,11 @@ nicCmdEventQueryLinkSpeed(IN P_ADAPTER_T prAdapter,
 		prGlueInfo = prAdapter->prGlueInfo;
 		pu4LinkSpeed = (PUINT_32) (prCmdInfo->pvInformationBuffer);
 
-        *pu4LinkSpeed = prLinkQuality->u2LinkSpeed * 5000;
+		if (prLinkQuality->u2LinkSpeed == 0) {
+			*pu4LinkSpeed = 10000;	/* 10K * 100bps = 1Mbps */
+		} else {
+			*pu4LinkSpeed = prLinkQuality->u2LinkSpeed * 5000;
+		}
 
 		u4QueryInfoLen = sizeof(UINT_32);
 
@@ -1832,16 +1836,14 @@ nicCmdEventQueryStaStatistics(IN P_ADAPTER_T prAdapter,
 
 			prStaRec = cnmGetStaRecByIndex(prAdapter, prEvent->ucStaRecIdx);
 
-            if(prStaRec) {
-            	/*link layer statistics*/
-            	for(eAci = 0; eAci < WMM_AC_INDEX_NUM; eAci++) {
-            		prStaStatistics->arLinkStatistics[eAci].u4TxFailMsdu = prEvent->arLinkStatistics[eAci].u4TxFailMsdu;
-            		prStaStatistics->arLinkStatistics[eAci].u4TxRetryMsdu = prEvent->arLinkStatistics[eAci].u4TxRetryMsdu;  
+			/*link layer statistics*/
+			for(eAci = 0; eAci < WMM_AC_INDEX_NUM; eAci++) {
+				prStaStatistics->arLinkStatistics[eAci].u4TxFailMsdu = prEvent->arLinkStatistics[eAci].u4TxFailMsdu;
+				prStaStatistics->arLinkStatistics[eAci].u4TxRetryMsdu = prEvent->arLinkStatistics[eAci].u4TxRetryMsdu;  
 
-            		/*for dump bss statistics*/
-            		prStaRec->arLinkStatistics[eAci].u4TxFailMsdu = prEvent->arLinkStatistics[eAci].u4TxFailMsdu;
-            		prStaRec->arLinkStatistics[eAci].u4TxRetryMsdu = prEvent->arLinkStatistics[eAci].u4TxRetryMsdu;                  
-            	}
+				/*for dump bss statistics*/
+				prStaRec->arLinkStatistics[eAci].u4TxFailMsdu = prEvent->arLinkStatistics[eAci].u4TxFailMsdu;
+				prStaRec->arLinkStatistics[eAci].u4TxRetryMsdu = prEvent->arLinkStatistics[eAci].u4TxRetryMsdu;                  
 			}
 
 			if (prEvent->u4TxCount) {

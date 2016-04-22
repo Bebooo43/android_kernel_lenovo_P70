@@ -188,15 +188,11 @@ static int ipanic_memory_buffer(void *data, unsigned char *buffer, size_t sz_buf
 
 static int ipanic_alog_buffer(void *data, unsigned char *buffer, size_t sz_buf)
 {
-#ifdef CONFIG_HAVE_XLOG_FEATURE
 	int rc;
 	rc = panic_dump_android_log(buffer, sz_buf, (unsigned long)data);
 	if (rc < 0)
 		rc = -1;
 	return rc;
-#else
-	return -1;
-#endif	
 }
 
 inline int ipanic_func_write(fn_next next, void *data, int off, int total, int encrypt)
@@ -619,7 +615,7 @@ static int ipanic_die(struct notifier_block *self, unsigned long cmd, void *ptr)
 
 	if (aee_rr_curr_exp_type() == 2)
 	/* No return if mrdump is enable */
-		__mrdump_create_oops_dump(AEE_REBOOT_MODE_KERNEL_OOPS, dargs->regs, "Kernel Oops");
+		aee_kdump_reboot(AEE_REBOOT_MODE_KERNEL_OOPS, "Kernel Oops");
 
 	smp_send_stop();
 

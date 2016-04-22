@@ -9,8 +9,6 @@
 #define BM_LOG_CRTI 1
 #define BM_LOG_FULL 2
 
-#define BM_DAEMON_DEFAULT_LOG_LEVEL 6
-
 #define bm_print(num, fmt, args...)   \
 do {									\
 	if (Enable_FGADC_LOG >= (int)num) {				\
@@ -28,7 +26,6 @@ typedef enum {
 	BATTERY_METER_CMD_GET_HW_FG_CURRENT,	/* fgauge_read_current */
 	BATTERY_METER_CMD_GET_HW_FG_CURRENT_SIGN,	/*  */
 	BATTERY_METER_CMD_GET_HW_FG_CAR,	/* fgauge_read_columb */
-	BATTERY_METER_CMD_GET_HW_FG_CAR_ACT,	/* fgauge_read_columb */
 
 	BATTERY_METER_CMD_HW_RESET,	/* FGADC_Reset_SW_Parameter */
 
@@ -38,7 +35,7 @@ typedef enum {
 	BATTERY_METER_CMD_GET_ADC_V_CHARGER,
 
 	BATTERY_METER_CMD_GET_HW_OCV,
-	BATTERY_METER_CMD_GET_BATTERY_PLUG_STATUS,
+
 	BATTERY_METER_CMD_DUMP_REGISTER,
 	BATTERY_METER_CMD_SET_COLUMB_INTERRUPT,
 	BATTERY_METER_CMD_NUMBER

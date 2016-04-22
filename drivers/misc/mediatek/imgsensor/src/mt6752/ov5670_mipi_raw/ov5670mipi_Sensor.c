@@ -40,10 +40,15 @@
 #include <linux/compat.h>
 #endif
 #define PFX "ov5670_camera_sensor"
-#define LOG_INF(format, args...)	pr_debug(PFX "[%s] " format, __FUNCTION__, ##args)
+//#define LOG_WRN(format, args...) xlog_printk(ANDROID_LOG_WARN ,PFX, "[%S] " format, __FUNCTION__, ##args)
+//#defineLOG_INF(format, args...) xlog_printk(ANDROID_LOG_INFO ,PFX, "[%s] " format, __FUNCTION__, ##args)
+//#define LOG_DBG(format, args...) xlog_printk(ANDROID_LOG_DEBUG ,PFX, "[%S] " format, __FUNCTION__, ##args)
+#define LOG_INF(format, args...)	xlog_printk(ANDROID_LOG_INFO   , PFX, "[%s] " format, __FUNCTION__, ##args)
+#define LOG_ERR(format, args...)	xlog_printk(ANDROID_LOG_ERROR   , PFX, "[%s] " format, __FUNCTION__, ##args)
 
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
+#define OV5670_OTP
 
 static imgsensor_info_struct imgsensor_info = { 
 	.sensor_id = OV5670MIPI_SENSOR_ID,		//record sensor id defined in Kd_imgsensor.h
@@ -124,15 +129,15 @@ static imgsensor_info_struct imgsensor_info = {
 	.ae_shut_delay_frame = 0,	//shutter delay frame for AE cycle, 2 frame with ispGain_delay-shut_delay=2-0=2
 	.ae_sensor_gain_delay_frame = 0,//sensor gain delay frame for AE cycle,2 frame with ispGain_delay-sensor_gain_delay=2-0=2
 	.ae_ispGain_delay_frame = 2,//isp gain delay frame for AE cycle
-	.ihdr_support = 1,	  //1, support; 0,not support
+	.ihdr_support = 0,	  //1, support; 0,not support
 	.ihdr_le_firstline = 0,  //1,le first ; 0, se first
 	.sensor_mode_num = 5,	  //support sensor mode num
 	
-	.cap_delay_frame = 2,		//enter capture delay frame num
-	.pre_delay_frame = 2, 		//enter preview delay frame num
-	.video_delay_frame = 2,		//enter video delay frame num
-	.hs_video_delay_frame = 2,	//enter high speed video  delay frame num
-	.slim_video_delay_frame = 2,//enter slim video delay frame num
+	.cap_delay_frame = 3,		//enter capture delay frame num
+	.pre_delay_frame = 3, 		//enter preview delay frame num
+	.video_delay_frame = 3,		//enter video delay frame num
+	.hs_video_delay_frame = 3,	//enter high speed video  delay frame num
+	.slim_video_delay_frame = 3,//enter slim video delay frame num
 	
 	.isp_driving_current = ISP_DRIVING_8MA, //mclk driving current
     .sensor_interface_type = SENSOR_INTERFACE_TYPE_MIPI,//sensor_interface_type
@@ -141,7 +146,9 @@ static imgsensor_info_struct imgsensor_info = {
 	.sensor_output_dataformat = SENSOR_OUTPUT_FORMAT_RAW_Gb,//sensor output first pixel color
 	.mclk = 24,//mclk value, suggest 24 or 26 for 24Mhz or 26Mhz
 	.mipi_lane_num = SENSOR_MIPI_2_LANE,//mipi lane num
-	.i2c_addr_table = {0x6c, 0x20, 0xff},//record sensor support all write id addr, only supprt 4must end with 0xff
+//lenovo.sw wangsx3 START config sub camera for AIO
+	.i2c_addr_table = {0x20, 0xff, 0xff},//record sensor support all write id addr, only supprt 4must end with 0xff
+//lenovo.sw wangsx3 END config sub camera for AIO
 };
 
 
@@ -157,7 +164,9 @@ static imgsensor_struct imgsensor = {
 	.test_pattern = KAL_FALSE,		//test pattern mode or not. KAL_FALSE for in test pattern mode, KAL_TRUE for normal output
 	.current_scenario_id = MSDK_SCENARIO_ID_CAMERA_PREVIEW,//current scenario id
 	.ihdr_en = 0, //sensor need support LE, SE with HDR feature
-	.i2c_write_id = 0x6c,//record current sensor's i2c write id
+//lenovo.sw wangsx3 START config sub camera for AIO
+	.i2c_write_id = 0x20,//record current sensor's i2c write id
+//lenovo.sw wangsx3 END config sub camera for AIO
 };
 
 
@@ -185,403 +194,365 @@ static void write_cmos_sensor(kal_uint32 addr, kal_uint32 para)
 	char pu_send_cmd[3] = {(char)(addr >> 8), (char)(addr & 0xFF), (char)(para & 0xFF)};
 	iWriteRegI2C(pu_send_cmd, 3, imgsensor.i2c_write_id);
 }
-#if 0
-void OV5670ofilm_read_all()//(kal_uint16 start_addr,kal_uint16 end_addr,kal_uint16 *out_buf)
+#ifdef OV5670_OTP
+
+struct otp_struct {
+	int module_integrator_id;
+	int lens_id;
+	int production_year;
+	int production_month;
+	int production_day;
+	int rg_ratio;
+	int bg_ratio;
+	int r_golden;
+	int b_golden;
+	int gr_golden;
+	int gb_golden;
+};
+static void OV5670_OTP_read_begin(void)
 {
-      //kal_uint16 i=0;
-       //set 0x5002[3] to "0";
-       kal_uint16 temp1=0;
-       
-       temp1 =0;
-       temp1 = read_cmos_sensor(0x5002);
-       write_cmos_sensor(0x5002,(0x00&0x08)|(temp1&(~0x08)));
-
-
-		//test 
-		temp1 =0;
-		temp1 = read_cmos_sensor(0x302a);
-		LOG_INF("0x302a = %x",temp1);
-			
-	//clear otp buffer
-		//for(i=start_addr;i<=end_addr;i++)
-		{
-			//write_cmos_sensor(i,0x00);
-			write_cmos_sensor(0x7010,0x00);
-
-		}
-		
-
-    write_cmos_sensor(0x3d84,0xc0);
-    //partial mode otp write start address
-    //OV5670_write_cmos_sensor(0x3d88,(start_addr>>8)&0xff);
-    //OV5670_write_cmos_sensor(0x3d89,start_addr&0xff);
-    write_cmos_sensor(0x3d88,0x70);
-    write_cmos_sensor(0x3d89,0x10);
-    //partial mode otp write end address
-    write_cmos_sensor(0x3d8a,0x70);
-    write_cmos_sensor(0x3d8b,0x10);
-
-    //read otp into buffer
-    write_cmos_sensor(0x3d81,0x01);
-    
-    mdelay(10);
-
-    //read buf
-		//for(i=start_addr;i<=end_addr;i++)
-		//{
-		//  out_buf[i-start_addr] = OV5670_read_cmos_sensor(i);
-	  //}
-	  
-    temp1 = read_cmos_sensor(0x7010);
-    LOG_INF("0x7010 = %x",temp1);
-	        
-    mdelay(10);
-    
-    //clear buf
-    //for(i=start_addr;i<=end_addr;i++)
-    {
-		   //write_cmos_sensor(i,0x00);
-		write_cmos_sensor(0x7010,0x00);
-
-    }
-
-    //triggle write OTP
-	
+	// set reg 0x5002[3] to '0'
+	int temp1;
 	temp1 = read_cmos_sensor(0x5002);
-	write_cmos_sensor(0x5002,(0x02&0x08)|(temp1&(~0x08)));
- 
+	write_cmos_sensor(0x5002, (temp1 &(~0x08)));
 }
+
+static void OV5670_OTP_read_end(void)
+{
+	// set reg 0x5002[3] to '1'
+	int temp1;
+	temp1 = read_cmos_sensor(0x5002);
+	write_cmos_sensor(0x5002, (0x08 | temp1));
+}
+
+
+// index: index of otp group. (1, 2, 3)
+// return: 0, group index is empty
+// 1, group index has invalid data
+// 2, group index has valid data
+static int check_otp_info(int index)
+{
+	int flag=0, i=0;
+	int address_start = 0x7010;
+	int address_end = 0x7010;
+	write_cmos_sensor(0x0103,0x01);// ; software reset
+	mDELAY(10);
+	write_cmos_sensor(0x0100, 0x01); //;01	
+	mDELAY(5);
+	OV5670_OTP_read_begin();
+	// read otp into buffer
+	write_cmos_sensor(0x3d84, 0xc0); // program disable, manual mode
+	//partial mode OTP write start address
+	write_cmos_sensor(0x3d88, (address_start>>8));
+	write_cmos_sensor(0x3d89, (address_start & 0xff));
+	// partial mode OTP write end address
+	write_cmos_sensor(0x3d8A, (address_end>>8));
+
+	write_cmos_sensor(0x3d8B, (address_end & 0xff));
+	write_cmos_sensor(0x3d81, 0x01); // read otp
+	mdelay(5);
+	flag = read_cmos_sensor(0x7010);
+	LOG_INF("basic otp  index=%d,flag 0x7010= 0x%x\n",index,flag);
+	//select group
+	if(index==1)
+	{
+		flag = (flag>>6) & 0x03;
+	}
+	else if(index==2)
+	{
+		flag = (flag>>4) & 0x03;
+	}
+	else
+	{
+		flag = (flag>>2) & 0x03;
+	}
+	// clear otp buffer
+	for (i=address_start;i<=address_end;i++) {
+		write_cmos_sensor(i, 0x00);
+	}
+	OV5670_OTP_read_end();
+	if (flag == 0x00) {
+		return 0;
+	}
+	else if (flag & 0x02) {
+		return 1;
+	}
+	else {
+		return 2;
+	}
+}
+// index: index of otp group. (1, 2, 3)
+// return: 0, group index is empty
+// 1, group index has invalid data
+// 2, group index has valid data
+
+static int check_otp_wb(int index)
+{
+	int flag=0, i;
+	int address_start = 0x7041;
+	int address_end = 0x7041;
+	OV5670_OTP_read_begin();
+	// read otp into buffer
+	write_cmos_sensor(0x3d84, 0xc0); // program disable, manual mode
+	//partial mode OTP write start address
+	write_cmos_sensor(0x3d88, (address_start>>8));
+	write_cmos_sensor(0x3d89, (address_start & 0xff));
+	// partial mode OTP write end address
+	write_cmos_sensor(0x3d8A, (address_end>>8));
+	write_cmos_sensor(0x3d8B, (address_end & 0xff));
+	write_cmos_sensor(0x3d81, 0x01); // read OTP
+	mdelay(5);
+
+	//select group
+	flag = read_cmos_sensor(0x7041);
+	LOG_INF("AWB otp flag = 0x%x \n",flag);
+
+	if(index==1)
+	{
+		flag = (flag>>6) & 0x03;
+	}
+	else if(index==2)
+	{
+		flag = (flag>>4) & 0x03;
+	}
+	else
+	{
+		flag = (flag>>2) & 0x03;
+	}
+	// clear otp buffer
+	for (i=address_start;i<=address_end;i++) {
+		write_cmos_sensor(i, 0x00);
+	}
+	OV5670_OTP_read_end();
+	if (flag == 0x00) {
+		return 0;
+	}
+	else if (flag & 0x02) {
+		return 1;
+	}
+	else {
+		return 2;
+	}
+}
+
+// index: index of otp group. (1, 2, 3)
+// otp_ptr: pointer of otp_struct
+// return: 0,
+static int read_otp_info(int index, struct otp_struct *otp_ptr)
+{
+	int i;
+	int address_start;
+	int address_end;
+	OV5670_OTP_read_begin();
+	// read otp into buffer
+	write_cmos_sensor(0x3d84, 0xc0); // program disable, manual mode
+	//select group
+	if(index==1)
+	{
+		address_start = 0x7011;
+		address_end = 0x7020;
+	}
+	else if(index==2)
+	{
+		address_start = 0x7021;
+		address_end = 0x7030;
+	}
+	else
+	{
+		address_start = 0x7031;
+		address_end = 0x7040;
+	}
+	//partial mode OTP write start address
+	write_cmos_sensor(0x3d88, (address_start>>8));
+	write_cmos_sensor(0x3d89, (address_start & 0xff));
+	// partial mode OTP write end address
+	write_cmos_sensor(0x3d8A, (address_end>>8));
+	write_cmos_sensor(0x3d8B, (address_end & 0xff));
+	write_cmos_sensor(0x3d81, 0x01); // load otp into buffer
+
+	mdelay(5);
+	(*otp_ptr).module_integrator_id = read_cmos_sensor(address_start);
+	(*otp_ptr).lens_id = read_cmos_sensor(address_start + 1);
+	(*otp_ptr).production_year = read_cmos_sensor(address_start + 2);
+	(*otp_ptr).production_month = read_cmos_sensor(address_start + 3);
+	(*otp_ptr).production_day = read_cmos_sensor(address_start + 4);
+	// clear otp buffer
+	for (i=address_start;i<=address_end;i++) {
+		write_cmos_sensor(i, 0x00);
+	}
+	OV5670_OTP_read_end();
+	return 0;
+}
+
+// index: index of otp group. (1, 2, 3)
+// otp_ptr: pointer of otp_struct
+// return: 0,
+static int read_otp_wb(int index, struct otp_struct *otp_ptr)
+{
+	int i, temp;
+	int address_start;
+	int address_end;
+	//select group
+	if(index==1){
+		address_start = 0x7042;
+		address_end = 0x705e;
+	}
+	else if(index==2){
+		address_start = 0x705f;
+		address_end = 0x707b;
+	}
+	else if(index==3){
+		address_start = 0x707c;
+		address_end = 0x7098;
+	}
+	OV5670_OTP_read_begin();
+	// read otp into buffer
+	write_cmos_sensor(0x3d84, 0xc0); // program disable, manual mode
+	//partial mode OTP write start address
+	write_cmos_sensor(0x3d88, (address_start>>8));
+	write_cmos_sensor(0x3d89, (address_start & 0xff));
+	// partial mode OTP write end address
+	write_cmos_sensor(0x3d8A, (address_end>>8));
+	write_cmos_sensor(0x3d8B, (address_end & 0xff));
+	write_cmos_sensor(0x3d81, 0x01); // load otp into buffer
+	mdelay(5);
+	temp = read_cmos_sensor(address_start+1);
+	otp_ptr->rg_ratio = (read_cmos_sensor(address_start)<<2) + ((temp>>6) & 0x03);
+	temp = read_cmos_sensor(address_start+3);
+	otp_ptr->bg_ratio = (read_cmos_sensor(address_start + 2)<<2) + ((temp>>6) & 0x03);
+	temp = read_cmos_sensor(address_start+21);
+	otp_ptr->r_golden = (read_cmos_sensor(address_start + 20)<<2) + ((temp>>6) & 0x03);
+	temp = read_cmos_sensor(address_start+23);
+	otp_ptr->b_golden = (read_cmos_sensor(address_start + 22)<<2) + ((temp>>6) & 0x03);
+	temp = read_cmos_sensor(address_start+25);
+	otp_ptr->gr_golden = (read_cmos_sensor(address_start + 24)<<2) + ((temp>>6) & 0x03);
+	temp = read_cmos_sensor(address_start+27);
+	otp_ptr->gb_golden = (read_cmos_sensor(address_start + 26)<<2) + ((temp>>6) & 0x03);
+	// clear otp buffer
+
+	for (i=address_start;i<=address_end;i++) {
+		write_cmos_sensor(i, 0x00);
+	}
+	OV5670_OTP_read_end();
+
+	LOG_INF("AWB otp: r_golden = %d \n",otp_ptr->r_golden);
+	LOG_INF("AWB otp: b_golden = %d \n",otp_ptr->b_golden);
+	LOG_INF("AWB otp: gr_golden = %d \n",otp_ptr->gr_golden);
+	LOG_INF("AWB otp: gb_golden = %d \n",otp_ptr->gb_golden);
+
+	
+	return 0;
+}
+// R_gain, sensor red gain of AWB, 0x400 =1
+// G_gain, sensor green gain of AWB, 0x400 =1
+// B_gain, sensor blue gain of AWB, 0x400 =1
+// return 0;
+static int update_awb_gain(int R_gain, int G_gain, int B_gain)
+{
+	if (R_gain>=0x400) {
+		write_cmos_sensor(0x5032, R_gain>>8);
+		write_cmos_sensor(0x5033, R_gain & 0x00ff);
+	}
+	if (G_gain>=0x400) {
+		write_cmos_sensor(0x5034, G_gain>>8);
+		write_cmos_sensor(0x5035, G_gain & 0x00ff);
+	}
+
+	if (B_gain>=0x400) {
+		write_cmos_sensor(0x5036, B_gain>>8);
+		write_cmos_sensor(0x5037, B_gain & 0x00ff);
+	}
+	return 0;
+}
+
+// call this function after OV5670 initialization
+// return value: 0 update success
+// 1, no OTP
+static int update_otp_wb()
+{
+	struct otp_struct current_otp={0};
+	int i;
+	int otp_index,temp;
+	int BG_Ratio_Typical,RG_Ratio_Typical;
+	int R_gain, G_gain, B_gain, G_gain_R, G_gain_B;
+	int rg,bg,r_golden,b_golden,gr_golden,gb_golden;
+
+// R/G and B/G of current camera module is read out from sensor OTP
+// check first OTP with valid data
+	for(i=1;i<=3;i++) {
+		temp = check_otp_wb(i);
+		if (temp == 2) 
+		{
+			otp_index = i;
+			break;
+		}
+	}
+	if (i>3) {
+	// no valid wb OTP data
+		return 1;
+	}
+	read_otp_wb(otp_index, &current_otp);
+	rg = current_otp.rg_ratio;
+	bg = current_otp.bg_ratio;
+	
+	r_golden = current_otp.r_golden;
+	b_golden = current_otp.b_golden;
+	gr_golden = current_otp.gr_golden;
+	gb_golden = current_otp.gb_golden;
+	LOG_INF("-----------golden ration rg bg [0x%x,0x%x]\n",rg,bg);	
+	LOG_INF("-----------golden r b gr gb[0x%x,0x%x,0x%x,0x%x]\n",r_golden,b_golden,gr_golden,gb_golden);	
+	BG_Ratio_Typical = ((b_golden<<9)+((gr_golden+gb_golden)>>2)) / ((gr_golden+gb_golden)>>1);
+	RG_Ratio_Typical = ((r_golden<<9)+((gr_golden+gb_golden)>>2)) / ((gr_golden+gb_golden)>>1);
+	//calculate G gain
+	//0x400 = 1x gain
+	if(bg < BG_Ratio_Typical) {
+		if (rg< RG_Ratio_Typical) {
+			// current_otp.bg_ratio < BG_Ratio_typical &&
+			// current_otp.rg_ratio < RG_Ratio_typical
+			G_gain = 0x400;
+			B_gain = 0x400 * BG_Ratio_Typical / bg;
+			R_gain = 0x400 * RG_Ratio_Typical / rg;
+		}
+		else {
+			// current_otp.bg_ratio < BG_Ratio_typical &&
+			// current_otp.rg_ratio >= RG_Ratio_typical
+			R_gain = 0x400;
+			G_gain = 0x400 * rg / RG_Ratio_Typical;
+			B_gain = G_gain * BG_Ratio_Typical /bg;
+		}
+	}
+	else {
+		if (rg < RG_Ratio_Typical) {
+			// current_otp.bg_ratio >= BG_Ratio_typical &&
+			// current_otp.rg_ratio < RG_Ratio_typical
+			B_gain = 0x400;
+			G_gain = 0x400 * bg / BG_Ratio_Typical;
+			R_gain = G_gain * RG_Ratio_Typical / rg;
+		}
+		else {
+			// current_otp.bg_ratio >= BG_Ratio_typical &&
+			// current_otp.rg_ratio >= RG_Ratio_typical
+			G_gain_B = 0x400 * bg / BG_Ratio_Typical;
+			G_gain_R = 0x400 * rg / RG_Ratio_Typical;
+			if(G_gain_B > G_gain_R ) {
+				B_gain = 0x400;
+				G_gain = G_gain_B;
+				R_gain = G_gain * RG_Ratio_Typical /rg;
+			}
+			else {
+				R_gain = 0x400;
+				G_gain = G_gain_R;
+				B_gain = G_gain * BG_Ratio_Typical / bg;
+			}
+		}
+	}
+	LOG_INF("-----------golden RGB gain [0x%x,0x%x,0x%x]\n",R_gain,G_gain,B_gain);	
+	update_awb_gain(R_gain, G_gain, B_gain);
+	return 0;
+}
+
 #endif
-#if 1
-void OV5670ofilm_read_all(kal_uint16 start_addr,kal_uint16 end_addr,kal_uint16 *out_buf)
-{
-      kal_uint16 i;
-       //set 0x5002[3] to "0";
-       kal_uint16 temp1;
-       temp1 = read_cmos_sensor(0x5002);
-       write_cmos_sensor(0x5002,(0x00&0x08)|(temp1&(~0x08)));
-
-	//clear otp buffer
-		for(i=start_addr;i<=end_addr;i++)
-		{
-			write_cmos_sensor(i,0x00);
-		}		
-
-    write_cmos_sensor(0x3d84,0xc0);
-    //partial mode otp write start address
-    write_cmos_sensor(0x3d88,(start_addr>>8)&0xff);
-    write_cmos_sensor(0x3d89,start_addr&0xff);
-    //partial mode otp write end address
-    write_cmos_sensor(0x3d8a,(end_addr>>8)&0xff);
-    write_cmos_sensor(0x3d8b,end_addr & 0xff);
-
-    //read otp into buffer
-    write_cmos_sensor(0x3d81,0x01);
-    
-    mdelay(10);
-
-    //read buf
-    for(i=start_addr;i<=end_addr;i++)
-    {
-        out_buf[i-start_addr] = read_cmos_sensor(i);
-    }
-	        
-    mdelay(10);
-    
-    //clear buf
-    for(i=start_addr;i<=end_addr;i++)
-    {
-       write_cmos_sensor(i,0x00);
-     }
-
-    //triggle write OTP
-	
-	temp1 = read_cmos_sensor(0x5002);
-	write_cmos_sensor(0x5002,(0x02&0x08)|(temp1&(~0x08)));
- 
-}
-
-void OV5670ofilm_read_single(kal_uint16 start_addr,kal_uint16 out_buf)
-{
-
-    kal_uint16 i;
-    //set 0x5002[3] to "0";
-    kal_uint16 temp1;
-    temp1 = read_cmos_sensor(0x5002);
-	   
-    write_cmos_sensor(0x5002,(0x00&0x08)|(temp1&(~0x08)));
-    
-    //clear otp buffer
-    
-    write_cmos_sensor(start_addr,0x00);
-		
-    write_cmos_sensor(0x3d84,0xc0);
-    //partial mode otp write start address
-    write_cmos_sensor(0x3d88,(start_addr>>8)&0xff);
-    write_cmos_sensor(0x3d89,start_addr & 0xff);
-    //partial mode otp write end address
-    write_cmos_sensor(0x3d8a,(start_addr>>8)&0xff);
-    write_cmos_sensor(0x3d8b,start_addr & 0xff);
-
-    //read otp into buffer
-    write_cmos_sensor(0x3d81,0x01);
-    
-    mdelay(10);
-
-    out_buf=read_cmos_sensor(start_addr);
-    LOG_INF("out_buf = %x\n",out_buf);    
-  
-     mdelay(10);
-	
-     write_cmos_sensor(start_addr, 0x00);
-	
-     temp1 = read_cmos_sensor(0x5002);
-     write_cmos_sensor(0x5002,(0x02&0x08)|(temp1&(~0x08)));
-     //return out_buf;	
- 
-}
-
-
-void OV5670ofilm_update_wb_gain(kal_uint32 R_gain, kal_uint32 G_gain, kal_uint32 B_gain)
-{   
-	if(R_gain > 0x400)
-		{
-			write_cmos_sensor(0x5032,R_gain >> 8);
-			write_cmos_sensor(0x5033,(R_gain&0x00ff));
-		}
-	if(G_gain > 0x400)
-		{
-			write_cmos_sensor(0x5034,G_gain >> 8);
-			write_cmos_sensor(0x5035,(G_gain&0x00ff));
-		}
-	if(B_gain >0x400)
-		{
-			write_cmos_sensor(0x5036,B_gain >> 8);
-			write_cmos_sensor(0x5037,(B_gain&0x00ff));
-		}
-	LOG_INF("[OV5670OFILM_MIPI_update_wb_gain]R_gain[%x]G_gain[%x]B_gain[%x]\n",R_gain,G_gain,B_gain);
-
-	LOG_INF("[OV5670OFILM_MIPI_update_wb_gain_Finished");
-}
-
-void OV5670ofilm_ApplyWB(kal_uint16 rg,kal_uint16 bg,kal_uint16 RG_Ratio_Typical,kal_uint16 BG_Ratio_Typical)
-
-{
-   kal_uint16  R_Gain, G_Gain, B_Gain;
-
-   kal_uint16 nBase_gain;
-
-	R_Gain = (1000 * RG_Ratio_Typical)/rg;
-	B_Gain = (1000 * BG_Ratio_Typical)/bg;
-	G_Gain = 1000;
-
-	if (R_Gain<1000 || B_Gain<1000)
-	{
-		if (R_Gain < B_Gain)
-		{
-			nBase_gain = R_Gain;
-		}
-		else
-		{
-			nBase_gain = B_Gain;
-		}
-	}
-	else
-	{
-		nBase_gain = G_Gain;
-	}
-	
-	R_Gain = 0x400*R_Gain/(nBase_gain);
-	B_Gain = 0x400*B_Gain/(nBase_gain);
-	G_Gain = 0x400*G_Gain/(nBase_gain);
-	
-	OV5670ofilm_update_wb_gain(R_Gain, G_Gain, B_Gain);
-}
-
-void OV5670Ofilm_otpcheck()
-{
-
-	kal_uint16 valueGroup;
-	kal_uint16 i,sum,temp;
-	kal_uint16 flagvalue;
-	kal_uint16 WBflagvalue;
-	USHORT tempbuf[16] = {0};
-	USHORT tempWB[32] = {0};
-
-	//OV5670ofilm_read_single(0x7010,flagvalue);
-	OV5670ofilm_read_all(0x7010,0x7010,tempbuf);
-	LOG_INF("tempbuf[0] = %x",tempbuf[0]);
-	
-	if((tempbuf[0]&0xC0)==0x40)
-	{
-		valueGroup=1;
-	}
-	else if((tempbuf[0]&0x30)==0x10)
-	{
-		valueGroup=2;
-	}
-	else if((tempbuf[0]&0x0C)==0x04)
-	{
-		valueGroup=3;
-	}
-	else
-	{
-	LOG_INF("OV5670 otp info is error or invalid ");
-	return ;
-	}
-
-	LOG_INF("OV5670 otp basic info valueGroup = %d",valueGroup);
-
-	OV5670ofilm_read_all(0x7011+16*(valueGroup-1),0x7020+16*(valueGroup-1),tempbuf);
-
-	USHORT module_integrator_id = tempbuf[0];
-	USHORT otp_guide_version = tempbuf[1];
-	USHORT production_year = tempbuf[2];
-	USHORT production_month = tempbuf[3];
-	USHORT production_day = tempbuf[4];
-	USHORT sensor_id = tempbuf[5];
-	USHORT lens_id = tempbuf[6];
-	USHORT vcm_id = tempbuf[7];
-	USHORT driver_ic_id = tempbuf[8];
-	USHORT IR_BG_id = tempbuf[9];
-	USHORT color_temperature_id = tempbuf[10];
-	USHORT AF_FF_flag = tempbuf[11];
-	USHORT light_source_flag = tempbuf[12];
-	USHORT sensor_version = tempbuf[13];
-
-	if(module_integrator_id ==0x07)
-	{
-	 LOG_INF("The module is  from ofilm\n");
-	}
-	else
-	{
-	LOG_INF("The module is not from ofilm\n");
-	return ;
-	}
-
-       if(otp_guide_version == 0x01)
-   	{
-   	LOG_INF("The OTP guide version is 1.0\n");
-   	}
-       	
-	if(sensor_version == 0x01)
-	{
-	LOG_INF("The sensor version is 1.0\n");
-	}
-	
-	sum = 0;
-	for (i = 0; i<15; i++)
-	{
-		sum = sum + tempbuf[i];
-	}
-
-	temp = sum % 0xff +1;
-	if (tempbuf[15] != temp)
-	{
-        LOG_INF("OV5670 otp info checksum error");
-	return ;
-	} 
-	
-	//OV5670ofilm_read_singlel(0x7041,WBflagvalue);
-	//LOG_INF("temp2 value = %x",WBflagvalue);	
-
-	OV5670ofilm_read_all(0x7041,0x7041,tempWB);
-	LOG_INF("tempWB[0] = %x",tempWB[0]);
-	
-	if((tempWB[0]&0xC0)==0x40)
-	{
-		valueGroup=1;
-	}
-	else if((tempWB[0]&0x30)==0x10)
-	{
-		valueGroup=2;
-	}
-	else if((tempWB[0]&0x0C)==0x04)
-	{
-		valueGroup=3;
-	}
-	else
-	{
-	LOG_INF("OV5670 otp wb info is error or invalid");
-	return ;
-	}
-
-       LOG_INF("OV5670 otp wb info valueGroup = %d",valueGroup);
-	
-	OV5670ofilm_read_all(0x7042 + 29*(valueGroup-1),0x705e + 29*(valueGroup-1),tempWB);
-
-       kal_uint16 rg = (tempWB[0]<<2) + (tempWB[1]>>6);
-	kal_uint16 bg = (tempWB[2]<<2) + (tempWB[3]>>6);
-       kal_uint16 RG_Ratio_Typical = (tempWB[6]<<2) + (tempWB[7]>>6);
-	kal_uint16 BG_Ratio_Typical = (tempWB[8]<<2) + (tempWB[9]>>6);
-
-	LOG_INF("rg = %x\n",rg);
-	LOG_INF("bg = %x\n",bg);
-	LOG_INF("RG_Ratio_Typical = %x\n",RG_Ratio_Typical);
-	LOG_INF("BG_Ratio_Typical = %x\n",BG_Ratio_Typical);
-
-	 if((rg != 0) && (bg != 0) && (RG_Ratio_Typical != 0) && (BG_Ratio_Typical != 0)) 
-	{
-		OV5670ofilm_ApplyWB(rg,bg,RG_Ratio_Typical,BG_Ratio_Typical);
-	}
-	
-       LOG_INF("[OV5670ofilm_mipi_update_wb_register_from_otp_Finished\n]");
-	
-	
-	sum = 0;
-	for (i = 0; i< 28; i++)
-	{
-		sum += tempWB[i];
-	}
-	temp =sum % 0xff+1;
-
-	if (tempWB[28] != temp)
-	{
-	LOG_INF("OV5670 otp wb info checksum error");
-	return ;
-	}
-
-	//OTP TotalSum Check
-	
-	USHORT TotalCheckSumValue = 0;	
-	sum = 0;
-	TotalCheckSumValue = 0;
-	USHORT BufferCheckSum[255] = {0};
-	OV5670ofilm_read_all(0x7010,0x709b,BufferCheckSum);
-	mdelay(10);
-	
-	for(i=0x7010; i<=0x7098; i++)
-	{
-		sum = sum + BufferCheckSum[i-0x7010];
-	}
-       mdelay(10);
-       
-	TotalCheckSumValue = (sum%0xff + 1);
-	mdelay(10);
-	
-	if(BufferCheckSum[137] == TotalCheckSumValue)
-	{
-		valueGroup = 1;
-	}
-	else if(BufferCheckSum[138] == TotalCheckSumValue)
-	{
-		valueGroup = 2;
-	}
-	else if(BufferCheckSum[139] == TotalCheckSumValue)
-	{
-		valueGroup = 3;
-	}
-       else
-       {        
-        LOG_INF("OV5670 otp TotalCheckSum Flag or TotalCheckSum error ");
-	 return ;
-       } 
-       LOG_INF("OV5670 OFilm checksum valueGroup =%d",valueGroup);
-     
-}
-
-#endif 
-
+      
 static void set_dummy()
 {
 	LOG_INF("dummyline = %d, dummypixels = %d \n", imgsensor.dummy_line, imgsensor.dummy_pixel);
@@ -596,11 +567,10 @@ static void set_dummy()
 
 static void set_max_framerate(UINT16 framerate,kal_bool min_framelength_en)
 {
-	kal_int16 dummy_line;
 	kal_uint32 frame_length = imgsensor.frame_length;
 	//unsigned long flags;
 
-	LOG_INF("framerate = %d, min framelength should enable = %d\n", framerate,min_framelength_en);
+	LOG_INF("framerate = %d, min framelength should enable? \n", framerate,min_framelength_en);
    
 	frame_length = imgsensor.pclk / framerate * 10 / imgsensor.line_length;
 	spin_lock(&imgsensor_drv_lock);
@@ -628,7 +598,6 @@ static void write_shutter(kal_uint16 shutter)
 {
     unsigned long flags;
 	kal_uint16 realtime_fps = 0;
-	kal_uint32 frame_length = 0;
     spin_lock_irqsave(&imgsensor_drv_lock, flags);
     imgsensor.shutter = shutter;
     spin_unlock_irqrestore(&imgsensor_drv_lock, flags);
@@ -648,7 +617,10 @@ static void write_shutter(kal_uint16 shutter)
 	spin_unlock(&imgsensor_drv_lock);
 	shutter = (shutter < imgsensor_info.min_shutter) ? imgsensor_info.min_shutter : shutter;
 	shutter = (shutter > (imgsensor_info.max_frame_length - imgsensor_info.margin)) ? (imgsensor_info.max_frame_length - imgsensor_info.margin) : shutter;
-	
+
+    // Framelength should be an even number
+    shutter = (shutter >> 1) << 1;
+    imgsensor.frame_length = (imgsensor.frame_length >> 1) << 1;
 	if (imgsensor.autoflicker_en) { 
 		realtime_fps = imgsensor.pclk / imgsensor.line_length * 10 / imgsensor.frame_length;
 		if(realtime_fps >= 297 && realtime_fps <= 305)
@@ -801,6 +773,7 @@ static kal_uint16 set_gain(kal_uint16 gain)
 static void ihdr_write_shutter_gain(kal_uint16 le, kal_uint16 se, kal_uint16 gain)
 {
 	LOG_INF("le:0x%x, se:0x%x, gain:0x%x\n",le,se,gain);
+	write_cmos_sensor(0x3820, 0x81);   //enable ihdr
 	if (imgsensor.ihdr_en) {
 		
 		spin_lock(&imgsensor_drv_lock);
@@ -916,9 +889,11 @@ static void sensor_init(void)
 	write_cmos_sensor(0x030f, 0x06); 
 	write_cmos_sensor(0x0312, 0x01); 
 	write_cmos_sensor(0x3000, 0x00); 
-	write_cmos_sensor(0x3002, 0x21); 
+	write_cmos_sensor(0x3002, 0x61); 
 	write_cmos_sensor(0x3005, 0xf0); 
 	write_cmos_sensor(0x3007, 0x00); 
+	write_cmos_sensor(0x300d, 0x00); 
+	write_cmos_sensor(0x3010, 0x40); 
 	write_cmos_sensor(0x3015, 0x0f); 
 	write_cmos_sensor(0x3018, 0x32); 
 	write_cmos_sensor(0x301a, 0xf0); 
@@ -1102,7 +1077,7 @@ static void sensor_init(void)
 	write_cmos_sensor(0x402e, 0x00); 
 	write_cmos_sensor(0x402f, 0x00); 
 	write_cmos_sensor(0x4040, 0x00); 
-	write_cmos_sensor(0x4041, 0x03); //shenan,0x00,141122
+	write_cmos_sensor(0x4041, 0x03); 
 	write_cmos_sensor(0x4042, 0x00); 
 	write_cmos_sensor(0x4043, 0x7a); 
 	write_cmos_sensor(0x4044, 0x00); 
@@ -1186,8 +1161,14 @@ static void sensor_init(void)
 	//;added					 
 //	write_cmos_sensor(0x3d85, 0x17); 
 //	write_cmos_sensor(0x3655, 0x20); 
+	//mipi settings
+	//data lane
+	write_cmos_sensor(0x4826, 0x50); //20 dafault 0x32 hs prepare 
+	write_cmos_sensor(0x481b, 0x50); //30 default 0x3c hs trail. 
+	//clk lane								   
 								   
 	write_cmos_sensor(0x0100, 0x01); //;01
+	
 	#ifdef OV5670_OTP
 	update_otp_wb();
 	#endif
@@ -1300,7 +1281,7 @@ static void capture_setting(kal_uint16 currefps)
 		write_cmos_sensor(0x3508, 0x03);  //gain
 		write_cmos_sensor(0x3509, 0x00);  //gain
 
-//		write_cmos_sensor(0x3623, 0x00);  //gain
+		write_cmos_sensor(0x3623, 0x00);  //gain
 		write_cmos_sensor(0x366e, 0x10); 
 		write_cmos_sensor(0x370b, 0x1b); 
 		write_cmos_sensor(0x3808, 0x0a); 
@@ -1324,7 +1305,7 @@ static void capture_setting(kal_uint16 currefps)
 		write_cmos_sensor(0x4502, 0x40); 
 		write_cmos_sensor(0x4508, 0xaa); 
 		write_cmos_sensor(0x4509, 0xaa); 
-//		write_cmos_sensor(0x450a, 0x00);  // 
+		write_cmos_sensor(0x450a, 0x00);  // 
 		write_cmos_sensor(0x4600, 0x01); 
 		write_cmos_sensor(0x4601, 0x03); 
 		write_cmos_sensor(0x4017, 0x08); //threshold= 2LSB for full size
@@ -1506,6 +1487,40 @@ static void slim_video_setting()
 
 }
 
+bool ov5670_otp_check_mid(void)
+{
+  u32 mid = 0x00;
+  int i=0,temp=0,otp_index=0;
+  u32 OTP_SENSOR_MID=0;
+  struct otp_struct otp_basic_info={0};
+  LOG_INF("ov5670_otp_check_mid start\n");
+  // check first OTP with valid data
+  for(i=1;i<=3;i++) {
+    temp = check_otp_info(i);
+    if (temp == 2) 
+    {
+      otp_index = i;
+      break;
+    }
+  }
+  if (i>3) {
+    // no valid wb OTP data
+    LOG_ERR(" no valid wb OTP data\n");
+    return 1;
+  }
+  read_otp_info(otp_index, &otp_basic_info);
+  OTP_SENSOR_MID = otp_basic_info.module_integrator_id;;
+  LOG_INF("%s OFILM MID=0x%02x \n",__func__,OTP_SENSOR_MID);
+
+  if (OTP_SENSOR_MID==0x07)//sunnny =0x01,,OFLIM=0x07,VCM_ID :OFILM A40=0x08,OFILM A50=0x04,
+  {
+    return TRUE;
+  }
+  else
+  {
+    return FALSE;
+  }
+}
 
 
 /*************************************************************************
@@ -1528,7 +1543,9 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 {
 	kal_uint8 i = 0;
 	kal_uint8 retry = 2;
+    bool check_mid=0;
 	//sensor have two i2c address 0x6c 0x6d & 0x21 0x20, we should detect the module used i2c address
+    LOG_INF("ov5670 get_imgsensor_id start\n");
 	while (imgsensor_info.i2c_addr_table[i] != 0xff) {
 		spin_lock(&imgsensor_drv_lock);
 		imgsensor.i2c_write_id = imgsensor_info.i2c_addr_table[i];
@@ -1536,10 +1553,17 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 		do {
 			*sensor_id = ((read_cmos_sensor(0x300B) << 8) | read_cmos_sensor(0x300C));
 			if (*sensor_id == imgsensor_info.sensor_id) {				
-				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id,*sensor_id);	  
+				LOG_INF("i2c write id: 0x%x, read sensor id=0x%x imgsensor_info.sensor_id=0x%x\n", imgsensor.i2c_write_id,*sensor_id,imgsensor_info.sensor_id);	  
+                check_mid=ov5670_otp_check_mid();
+                if (!check_mid)
+                {
+                  *sensor_id = 0xFFFFFFFF;
+                  LOG_INF("get_imgsensor_id, MID!= 0x04(lite=0x04,ofilm=0x07) \n");
+                  return ERROR_SENSOR_CONNECT_FAIL;
+                }
 				return ERROR_NONE;
 			}	
-			LOG_INF("Read sensor id fail, write id:0x%x id: 0x%x\n", imgsensor.i2c_write_id,*sensor_id);
+            LOG_INF("Read sensor id fail, write id: 0x%x, read sensor=0x%x imgsensor_info.sensor_id=0x%x\n", imgsensor.i2c_write_id,*sensor_id,imgsensor_info.sensor_id);
 			retry--;
 		} while(retry > 0);
 		i++;
@@ -1576,7 +1600,6 @@ static kal_uint32 open(void)
 	kal_uint8 i = 0;
 	kal_uint8 retry = 2;
 	kal_uint16 sensor_id = 0; 
-	LOG_INF("MIPI 2LANE\n");
 	LOG_INF("preview 1280*960@30fps,864Mbps/lane; video 1280*960@30fps,864Mbps/lane; capture 5M@30fps,864Mbps/lane\n");
 	
 	//sensor have two i2c address 0x6c 0x6d & 0x21 0x20, we should detect the module used i2c address
@@ -1590,7 +1613,7 @@ static kal_uint32 open(void)
 				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id,sensor_id);	  
 				break;
 			}	
-			LOG_INF("Read sensor id fail, write id:0x%x id: 0x%x\n", imgsensor.i2c_write_id,sensor_id);
+			LOG_INF("Read sensor id fail, id: 0x%x\n", imgsensor.i2c_write_id,sensor_id);
 			retry--;
 		} while(retry > 0);
 		i++;
@@ -1598,33 +1621,12 @@ static kal_uint32 open(void)
 			break;
 		retry = 2;
 	}		 
-	LOG_INF("shenan1,ov5670,exit cycle successful!\n");
 	if (imgsensor_info.sensor_id != sensor_id)
 		return ERROR_SENSOR_CONNECT_FAIL;
 	
-	LOG_INF("shenan2,ov5670,exit cycle successful!\n");
 	/* initail sequence write in  */
 	sensor_init();
 
-	//justify sensor version
-#if 1
-       USHORT temp;
-       temp = read_cmos_sensor(0x302A);
-       if(temp == 0xb0)
-       {
-       LOG_INF("OV5670 sensor version is 1.0");
-       }
-       else
-       {
-           LOG_INF("OV5670 sensor version is updated");
-       }
-#endif    
-	//add OTP function
-       #if 0
-	  OV5670ofilm_read_all();
-       #else
-       OV5670Ofilm_otpcheck();
-       #endif
 	spin_lock(&imgsensor_drv_lock);
 
 	imgsensor.autoflicker_en= KAL_FALSE;
@@ -2019,7 +2021,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
 			imgsensor.frame_length = imgsensor_info.pre.framelength + imgsensor.dummy_line;
 			imgsensor.min_frame_length = imgsensor.frame_length;
 			spin_unlock(&imgsensor_drv_lock);
-			set_dummy();			
+			//set_dummy();			
 			break;			
 		case MSDK_SCENARIO_ID_VIDEO_PREVIEW:
 			if(framerate == 0)
@@ -2030,7 +2032,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
 			imgsensor.frame_length = imgsensor_info.normal_video.framelength + imgsensor.dummy_line;
 			imgsensor.min_frame_length = imgsensor.frame_length;
 			spin_unlock(&imgsensor_drv_lock);
-			set_dummy();			
+			//set_dummy();			
 			break;
 		case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:		
         	  if (imgsensor.current_fps == imgsensor_info.cap1.max_framerate) {
@@ -2050,7 +2052,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
 			imgsensor.min_frame_length = imgsensor.frame_length;
 			spin_unlock(&imgsensor_drv_lock);
             }
-			set_dummy();			
+			//set_dummy();			
 			break;	
 		case MSDK_SCENARIO_ID_HIGH_SPEED_VIDEO:
 			frame_length = imgsensor_info.hs_video.pclk / framerate * 10 / imgsensor_info.hs_video.linelength;
@@ -2059,7 +2061,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
 			imgsensor.frame_length = imgsensor_info.hs_video.framelength + imgsensor.dummy_line;
 			imgsensor.min_frame_length = imgsensor.frame_length;
 			spin_unlock(&imgsensor_drv_lock);
-			set_dummy();			
+			//set_dummy();			
 			break;
 		case MSDK_SCENARIO_ID_SLIM_VIDEO:
 			frame_length = imgsensor_info.slim_video.pclk / framerate * 10 / imgsensor_info.slim_video.linelength;
@@ -2068,7 +2070,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
 			imgsensor.frame_length = imgsensor_info.slim_video.framelength + imgsensor.dummy_line;
 			imgsensor.min_frame_length = imgsensor.frame_length;
 			spin_unlock(&imgsensor_drv_lock);
-			set_dummy();	
+			//set_dummy();	
 			break;		
 		default:  //coding with  preview scenario by default
 			frame_length = imgsensor_info.pre.pclk / framerate * 10 / imgsensor_info.pre.linelength;
@@ -2077,7 +2079,7 @@ static kal_uint32 set_max_framerate_by_scenario(MSDK_SCENARIO_ID_ENUM scenario_i
 			imgsensor.frame_length = imgsensor_info.pre.framelength + imgsensor.dummy_line;
 			imgsensor.min_frame_length = imgsensor.frame_length;
 			spin_unlock(&imgsensor_drv_lock);
-			set_dummy();	
+			//set_dummy();	
 			LOG_INF("error scenario_id = %d, we use preview scenario \n", scenario_id);
 			break;
 	}	
@@ -2152,7 +2154,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 			*feature_para_len=4;
 			break;
 		case SENSOR_FEATURE_GET_PIXEL_CLOCK_FREQ:	 
-            LOG_INF("feature_Control imgsensor.pclk = %d,imgsensor.current_fps = %d\n", imgsensor.pclk,imgsensor.current_fps);
 			*feature_return_para_32 = imgsensor.pclk;
 			*feature_para_len=4;
 			break;		   
@@ -2239,8 +2240,8 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 					break;
 			}
 		case SENSOR_FEATURE_SET_IHDR_SHUTTER_GAIN:
-            LOG_INF("SENSOR_SET_SENSOR_IHDR LE=%d, SE=%d, Gain=%d\n",(UINT16)*feature_data,(UINT16)*(feature_data+1),(UINT16)*(feature_data+2)); 
-            ihdr_write_shutter_gain((UINT16)*feature_data,(UINT16)*(feature_data+1),(UINT16)*(feature_data+2));    
+            LOG_INF("SENSOR_SET_SENSOR_IHDR LE=%d, SE=%d, Gain=%d\n",(UINT16)*feature_data,(UINT16)*(feature_data+1),(UINT16)*(feature_data+2));
+            ihdr_write_shutter_gain((UINT16)*feature_data,(UINT16)*(feature_data+1),(UINT16)*(feature_data+2));
 			break;
 		default:
 			break;

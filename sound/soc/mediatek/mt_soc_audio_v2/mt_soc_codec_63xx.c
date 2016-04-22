@@ -4189,7 +4189,7 @@ static int Audio_MicSource1_Get(struct snd_kcontrol *kcontrol,
 
 static int Audio_MicSource1_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
-    //ADC1 Mic source selection, "ADC1" is main_mic, "ADC2" is headset_mic
+    //used for ADC1 Mic source selection, "ADC1" is main_mic, "ADC2" is headset_mic
     int index = 0;
     printk("%s()\n", __func__);
     if (ucontrol->value.enumerated.item[0] > ARRAY_SIZE(Pmic_Digital_Mux))

@@ -60,9 +60,6 @@
 #include "mt_soc_digital_type.h"
 #include "mt_soc_pcm_common.h"
 
-
-#define  ECHO_I2S1_O24
-
 static DEFINE_SPINLOCK(auddrv_I2S0_lock);
 static AFE_MEM_CONTROL_T *pI2s0MemControl = NULL;
 
@@ -147,14 +144,7 @@ static int Audio_i2s0_SideGen_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_
         Afe_Set_Reg(AUDIO_TOP_CON1, 0x1 << 4,  0x1 << 4); // I2S_SOFT_Reset
         if (mi2s0_extcodec_echoref_control == true)
         {
-#ifdef  ECHO_I2S1_O24
-            //phone call echo reference connection enable: I1 ->O24
-
-            printk("%s() InterCon  AFE_CONN9 I01 ->  O24\n",  __func__);
-            Afe_Set_Reg(AFE_CONN9, 0x8000, 0x8000);
-#else
             //phone call echo reference connection enable: I1->O14(HW Gain1)->I11 ->O24
-            printk("%s() InterCon  I1->O14(HW Gain1)->I11 ->O24 No Ramping\n",  __func__);
             printk("%s() Soc_Aud_InterCon_Connection  I01  O14\n",  __func__);
             SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I01, Soc_Aud_InterConnectionOutput_O14);//0x448, 0x10000
             REG448 = Afe_Get_Reg(AFE_GAIN1_CONN2);
@@ -166,12 +156,10 @@ static int Audio_i2s0_SideGen_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_
             REG44C = Afe_Get_Reg(AFE_GAIN1_CONN3);
             printk("%s() AFE_GAIN1_CONN3 (0X44C) =0x%x\n",  __func__, REG44C);
             // Set HW_GAIN1
-            SetHwDigitalGainMode(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, samplerate, 0x1F);
-            SetHwDigitalGain(0x80000, Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1);
-            Afe_Set_Reg(AFE_GAIN1_CUR, 0x80000, 0xfffff);
+            SetHwDigitalGainMode(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, samplerate, 0x80);
             SetHwDigitalGainEnable(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, true);
+            SetHwDigitalGain(0x80000, Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1);
 
-#endif
             Afe_Set_Reg(AFE_DAC_CON1, 0x400, 0xF00);
 
             //I2S0 Input Control
@@ -239,10 +227,6 @@ static int Audio_i2s0_SideGen_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_
     {
         if (mi2s0_extcodec_echoref_control == true)
         {
-#ifdef  ECHO_I2S1_O24
-            //phone call echo reference connection disable: I1 ->O24
-            Afe_Set_Reg(AFE_CONN9, 0, 0x8000);
-#else
             //phone call echo reference connection disable: I1->O14(HW Gain1)->I11 ->O24
             printk("%s() Soc_Aud_InterCon_Connection  I01  O14\n",  __func__);
             //phone call echo reference connection: I1->O14(HW Gain1)->I11 ->O24
@@ -257,7 +241,7 @@ static int Audio_i2s0_SideGen_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_
             printk("%s() AFE_GAIN1_CONN3 (0X44C) =0x%x\n",  __func__, REG44C);
             // Set HW_GAIN1
             SetHwDigitalGainEnable(Soc_Aud_Hw_Digital_Gain_HW_DIGITAL_GAIN1, false);
-#endif
+
         }
         SetMemoryPathEnable(Soc_Aud_Digital_Block_I2S_OUT_2, false);
         if (GetMemoryPathEnable(Soc_Aud_Digital_Block_I2S_OUT_2) == false)

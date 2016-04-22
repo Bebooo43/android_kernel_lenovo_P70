@@ -372,7 +372,7 @@ static kal_int32 fgauge_read_current_sign(void *data)
     return STATUS_OK;
 }
 
-static kal_int32 fgauge_read_columb_internal(void *data, int reset, int precise)
+static kal_int32 fgauge_read_columb_internal(void *data, int reset)
 {
 #if defined(CONFIG_POWER_EXT)
     *(kal_int32*)(data) = 0;
@@ -476,13 +476,8 @@ static kal_int32 fgauge_read_columb_internal(void *data, int reset, int precise)
     dvalue_CAR = Temp_Value / 1000; //mAh
     #else
     //dvalue_CAR = (Temp_Value/8)/1000; //mAh, due to FG_OSR=0x8
-    if (precise == 0) {
-        do_div(Temp_Value, 8);
-        do_div(Temp_Value, 1000);
-    } else {
-        do_div(Temp_Value, 8);
-        do_div(Temp_Value, 100);
-    }
+    do_div(Temp_Value, 8);
+    do_div(Temp_Value, 1000);
 
     if(uvalue32_CAR_MSB == 0x1)
         dvalue_CAR = (kal_int32)(Temp_Value - (Temp_Value*2));  // keep negative value
@@ -528,12 +523,7 @@ static kal_int32 fgauge_read_columb_internal(void *data, int reset, int precise)
 
 static kal_int32 fgauge_read_columb(void *data)
 {
-    return fgauge_read_columb_internal(data, 0, 0);
-}
-
-static kal_int32 fgauge_read_columb_accurate(void *data)
-{
-    return fgauge_read_columb_internal(data, 0, 1);
+    return fgauge_read_columb_internal(data, 0);
 }
 
 static kal_int32 fgauge_hw_reset(void *data)
@@ -550,7 +540,7 @@ static kal_int32 fgauge_hw_reset(void *data)
     while(val_car != 0x0)
     {
         ret=pmic_config_interface(MT6325_FGADC_CON0, 0x7100, 0xFF00, 0x0);
-        fgauge_read_columb_internal(&val_car_temp, 1, 0);
+        fgauge_read_columb_internal(&val_car_temp, 1);
         val_car = val_car_temp;
         bm_print(BM_LOG_FULL, "#");
     }
@@ -645,11 +635,6 @@ static kal_int32 dump_register_fgadc(void *data)
     return STATUS_OK;
 }
 
-static kal_int32 read_battery_plug_out_status(void *data)
-{
-	return STATUS_OK;
-}
-
 static kal_int32 (* const bm_func[BATTERY_METER_CMD_NUMBER])(void *data)=
 {
     fgauge_initialization		//hw fuel gague used only
@@ -657,7 +642,6 @@ static kal_int32 (* const bm_func[BATTERY_METER_CMD_NUMBER])(void *data)=
     ,fgauge_read_current		//hw fuel gague used only
     ,fgauge_read_current_sign	//hw fuel gague used only
     ,fgauge_read_columb			//hw fuel gague used only
-    ,fgauge_read_columb_accurate
 
     ,fgauge_hw_reset			//hw fuel gague used only
 
@@ -667,7 +651,6 @@ static kal_int32 (* const bm_func[BATTERY_METER_CMD_NUMBER])(void *data)=
     ,read_adc_v_charger
 
     ,read_hw_ocv
-    ,read_battery_plug_out_status
     ,dump_register_fgadc		//hw fuel gague used only
 };
 

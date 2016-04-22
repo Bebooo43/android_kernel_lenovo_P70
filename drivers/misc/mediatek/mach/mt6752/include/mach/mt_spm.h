@@ -239,7 +239,7 @@ extern u32 spm_irq_7;
 #define SPM_DRAM_RANK1_ADDR_SEL0	(1U << 19)
 #define SPM_DRAM_RANK1_ADDR_SEL1	(1U << 20)
 #define SPM_DRAM_RANK1_ADDR_SEL2	(1U << 21)
-
+#define SPM_DRAM_RANK1_ADDR_SEL3	(1U << 23)
 
 
 #define SPM_WAKE_SRC_LIST	{	\

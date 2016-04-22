@@ -1,26 +1,15 @@
-// Headset mode MIC define
-typedef enum
-{
-	ACCDET_MIC_MODE_ACC = 1,
-	ACCDET_MIC_MODE_LOW_COST_WITHOUT_IN_BIAS = 2,
-	ACCDET_MIC_MODE_LOW_COST_WITH_IN_BIAS = 6,
-} ACCDET_MIC_MODE;
-#define ACCDET_MIC_MODE	(1)
 // use accdet + EINT solution
 #define ACCDET_EINT
-#ifndef ACCDET_EINT
-#define ACCDET_EINT_IRQ
-#endif
-//#define ACCDET_PIN_SWAP
+// support multi_key feature
+//#define ACCDET_MULTI_KEY_FEATURE
+// after 5s disable accdet
+#define ACCDET_LOW_POWER
 
-#define ACCDET_HIGH_VOL_MODE
-#ifdef ACCDET_HIGH_VOL_MODE
-#define ACCDET_MIC_VOL 7     //2.5v
-#else
-#define ACCDET_MIC_VOL 2     //1.9v
-#endif
+//#define ACCDET_PIN_RECOGNIZATION
+//#define ACCDET_28V_MODE
 
-//#define FOUR_KEY_HEADSET
 #define ACCDET_SHORT_PLUGOUT_DEBOUNCE
 #define ACCDET_SHORT_PLUGOUT_DEBOUNCE_CN 20
 
+//extern struct headset_mode_settings* get_cust_headset_settings(void);
+//extern int get_long_press_time_cust(void);

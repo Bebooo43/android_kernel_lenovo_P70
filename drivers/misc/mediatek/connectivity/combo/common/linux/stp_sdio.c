@@ -2467,6 +2467,11 @@ stp_sdio_probe(const MTK_WCN_HIF_SDIO_CLTCTX clt_ctx,
 		STPSDIO_ERR_FUNC("osal_thread_create fail...\n");
 		goto out;
 	}
+	ret = osal_thread_run(&g_stp_sdio_host_info.tx_rx_thread);
+	if (ret < 0) {
+		STPSDIO_ERR_FUNC("osal_thread_run fail...\n");
+		goto out;
+	}
 #else
 	/* init tx_tasklet and rx work_queue */
 	INIT_WORK(&g_stp_sdio_host_info.tx_work, stp_sdio_tx_wkr);
@@ -2537,14 +2542,6 @@ using CMD52 write instead of CMD53 write for CCIR, CHLPCR, CSDIOCSR */
 
 	STPSDIO_DBG_FUNC("enable interrupt done\n");
 
-#if STP_SDIO_OWN_THREAD
-	ret = osal_thread_run(&g_stp_sdio_host_info.tx_rx_thread);
-	if (ret < 0) {
-		STPSDIO_ERR_FUNC("osal_thread_run fail...\n");
-		goto out;
-	}
-#endif
-
 	/* 4 <5> register mtk_wcn_stp_if_tx() to stp driver */
 	mtk_wcn_stp_register_if_tx(STP_SDIO_IF_TX, (MTK_WCN_STP_IF_TX)stp_sdio_tx);
 
@@ -2562,9 +2559,6 @@ using CMD52 write instead of CMD53 write for CCIR, CHLPCR, CSDIOCSR */
 	/* 4 <6> error handling */
 	/* TODO: error handling */
 	if (ret) {
-#if STP_SDIO_OWN_THREAD
-		osal_thread_destroy(&g_stp_sdio_host_info.tx_rx_thread);
-#endif
 		--g_stp_sdio_host_count;
 	}
 	return ret;

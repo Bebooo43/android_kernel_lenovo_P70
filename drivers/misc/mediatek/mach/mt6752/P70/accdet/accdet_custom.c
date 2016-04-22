@@ -11,14 +11,17 @@ struct headset_key_custom* get_headset_key_custom_setting(void)
 	return &headset_key_custom_setting;
 }
 
-#if defined  ACCDET_EINT || defined ACCDET_EINT_IRQ
+#ifdef  ACCDET_MULTI_KEY_FEATURE
 static struct headset_mode_settings cust_headset_settings = {
-	0x900, 0x200, 1, 0x1f0, 0x800, 0x800, 0x20
+	0x900, 0x400, 1, 0x3f0, 0x800, 0x800, 0x20
 };
 #else
-//ACCDET only mode register settings
+//headset mode register settings(for MT6575)
+//static struct headset_mode_settings cust_headset_settings = {
+//	0x900, 0x400, 1, 0x3f0, 0x3000, 0x3000, 0x20
+//};
 static struct headset_mode_settings cust_headset_settings = {
-	0x900, 0x600, 1, 0x5f0, 0x3000, 0x3000, 0x400
+	0x640, 0x320, 1, 0x3f0, 0x400, 0x400, 0x400
 };
 #endif
 

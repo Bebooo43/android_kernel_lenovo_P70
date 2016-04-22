@@ -739,17 +739,6 @@ typedef enum _ENUM_NET_REG_STATE_T {
 } ENUM_NET_REG_STATE_T;
 #endif
 
-typedef enum _ENUM_PKT_FLAG_T {
-    ENUM_PKT_802_11,        /* 802.11 or non-802.11 */
-    ENUM_PKT_802_3,         /* 802.3 or ethernetII */
-    ENUM_PKT_1X,            /* 1x frame or not */
-    ENUM_PKT_PROTECTED_1X,  /* prtected 1x frame */
-    ENUM_PKT_VLAN_EXIST,    /* VLAN tag exist */
-    ENUM_PKT_DHCP,          /* DHCP frame */
-    ENUM_PKT_ARP,           /* ARP */
-    ENUM_PKT_FLAG_NUM
-} ENUM_PKT_FLAG_T;
-
 typedef struct _GL_IO_REQ_T {
     QUE_ENTRY_T             rQueEntry;
 	/* wait_queue_head_t       cmdwait_q; */
@@ -1001,9 +990,6 @@ struct _GLUE_INFO_T {
     struct net_device *prMonDevHandler;
 	struct work_struct monWork;
 #endif
-
-    INT_32                  i4RssiCache;
-    UINT_32                 u4LinkSpeedCache;
 };
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
@@ -1108,7 +1094,6 @@ typedef struct _NETDEV_PRIVATE_GLUE_INFO {
 typedef struct _PACKET_PRIVATE_DATA {
     QUE_ENTRY_T rQueEntry;
     UINT_16 u2Flag;
-    UINT_8 ucTid;
     UINT_8 ucBssIdx;
 
     UINT_8 ucHeaderLen;
@@ -1176,20 +1161,43 @@ typedef struct _PACKET_PRIVATE_DATA {
 #define GLUE_GET_PKT_DESCRIPTOR(_prQueueEntry)  \
 	    ((P_NATIVE_PACKET) (((ULONG)_prQueueEntry) - offsetof(struct sk_buff, cb[0])))
 
-#define GLUE_SET_PKT_TID(_p, _tid) \
-	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->ucTid = (UINT_8)(_tid))
+#define GLUE_SET_PKT_TID(_p, _tid) { \
+        (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag &= ~(BITS(0, 2))); \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag |= (UINT_8)((_tid) & (BITS(0, 2)))); \
+    }
 
 #define GLUE_GET_PKT_TID(_p) \
-	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->ucTid)
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag & BITS(0, 2))
 
-#define GLUE_SET_PKT_FLAG(_p, _flag) \
-        (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag |= BIT(_flag))
+#define GLUE_SET_PKT_FLAG_VLAN_EXIST(_p)  \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag |= BIT(3))
 
-#define GLUE_TEST_PKT_FLAG(_p, _flag) \
-        (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag & BIT(_flag))
+#define GLUE_GET_PKT_IS_VLAN_EXIST(_p) \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag & BIT(3))
 
-#define GLUE_IS_PKT_FLAG_SET(_p) \
-        (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag)
+#define GLUE_SET_PKT_FLAG_802_3(_p)  \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag |= BIT(4))
+
+#define GLUE_GET_PKT_IS_802_3(_p) \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag & BIT(4))
+
+#define GLUE_SET_PKT_FLAG_1X(_p) \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag |= BIT(5))
+
+#define  GLUE_GET_PKT_IS_1X(_p) \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag & BIT(5))
+
+#define GLUE_SET_PKT_FLAG_802_11(_p) \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag |= BIT(6))
+
+#define  GLUE_GET_PKT_IS_802_11(_p)        \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag & BIT(6))
+
+#define GLUE_SET_PKT_FLAG_PROTECTED_1X(_p) \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag |= BIT(7))
+
+#define GLUE_GET_PKT_IS_PROTECTED_1X(_p) \
+	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->u2Flag & BIT(7))
 
 #define GLUE_SET_PKT_BSS_IDX(_p, _ucBssIndex) \
 	    (GLUE_GET_PKT_PRIVATE_DATA(_p)->ucBssIdx = (UINT_8)(_ucBssIndex))
@@ -1325,8 +1333,6 @@ VOID kalMetTagPacket(IN P_GLUE_INFO_T prGlueInfo,
     IN P_NATIVE_PACKET prPacket, IN ENUM_TX_PROFILING_TAG_T eTag);
 
 VOID kalMetInit(IN P_GLUE_INFO_T prGlueInfo);
-#endif
-
-VOID wlanUpdateChannelTable(P_GLUE_INFO_T prGlueInfo);
+#endif    
 
 #endif /* _GL_OS_H */

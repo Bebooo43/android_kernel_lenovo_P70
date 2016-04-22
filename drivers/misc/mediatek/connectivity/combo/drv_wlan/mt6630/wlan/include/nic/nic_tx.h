@@ -1004,7 +1004,7 @@ struct _MSDU_INFO_T {
 
 #if CFG_SUPPORT_MULTITHREAD
     /* Compose TxDesc in tx_thread and place here */
-    UINT_8                      aucTxDescBuffer[NIC_TX_DESC_AND_PADDING_LENGTH];
+    UINT_8                      ucTxDescBuffer[NIC_TX_DESC_AND_PADDING_LENGTH];
 #endif
 };
 
@@ -1633,8 +1633,6 @@ nicTxPrintMetRTP (
     IN BOOLEAN         bFreeSkb
     );
 
-VOID nicTxProcessTxDoneEvent(IN P_ADAPTER_T prAdapter, 
-    IN P_WIFI_EVENT_T prEvent);
 
 /*******************************************************************************
 *                              F U N C T I O N S

@@ -68,7 +68,6 @@ struct xhci_hcd *mtk_xhci;
 static spinlock_t *mtk_hub_event_lock;
 static struct list_head* mtk_hub_event_list;
 static int mtk_ep_count;
-static int vbus_on = 0;
 
 static struct wake_lock mtk_xhci_wakelock;
 
@@ -165,20 +164,10 @@ static void pmic_restore_regs(void){
 	}
 }
 
-void mtk_enable_pmic_otg_mode(void)
+static void mtk_enable_pmic_otg_mode(void)
 {
-	int val = 0;
-	int cnt = 0;
+	int val;
 
-    vbus_on++;
-    /// vbus_on =1;
-    mtk_xhci_mtk_log("set pmic power on, %d\n", vbus_on);
-    #if 1
-	if(vbus_on > 1)
-	{
-	    return;
-    }
-    #endif
 	mt_set_gpio_mode(GPIO_OTG_DRVVBUS_PIN, GPIO_MODE_GPIO);
 	mt_set_gpio_pull_select(GPIO_OTG_DRVVBUS_PIN, GPIO_PULL_DOWN);
 	mt_set_gpio_pull_enable(GPIO_OTG_DRVVBUS_PIN, GPIO_PULL_ENABLE);
@@ -206,7 +195,7 @@ void mtk_enable_pmic_otg_mode(void)
 	#else
 	pmic_config_interface(0x803E, 0x0, 0x1, 10);
 	#endif
-
+	
 	pmic_config_interface(0x8044, 0x3, 0x3, 0);
 	pmic_config_interface(0x8044, 0x3, 0x7, 8);
 	pmic_config_interface(0x8044, 0x1, 0x1, 11);
@@ -222,35 +211,19 @@ void mtk_enable_pmic_otg_mode(void)
 	mdelay(50);
 
 	val = 0;
-	while (val == 0 && cnt < 20) {
+	while (val == 0) {
 		pmic_read_interface(0x8060, &val, 0x1, 14);
-		cnt++;
-		mdelay(2);
 	}
 
 	#ifdef CONFIG_MTK_OTG_OC_DETECTOR
 	schedule_delayed_work_on(0, &mtk_xhci_oc_delaywork, msecs_to_jiffies(OC_DETECTOR_TIMER));
 	#endif
-	mtk_xhci_mtk_log("set pmic power on(cnt:%d), done\n", cnt);
+	mtk_xhci_mtk_log("set pmic power on, done\n");
 }
 
-void mtk_disable_pmic_otg_mode(void)
+static void mtk_disable_pmic_otg_mode(void)
 {
-	int val =0;
-	int cnt = 0;
-
-	///vbus_on = 0;
-
-    vbus_on--;
-    mtk_xhci_mtk_log("set pmic power off %d\n", vbus_on);
-
-    if(vbus_on < 0 || vbus_on > 0)
-    {
-        if(vbus_on < 0)
-            vbus_on = 0;
-        return;
-    }
-
+	int val;
 
 	pmic_config_interface(0x8068, 0x0, 0x1, 0);
 	pmic_config_interface(0x8084, 0x0, 0x1, 0);
@@ -258,10 +231,8 @@ void mtk_disable_pmic_otg_mode(void)
 	pmic_config_interface(0x8068, 0x0, 0x1, 1);
 
 	val = 1;
-	while (val == 1 && cnt <20) {
+	while (val == 1) {
 		pmic_read_interface(0x805E, &val, 0x1, 4);
-		cnt++;
-		mdelay(2);
 	}
 
 	#if 0
@@ -278,7 +249,7 @@ void mtk_disable_pmic_otg_mode(void)
 	#ifdef CONFIG_MTK_OTG_OC_DETECTOR
 	cancel_delayed_work(&mtk_xhci_oc_delaywork);
 	#endif
-	mtk_xhci_mtk_log("set pmic power off(cnt:%d), done\n", cnt);
+	mtk_xhci_mtk_log("set pimc power off, done\n");
 }
 
 #ifdef CONFIG_MTK_OTG_OC_DETECTOR
@@ -298,7 +269,7 @@ void xhci_send_event(char * event)
 static bool mtk_is_over_current(void)
 {
 	int vol = battery_meter_get_charger_voltage();
-
+	
 	if(vol < 4200){
 		mtk_xhci_mtk_log("over current occurs, voltage(%d)\n", vol);
 		return true;
@@ -310,7 +281,7 @@ static bool mtk_is_over_current(void)
 static void mtk_xhci_oc_detector(struct work_struct *work)
 {
 	int ret;
-
+	
 	if(mtk_is_over_current()){
 		xhci_send_event("OVER_CURRENT");
 		mtk_disable_pmic_otg_mode();
@@ -367,17 +338,17 @@ static int mtk_xhci_hcd_init(void)
 		printk(KERN_ERR "Problem creating xhci attributes.\n");
 		goto unreg_plat;
 	}
-
+	
 	#ifdef CONFIG_MTK_OTG_PMIC_BOOST_5V
 	#ifdef CONFIG_MTK_OTG_OC_DETECTOR
 	retval = misc_register(&xhci_misc_uevent);
 	if (retval){
 		printk(KERN_ERR "create the xhci_uevent_device fail, ret(%d)\n", retval) ;
 		goto unreg_attrs;
-	}
+	}	
 	#endif
 	#endif
-
+	
 	/*
 	 * Check the compiler generated sizes of structures that must be laid
 	 * out in specific ways for hardware access.
@@ -414,7 +385,7 @@ static void mtk_xhci_hcd_cleanup(void)
 	misc_deregister(&xhci_misc_uevent);
 	#endif
 	#endif
-
+	
 	xhci_attrs_exit();
 	xhci_unregister_plat();
 }
@@ -428,8 +399,6 @@ static void mtk_xhci_imod_set(u32 imod)
 	temp |= imod;
 	xhci_writel(mtk_xhci, temp, &mtk_xhci->ir_set->irq_control);
 }
-
-extern void usb20_pll_settings(bool host, bool forceOn);
 
 static int mtk_xhci_driver_load(void)
 {
@@ -452,9 +421,6 @@ static int mtk_xhci_driver_load(void)
 #else
 #ifdef CONFIG_MTK_OTG_PMIC_BOOST_5V
 	mtk_enable_pmic_otg_mode();
-
-	/* USB PLL Force settings */
-	usb20_pll_settings(true, true);
 #else
 	enableXhciAllPortPower(mtk_xhci);
 #endif
@@ -503,9 +469,6 @@ void mtk_xhci_switch_init(void)
 #endif
 }
 
-#if defined(MHL_SII8348)
-extern void switch_mhl_to_d3(void);
-#endif
 void mtk_xhci_mode_switch(struct work_struct *work)
 {
 	static bool is_load = false;
@@ -536,16 +499,12 @@ void mtk_xhci_mode_switch(struct work_struct *work)
 		if (is_load) {
 			if(!is_pwoff)
 				mtk_xhci_disPortPower();
-
-			/* prevent hang here */
-			/* if(mtk_is_hub_active()){
+			if(mtk_is_hub_active()){
 				is_pwoff = true;
 				schedule_delayed_work_on(0, &mtk_xhci_delaywork, msecs_to_jiffies(mtk_iddig_debounce));
 				mtk_xhci_mtk_log("wait, hub is still active, ep cnt %d !!!\n", mtk_ep_count);
 				return;
-			} */
-			/* USB PLL Force settings */
-			usb20_pll_settings(true, false);
+			}
 
 			mtk_xhci_driver_unload();
 			is_pwoff = false;
@@ -554,10 +513,6 @@ void mtk_xhci_mode_switch(struct work_struct *work)
 			switch_set_state(&mtk_otg_state, 0);
 #endif
 			mtk_xhci_wakelock_unlock();
-
-#if defined(MHL_SII8348)
-			switch_mhl_to_d3();
-#endif			
 		}
 
 		/* expect next isr is for id-pin in action */
@@ -622,7 +577,7 @@ int mtk_xhci_eint_iddig_init(void)
 	mtk_idpin_irqnum = mt_gpio_to_irq(iddig_gpio);
 
 	/* microseconds */
-	mt_gpio_set_debounce(iddig_gpio, 150000);
+	mt_gpio_set_debounce(iddig_gpio, 50);
 
 	retval =
 	    request_irq(mtk_idpin_irqnum, xhci_eint_iddig_isr, IRQF_TRIGGER_LOW, "iddig_eint",
@@ -631,7 +586,7 @@ int mtk_xhci_eint_iddig_init(void)
 		mtk_xhci_mtk_log("request_irq fail, ret %d, irqnum %d!!!\n", retval, mtk_idpin_irqnum);
 		return retval;
 	}
-	mtk_xhci_mtk_log("external iddig register done, irqnum = %d, gpio_mode(%d), gpio_pull_enable(%d), gpio_pull_select(%d)\n",
+	mtk_xhci_mtk_log("external iddig register done, irqnum = %d, gpio_mode(%d), gpio_pull_enable(%d), gpio_pull_select(%d)\n", 
 		mtk_idpin_irqnum, mt_get_gpio_mode(GPIO_OTG_IDDIG_EINT_PIN), mt_get_gpio_pull_enable(GPIO_OTG_IDDIG_EINT_PIN), mt_get_gpio_pull_select(GPIO_OTG_IDDIG_EINT_PIN));
 
 	/* set in-detect and umask the iddig interrupt */
@@ -670,7 +625,7 @@ void mtk_set_host_mode_out(void)
 
 bool mtk_is_host_mode(void)
 {
-	return (vbus_on > 0 || mtk_idpin_cur_stat == IDPIN_IN_HOST) ? true : false;
+	return (mtk_idpin_cur_stat == IDPIN_IN_HOST) ? true : false;
 }
 
 #endif
@@ -751,7 +706,7 @@ void mtk_xhci_ck_timer_init(struct xhci_hcd *xhci)
 		writel(temp, addr);
 		mtk_xhci_mtk_log("mu3d sys_clk, addr 0x%p, value 0x%x\n",
 				(void *)_SSUSB_SYS_CK_CTRL(xhci->sif_regs), readl((__u32 __iomem *)_SSUSB_SYS_CK_CTRL(xhci->sif_regs)));
-
+		
 		num_u3_port = SSUSB_U3_PORT_NUM(readl((void __iomem *)_SSUSB_IP_CAP(xhci->sif_regs)));
 		if (num_u3_port) {
 			#if 0
@@ -775,7 +730,7 @@ void mtk_xhci_ck_timer_init(struct xhci_hcd *xhci)
 			temp |= MTK_CNT_1US_VALUE;
 			writel(temp, addr);
 		}
-
+		
 		/* set U2 MAC SYS_CK */
 		addr = (void __iomem *)(_SSUSB_U2_SYS_BASE(xhci->base_regs) + USB20_TIMING_PARAMETER);
 		temp &= ~(0xff);
@@ -839,7 +794,7 @@ static int mtk_xhci_phy_init(int argc, char **argv)
 int mtk_xhci_ip_init(struct usb_hcd *hcd, struct xhci_hcd *xhci)
 {
 	mtk_xhci_set(hcd, xhci);
-
+	
 #ifdef CONFIG_MTK_FPGA
 	u3_base = xhci->base_regs;
 	u3_sif_base = xhci->sif_regs;

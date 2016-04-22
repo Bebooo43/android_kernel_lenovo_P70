@@ -2755,7 +2755,9 @@ INT32 mtk_wcn_stp_send_data(const PUINT8 buffer, const UINT32 length, const UINT
 	{
 	     //if(stp_is_apply_powersaving())
 	     {
-	         if(type == WMT_TASK_INDX){
+	        if(stp_is_privileges_cmd(buffer, length , type))
+	        {
+	            STP_DBG_FUNC("send privileges cmd\n");
 	            goto DONT_MONITOR;
 	        }
 	        //If now chip is awake, to restart monitor!
@@ -2961,7 +2963,7 @@ INT32 mtk_wcn_stp_send_data(const PUINT8 buffer, const UINT32 length, const UINT
     {
 	    //if(stp_is_apply_powersaving()) 
 	   {
-		    if(type != WMT_TASK_INDX)
+		    if((MTK_WCN_BOOL_FALSE == stp_is_privileges_cmd(buffer, length , type))) 
 		    {
 			
 		    	/*-----------------------------STP_PSM_UnLock----------------------------------------*/

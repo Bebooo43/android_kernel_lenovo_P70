@@ -168,7 +168,7 @@ static int step_d_real_enable(int enable)
   if(0==enable)
   {
     
-     err = cxt->step_c_ctl.enable_step_detect(0);
+     err = cxt->step_c_ctl.enable_nodata(0);
      if(err)
      { 
         	STEP_C_ERR("step_d enable(%d) err = %d\n", enable, err);

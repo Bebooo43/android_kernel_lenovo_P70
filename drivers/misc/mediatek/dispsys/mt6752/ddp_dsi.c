@@ -23,13 +23,13 @@
 #include <cust_gpio_usage.h>
 #include "ddp_mmp.h"
 
-/*typedef enum
+typedef enum
 {
     PM_DSI0 = 0,
     PM_DSI1 = 1,
     PM_DSI_DUAL = 2,
     PM_DSI_MAX	= 0XFF,	
-} DSI_INDEX;*/
+} DSI_INDEX;
 
 //static unsigned int _dsi_reg_update_wq_flag = 0;
 static DECLARE_WAIT_QUEUE_HEAD(_dsi_reg_update_wq);
