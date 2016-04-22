@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VERSION=v12
+
 CONFIG_1=P70_defconfig #No OC
 CONFIG_2=P70_GC_defconfig #OC CPU & GPU
 CONFIG_3=P70_G_defconfig #OC only GPU
@@ -174,16 +176,16 @@ if cd $KERNEL_DIR/unpack
 then
 	if [ "$1" == "$CONFIG_1" ]
 	then
-		zip -r Boot_P70.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r Boot_P70_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	elif [ "$1" == "$CONFIG_2" ]
 	then
-		zip -r Boot_P70_GC.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r Boot_P70_GC_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	elif [ "$1" == "$CONFIG_3" ]
 	then
-		zip -r Boot_P70_G.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r Boot_P70_G_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	elif [ "$1" == "$CONFIG_4" ]
 	then
-		zip -r Boot_P70_C.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
+		zip -r Boot_P70_C_$VERSION.zip META-INF system boot_aosp.img boot_vdt.img boot_cm.img boot_aicp.img boot_cm_zormax.img
 	fi
 		if rm -f boot_aosp.img
 		then
