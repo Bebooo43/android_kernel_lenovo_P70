@@ -949,6 +949,7 @@ static int BMA222_ReadSensorData(struct i2c_client *client, char *buf, int bufsi
 	u8 databuf[20];
 	int acc[BMA222_AXES_NUM];
 	int res = 0;
+	int fix_y = -8;
 	memset(databuf, 0, sizeof(u8)*10);
 
 	if(NULL == buf)
@@ -994,7 +995,7 @@ static int BMA222_ReadSensorData(struct i2c_client *client, char *buf, int bufsi
 #else //#ifdef CUSTOM_KERNEL_SENSORHUB
 		//GSE_LOG("raw data x=%d, y=%d, z=%d \n",obj->data[BMA222_AXIS_X],obj->data[BMA222_AXIS_Y],obj->data[BMA222_AXIS_Z]);
 		obj->data[BMA222_AXIS_X] += obj->cali_sw[BMA222_AXIS_X];
-		obj->data[BMA222_AXIS_Y] += obj->cali_sw[BMA222_AXIS_Y];
+		obj->data[BMA222_AXIS_Y] += (obj->cali_sw[BMA222_AXIS_Y] + fix_y);
 		obj->data[BMA222_AXIS_Z] += obj->cali_sw[BMA222_AXIS_Z];
 		
 		//printk("cali_sw x=%d, y=%d, z=%d \n",obj->cali_sw[BMA150_AXIS_X],obj->cali_sw[BMA150_AXIS_Y],obj->cali_sw[BMA150_AXIS_Z]);
