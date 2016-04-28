@@ -1,7 +1,5 @@
 #!/bin/bash
 
-VERSION=v12
-
 CONFIG_1=P70_defconfig #No OC
 CONFIG_2=P70_GC_defconfig #OC CPU & GPU
 CONFIG_3=P70_G_defconfig #OC only GPU
@@ -10,6 +8,8 @@ CONFIG_4=P70_C_defconfig #OC only CPU
 KERNEL_DIR=~/kernel-3.10
 CROSS_COMPILE=~/gcc/gcc-linaro-5.2-aarch64-linux-gnu/bin/aarch64-linux-gnu-
 OUT=out
+
+VERSION=$(cat $KERNEL_DIR/arch/arm64/configs/P70_defconfig | grep CONFIG_LOCALVERSION= | cut -d '-' -f5 | sed 's/.$//')
 
 make_aosp_kernel() {
 if cd $KERNEL_DIR
