@@ -58,13 +58,16 @@ then
 				then
 					if cd unpack/boot_vdt
 					then
-						if ./repack.sh
+						if mkdir -p data dev proc sys system
 						then
-							if mv boot.img ../boot_vdt.img
+							if ./repack.sh
 							then
-								if rm -f boot.img-kernel
+								if mv boot.img ../boot_vdt.img
 								then
-									cd $KERNEL_DIR
+									if rm -f boot.img-kernel
+									then
+										cd $KERNEL_DIR
+									fi
 								fi
 							fi
 						fi
