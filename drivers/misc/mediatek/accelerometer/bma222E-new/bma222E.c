@@ -64,6 +64,10 @@
 #define BMA222_DEV_NAME        "BMA222"
 /*----------------------------------------------------------------------------*/
 
+#define FIX_AXIS_X          2
+#define FIX_AXIS_Y          -6
+#define FIX_AXIS_Z          0
+
 /*********/
 /*----------------------------------------------------------------------------*/
 static const struct i2c_device_id bma222_i2c_id[] = {{BMA222_DEV_NAME,0},{}};
@@ -949,9 +953,9 @@ static int BMA222_ReadSensorData(struct i2c_client *client, char *buf, int bufsi
 	u8 databuf[20];
 	int acc[BMA222_AXES_NUM];
 	int res = 0;
-	int fix_x = -2;
-	int fix_y = -6;
-	int fix_z = 0;
+	int fix_x = FIX_AXIS_X;
+	int fix_y = FIX_AXIS_Y;
+	int fix_z = FIX_AXIS_Z;
 	memset(databuf, 0, sizeof(u8)*10);
 
 	if(NULL == buf)
