@@ -949,7 +949,9 @@ static int BMA222_ReadSensorData(struct i2c_client *client, char *buf, int bufsi
 	u8 databuf[20];
 	int acc[BMA222_AXES_NUM];
 	int res = 0;
-	int fix_y = -8;
+	int fix_x = -2;
+	int fix_y = -6;
+	int fix_z = 0;
 	memset(databuf, 0, sizeof(u8)*10);
 
 	if(NULL == buf)
@@ -994,9 +996,9 @@ static int BMA222_ReadSensorData(struct i2c_client *client, char *buf, int bufsi
         //data has been calibrated in SCP side.
 #else //#ifdef CUSTOM_KERNEL_SENSORHUB
 		//GSE_LOG("raw data x=%d, y=%d, z=%d \n",obj->data[BMA222_AXIS_X],obj->data[BMA222_AXIS_Y],obj->data[BMA222_AXIS_Z]);
-		obj->data[BMA222_AXIS_X] += obj->cali_sw[BMA222_AXIS_X];
+		obj->data[BMA222_AXIS_X] += (obj->cali_sw[BMA222_AXIS_X] + fix_x);
 		obj->data[BMA222_AXIS_Y] += (obj->cali_sw[BMA222_AXIS_Y] + fix_y);
-		obj->data[BMA222_AXIS_Z] += obj->cali_sw[BMA222_AXIS_Z];
+		obj->data[BMA222_AXIS_Z] += (obj->cali_sw[BMA222_AXIS_Z] + fix_z);
 		
 		//printk("cali_sw x=%d, y=%d, z=%d \n",obj->cali_sw[BMA150_AXIS_X],obj->cali_sw[BMA150_AXIS_Y],obj->cali_sw[BMA150_AXIS_Z]);
 		
