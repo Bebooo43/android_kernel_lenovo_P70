@@ -51,7 +51,9 @@
 //#define ANDROID_TOUCH_DECLARED
 
 /* Tuneables */
-#define S2W_DEFAULT			0 // 0 - off; 1 - s2w & s2s; 2 - s2s only
+#define S2W_DEFAULT			0 // 0 - off; 1 - on
+#define S2S_DEFAULT			0 // 0 - off; 1 - on
+
 #define S2W_INVERT_DEFAULT		0 // 0 - horizontal; 1 - vertical
 #define S2W_PWRKEY_DUR			60
 
@@ -72,6 +74,8 @@
 
 /* Resources */
 int s2w_switch = S2W_DEFAULT;
+int s2s_switch = S2S_DEFAULT;
+
 int s2w_invert = S2W_INVERT_DEFAULT;
 
 int s2w_left_border = S2W_LEFT_BORDER_DEFAULT;
@@ -150,7 +154,7 @@ static void detect_sweep2wake(int x, int y, bool st)
 	int prevx = 0, nextx = 0, prevy = 0, nexty = 0;
 	bool single_touch = st;
 	//left->right unlock
-	if ((single_touch) && (s2w_scr_suspended == true) && ((s2w_switch == 1) || (s2w_switch == 3)) && (s2w_invert == 0)) {
+	if ((single_touch) && (s2w_scr_suspended == true) && (s2w_switch == 1) && (s2w_invert == 0)) {
 		prevx = s2w_left_border;
 		nextx = s2w_left;
 		if ((barrier[0] == true) ||
@@ -179,7 +183,7 @@ static void detect_sweep2wake(int x, int y, bool st)
 			}
 		}
 	//right->left lock
-	} else if ((single_touch) && (s2w_scr_suspended == false) && ((s2w_switch == 1) || (s2w_switch == 2)) && (s2w_invert == 0)) {
+	} else if ((single_touch) && (s2w_scr_suspended == false) && (s2s_switch == 1) && (s2w_invert == 0)) {
 		scr_on_touch = true;
 		prevx = s2w_right_border;
 		nextx = s2s_right;
@@ -209,7 +213,7 @@ static void detect_sweep2wake(int x, int y, bool st)
 			}
 		}
 	//up->down unlock
-	} else if ((single_touch) && (s2w_scr_suspended == true) && ((s2w_switch == 1) || (s2w_switch == 3)) && (s2w_invert == 1)) {
+	} else if ((single_touch) && (s2w_scr_suspended == true) && (s2w_switch == 1) && (s2w_invert == 1)) {
 		prevy = s2w_up_border;
 		nexty = s2w_up;
 		if ((barrier[0] == true) ||
@@ -238,7 +242,7 @@ static void detect_sweep2wake(int x, int y, bool st)
 			}
 		}
 	//down->up lock
-	} else if ((single_touch) && (s2w_scr_suspended == false) && ((s2w_switch == 1) || (s2w_switch == 2)) && (s2w_invert == 1)) {
+	} else if ((single_touch) && (s2w_scr_suspended == false) && (s2s_switch == 1) && (s2w_invert == 1)) {
 		scr_on_touch = true;
 		prevy = s2w_down_border;
 		nexty = s2s_down;
@@ -453,6 +457,7 @@ static struct early_suspend s2w_early_suspend_handler = {
 /*
  * SYSFS stuff below here
  */
+// sweep2wake
 static ssize_t s2w_sweep2wake_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -468,7 +473,10 @@ static ssize_t s2w_sweep2wake_dump(struct device *dev,
 {
 	unsigned int data;
 	if(sscanf(buf, "%i\n", &data) == 1)
-		s2w_switch = data;
+	    if(data == 0)
+		s2w_switch = 0;
+	    if(data == 1)
+		s2w_switch = 1;
 	else
 		pr_info("%s: unknown input!\n", __FUNCTION__);
 	return count;
@@ -601,6 +609,34 @@ static ssize_t s2w_sweep2wake_left_dump(struct device *dev,
 
 static DEVICE_ATTR(sweep2wake_left, (S_IWUGO|S_IRUGO),
 	s2w_sweep2wake_left_show, s2w_sweep2wake_left_dump);
+
+// sweep2sleep
+static ssize_t s2w_sweep2sleep_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2s_switch);
+
+	return count;
+}
+
+static ssize_t s2w_sweep2sleep_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+	    if(data == 0)
+		s2s_switch = 0;
+	    if(data == 1)
+		s2s_switch = 1;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
+static DEVICE_ATTR(sweep2sleep, (S_IWUGO|S_IRUGO),
+	s2w_sweep2sleep_show, s2w_sweep2sleep_dump);
 
 // sweep2sleep_down
 static ssize_t s2w_sweep2sleep_down_show(struct device *dev,
@@ -765,6 +801,10 @@ static int __init sweep2wake_init(void)
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_left.attr);
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for sweep2wake_left\n", __func__);
+	}
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for sweep2sleep\n", __func__);
 	}
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2sleep_down.attr);
 	if (rc) {

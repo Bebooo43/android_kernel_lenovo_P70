@@ -245,8 +245,8 @@ make_cm_zormax_kernel "$CONFIG_4"
 make_zip "$CONFIG_4"
 }
 
-boot_p70
+#boot_p70
 boot_p70_gc
-boot_p70_g
-boot_p70_c
+#boot_p70_g
+#boot_p70_c
 

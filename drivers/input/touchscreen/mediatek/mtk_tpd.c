@@ -354,17 +354,17 @@ static void eros_suspend(struct early_suspend *h) {
 	 */
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
 #ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
-	prevent_sleep = ((s2w_switch == 1) || (s2w_switch == 3)) && (stk3x1x_ps_check() == 1);
+	prevent_sleep = (s2w_switch == 1) && (stk3x1x_ps_check() == 1);
 #else
-	prevent_sleep = (s2w_switch == 1) || (s2w_switch == 3);
+	prevent_sleep = (s2w_switch == 1);
 #endif
 	s2w_scr_suspended = true;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 #ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
-	prevent_sleep = (prevent_sleep || (dt2w_tap > 1)) && (stk3x1x_ps_check() == 1);
+	prevent_sleep = (prevent_sleep || (dt2w_on == 1)) && (stk3x1x_ps_check() == 1);
 #else
-	prevent_sleep = prevent_sleep || (dt2w_tap > 1);
+	prevent_sleep = prevent_sleep || (dt2w_on == 1);
 #endif
 	dt2w_scr_suspended = true;
 #endif
@@ -382,17 +382,17 @@ static void eros_resume(struct early_suspend *h) {
 #endif
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
 #ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
-	prevent_sleep = ((s2w_switch == 1) || (s2w_switch == 3)) && (stk3x1x_ps_check() == 1);
+	prevent_sleep = (s2w_switch == 1) && (stk3x1x_ps_check() == 1);
 #else
-	prevent_sleep = (s2w_switch == 1) || (s2w_switch == 3);
+	prevent_sleep = (s2w_switch == 1);
 #endif
 	s2w_scr_suspended = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 #ifdef CONFIG_TOUCHSCREEN_WAKE_FIX
-	prevent_sleep = (prevent_sleep || (dt2w_tap > 1)) && (stk3x1x_ps_check() == 1);
+	prevent_sleep = (prevent_sleep || (dt2w_on == 1)) && (stk3x1x_ps_check() == 1);
 #else
-	prevent_sleep = prevent_sleep || (dt2w_tap > 1);
+	prevent_sleep = prevent_sleep || (dt2w_on == 1);
 #endif
 	dt2w_scr_suspended = false;
 #endif
