@@ -33,6 +33,9 @@
 #include <linux/hrtimer.h>
 #include <asm-generic/cputime.h>
 #include <linux/input/doubletap2wake.h>
+#include <linux/touch_wake_fix.h>
+
+#include <vibrator_hal.h>
 
 /* uncomment since no touchscreen defines android touch, do that here */
 //#define ANDROID_TOUCH_DECLARED
@@ -143,7 +146,13 @@ static void doubletap2wake_presspwr(struct work_struct * doubletap2wake_presspwr
 		return;
 	input_event(doubletap2wake_pwrdev, EV_KEY, KEY_POWER, 1);
 	input_event(doubletap2wake_pwrdev, EV_SYN, 0, 0);
-	msleep(DT2W_PWRKEY_DUR);
+	if (touch_vibrate_set()) {
+		vibr_Enable_HW();
+		msleep(DT2W_PWRKEY_DUR);
+		vibr_Disable_HW();
+	} else {
+		msleep(DT2W_PWRKEY_DUR);
+	}
 	input_event(doubletap2wake_pwrdev, EV_KEY, KEY_POWER, 0);
 	input_event(doubletap2wake_pwrdev, EV_SYN, 0, 0);
 	msleep(DT2W_PWRKEY_DUR);

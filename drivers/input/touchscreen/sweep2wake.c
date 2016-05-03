@@ -32,6 +32,9 @@
 #include <linux/input.h>
 #include <linux/hrtimer.h>
 #include <linux/input/sweep2wake.h>
+#include <linux/touch_wake_fix.h>
+
+#include <vibrator_hal.h>
 
 #define WAKE_HOOKS_DEFINED
 
@@ -119,7 +122,13 @@ static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work) {
 		return;
 	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 1);
 	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
-	msleep(S2W_PWRKEY_DUR);
+	if (touch_vibrate_set()) {
+		vibr_Enable_HW();
+		msleep(S2W_PWRKEY_DUR);
+		vibr_Disable_HW();
+	} else {
+		msleep(S2W_PWRKEY_DUR);
+	}
 	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 0);
 	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
 	msleep(S2W_PWRKEY_DUR);
