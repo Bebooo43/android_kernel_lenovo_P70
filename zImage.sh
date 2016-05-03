@@ -58,7 +58,7 @@ then
 				then
 					if cd unpack/boot_vdt
 					then
-						if mkdir -p data dev proc sys system
+						if mkdir -p ramdisk/data ramdisk/dev ramdisk/proc ramdisk/sys ramdisk/system
 						then
 							if ./repack.sh
 							then
@@ -245,8 +245,8 @@ make_cm_zormax_kernel "$CONFIG_4"
 make_zip "$CONFIG_4"
 }
 
-#boot_p70
+boot_p70
 boot_p70_gc
-#boot_p70_g
-#boot_p70_c
+boot_p70_g
+boot_p70_c
 
