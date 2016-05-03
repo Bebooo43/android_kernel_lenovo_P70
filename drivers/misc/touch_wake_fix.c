@@ -33,7 +33,7 @@
 #include <linux/touch_wake_fix.h>
 
 int screen_state;
-int touch_vibrate = 0;
+int touch_vibrate = 1;
 
 int touch_vibrate_set(void) {
 

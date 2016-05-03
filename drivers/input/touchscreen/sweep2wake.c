@@ -65,13 +65,13 @@
 #define S2W_RIGHT_BORDER_DEFAULT	720 // right border
 #define S2W_LEFT_BORDER_DEFAULT		0 // left border
 
-#define S2W_UP_DEFAULT			240 // upper border trigger
-#define S2W_DOWN_DEFAULT		1270 // bottom border trigger
+#define S2W_UP_DEFAULT			800 // upper border trigger
+#define S2W_DOWN_DEFAULT		1260 // bottom border trigger
 #define S2W_RIGHT_DEFAULT		600 // right border trigger
 #define S2W_LEFT_DEFAULT		240 // left border trigger
 
-#define S2S_UP_DEFAULT			240 // upper border trigger
-#define S2S_DOWN_DEFAULT		1270 // bottom border trigger
+#define S2S_UP_DEFAULT			800 // upper border trigger
+#define S2S_DOWN_DEFAULT		1260 // bottom border trigger
 #define S2S_RIGHT_DEFAULT		600 // right border trigger
 #define S2S_LEFT_DEFAULT		240 // left border trigger
 
