@@ -198,8 +198,8 @@ extern void MT6516_EINT_Registration(kal_uint8 eintno, kal_bool Dbounce_En,
 
 #ifdef STK_TUNE0
 	#define STK_MAX_MIN_DIFF	200
-	#define STK_LT_N_CT	8	// realy is 8 + 1
-	#define STK_HT_N_CT	32 	// realy is 32 + 1 
+	#define STK_LT_N_CT	1	// realy is 8 + 1
+	#define STK_HT_N_CT	4 	// realy is 32 + 1 
 	
 #endif /* #ifdef STK_TUNE0 */
 

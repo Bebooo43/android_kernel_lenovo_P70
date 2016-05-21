@@ -56,6 +56,7 @@ static int cursor_size_lastto;
 static u32 vgacon_xres;
 static u32 vgacon_yres;
 static struct vgastate state;
+struct screen_info screen_info;
 
 #define BLANK 0x0020
 
