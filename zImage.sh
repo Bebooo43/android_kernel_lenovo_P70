@@ -106,7 +106,10 @@ then
 								then
 									if rm -f boot.img-kernel
 									then
-										cd $KERNEL_DIR
+										if rm -f ramdisk/init.mt6752.performance.rc
+										then
+											cd $KERNEL_DIR
+										fi
 									fi
 								fi
 							fi
