@@ -93,16 +93,23 @@ then
 				then
 					if cd unpack/boot_cm
 					then
-						if ./repack.sh
+						if [[ "$1" == "$CONFIG_2" ]] || [[ "$1" == "$CONFIG_4" ]]
 						then
-							if mv boot.img ../boot_cm.img
+							cp init.mt6752.performance_2002000.rc ramdisk/init.mt6752.performance.rc
+						elif [[ "$1" == "$CONFIG_1" ]] || [[ "$1" == "$CONFIG_3" ]]
+						then
+							cp init.mt6752.performance_1690000.rc ramdisk/init.mt6752.performance.rc
+						fi
+							if ./repack.sh
 							then
-								if rm -f boot.img-kernel
+								if mv boot.img ../boot_cm.img
 								then
-									cd $KERNEL_DIR
+									if rm -f boot.img-kernel
+									then
+										cd $KERNEL_DIR
+									fi
 								fi
 							fi
-						fi
 					fi
 				fi
 			fi
